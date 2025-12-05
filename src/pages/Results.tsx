@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/Logo';
 import { ProfileChart } from '@/components/ProfileChart';
@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAssessment } from '@/context/AssessmentContext';
 import { getProfileDescription } from '@/data/discProfiles';
+import { generatePDF } from '@/utils/generatePDF';
+import { toast } from 'sonner';
 import { 
   Target, 
   Users, 
@@ -17,12 +19,16 @@ import {
   CheckCircle2,
   RotateCcw,
   Star,
-  TrendingUp
+  TrendingUp,
+  Download,
+  Loader2
 } from 'lucide-react';
 
 export default function Results() {
   const navigate = useNavigate();
   const { candidate, naturalProfile, adaptedProfile, resetAssessment } = useAssessment();
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
     if (!candidate || !naturalProfile || !adaptedProfile) {
@@ -46,16 +52,43 @@ export default function Results() {
     navigate('/');
   };
 
+  const handleDownloadPDF = async () => {
+    setIsGeneratingPDF(true);
+    try {
+      await generatePDF(candidate, naturalProfile, adaptedProfile, profile, chartRef.current);
+      toast.success('PDF gerado com sucesso!');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Erro ao gerar o PDF. Tente novamente.');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
   return (
     <div className="min-h-screen gradient-hero">
       {/* Header */}
       <header className="w-full py-6 px-4 sm:px-8 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Logo />
-          <Button variant="outline" onClick={handleNewAssessment} className="gap-2">
-            <RotateCcw className="w-4 h-4" />
-            Novo Teste
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleDownloadPDF} 
+              disabled={isGeneratingPDF}
+              className="gradient-veon hover:opacity-90 transition-opacity gap-2"
+            >
+              {isGeneratingPDF ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              {isGeneratingPDF ? 'Gerando...' : 'Baixar PDF'}
+            </Button>
+            <Button variant="outline" onClick={handleNewAssessment} className="gap-2">
+              <RotateCcw className="w-4 h-4" />
+              Novo Teste
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -84,7 +117,7 @@ export default function Results() {
                 <p className="text-lg text-primary font-medium mb-4">{profile.descricaoCurta}</p>
                 <p className="text-muted-foreground leading-relaxed">{profile.descricaoCompleta}</p>
               </div>
-              <div className="lg:w-96">
+              <div className="lg:w-96" ref={chartRef}>
                 <ProfileChart naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
               </div>
             </div>

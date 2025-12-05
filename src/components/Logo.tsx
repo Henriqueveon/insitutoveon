@@ -1,18 +1,22 @@
-import { Compass } from 'lucide-react';
+import veonLogo from '@/assets/veon-logo.png';
 
 interface LogoProps {
   className?: string;
   showText?: boolean;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-export function Logo({ className = '', showText = true }: LogoProps) {
+export function Logo({ className = '', showText = true, size = 'md' }: LogoProps) {
+  const sizeClasses = {
+    sm: 'w-8 h-8',
+    md: 'w-12 h-12',
+    lg: 'w-16 h-16'
+  };
+
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <div className="relative">
-        <div className="w-12 h-12 rounded-full gradient-veon flex items-center justify-center shadow-lg">
-          <Compass className="w-7 h-7 text-white" strokeWidth={2.5} />
-        </div>
-        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-veon-red rounded-full border-2 border-white" />
+      <div className={`${sizeClasses[size]} rounded-full gradient-veon flex items-center justify-center shadow-lg overflow-hidden`}>
+        <img src={veonLogo} alt="VEON Logo" className="w-full h-full object-cover" />
       </div>
       {showText && (
         <div className="flex flex-col">
