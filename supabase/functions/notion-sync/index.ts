@@ -120,6 +120,45 @@ serve(async (req) => {
       );
     }
 
+    if (action === 'update_pdf') {
+      // Update an existing Notion page with PDF link
+      const { notionPageId, pdfUrl } = data;
+
+      console.log('📤 Updating Notion with PDF URL:', pdfUrl);
+
+      const response = await fetch(`https://api.notion.com/v1/pages/${notionPageId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${NOTION_API_KEY}`,
+          'Content-Type': 'application/json',
+          'Notion-Version': '2022-06-28',
+        },
+        body: JSON.stringify({
+          properties: {
+            'RESULTADO EM PDF': {
+              url: pdfUrl,
+            },
+          },
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Notion API error:', result);
+        return new Response(
+          JSON.stringify({ success: false, error: result.message || 'Notion API error' }),
+          { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log('✅ Updated Notion page with PDF link:', result.id);
+      return new Response(
+        JSON.stringify({ success: true, notionPageId: result.id }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ success: false, error: 'Unknown action' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
