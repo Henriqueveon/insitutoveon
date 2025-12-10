@@ -1,5 +1,28 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import veonLogoImg from '@/assets/veon-logo.png';
+
+// Convert image to base64 for PDF embedding
+async function loadImageAsBase64(src: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      } else {
+        reject(new Error('Could not get canvas context'));
+      }
+    };
+    img.onerror = reject;
+    img.src = src;
+  });
+}
 
 interface CandidateData {
   id?: string;
@@ -148,6 +171,14 @@ export async function generatePDF(
   const margin = 20;
   const contentWidth = pageWidth - (margin * 2);
 
+  // Load VEON logo
+  let logoBase64: string | null = null;
+  try {
+    logoBase64 = await loadImageAsBase64(veonLogoImg);
+  } catch (error) {
+    console.warn('Could not load VEON logo:', error);
+  }
+
   // ========================================
   // PÁGINA 1 - CAPA
   // ========================================
@@ -155,20 +186,23 @@ export async function generatePDF(
   // Gradient background
   drawGradientBackground(pdf, pageWidth, pageHeight);
   
-  // Logo area - white circle with compass icon simulation
-  pdf.setFillColor(...VEON_COLORS.branco);
-  pdf.circle(pageWidth / 2, 70, 25, 'F');
-  
-  // Compass icon (simplified representation)
-  pdf.setFillColor(...VEON_COLORS.azulEscuro);
-  pdf.circle(pageWidth / 2, 70, 20, 'F');
-  pdf.setFillColor(...VEON_COLORS.branco);
-  pdf.circle(pageWidth / 2, 70, 15, 'F');
-  
-  // Compass needle simulation
-  pdf.setFillColor(...VEON_COLORS.azulEscuro);
-  // Triangle pointing up
-  pdf.triangle(pageWidth / 2, 55, pageWidth / 2 - 5, 75, pageWidth / 2 + 5, 75, 'F');
+  // Add VEON logo
+  if (logoBase64) {
+    // Logo with white background circle for visibility
+    pdf.setFillColor(...VEON_COLORS.branco);
+    pdf.circle(pageWidth / 2, 65, 32, 'F');
+    pdf.addImage(logoBase64, 'PNG', pageWidth / 2 - 28, 37, 56, 56);
+  } else {
+    // Fallback: compass icon simulation
+    pdf.setFillColor(...VEON_COLORS.branco);
+    pdf.circle(pageWidth / 2, 70, 25, 'F');
+    pdf.setFillColor(...VEON_COLORS.azulEscuro);
+    pdf.circle(pageWidth / 2, 70, 20, 'F');
+    pdf.setFillColor(...VEON_COLORS.branco);
+    pdf.circle(pageWidth / 2, 70, 15, 'F');
+    pdf.setFillColor(...VEON_COLORS.azulEscuro);
+    pdf.triangle(pageWidth / 2, 55, pageWidth / 2 - 5, 75, pageWidth / 2 + 5, 75, 'F');
+  }
   
   // "INSTITUTO VEON" text
   pdf.setTextColor(...VEON_COLORS.branco);
@@ -527,6 +561,133 @@ export async function generatePDF(
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'italic');
   pdf.text('"A bússola que aponta para o sucesso"', margin + 10, pageHeight - 24);
+
+  // ========================================
+  // PÁGINA 5 - DICAS DE COMUNICAÇÃO
+  // ========================================
+  pdf.addPage();
+  
+  // Header
+  pdf.setFillColor(...VEON_COLORS.azulEscuro);
+  pdf.rect(0, 0, pageWidth, 35, 'F');
+  pdf.setFillColor(...VEON_COLORS.vermelho);
+  pdf.rect(0, 35, pageWidth, 3, 'F');
+  
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(18);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('DICAS DE COMUNICAÇÃO', margin, 18);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('Como se comunicar efetivamente com este perfil', margin, 28);
+  
+  yPos = 55;
+  
+  // Como Comunicar com este Perfil
+  pdf.setFillColor(...VEON_COLORS.roxo);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('COMO COMUNICAR COM ESTE PERFIL', margin + 5, yPos + 3);
+  
+  yPos += 18;
+  
+  // Icon and description box
+  pdf.setFillColor(...VEON_COLORS.cinzaClaro);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 60, 4, 4, 'F');
+  
+  // Speech bubble icon simulation
+  pdf.setFillColor(...VEON_COLORS.roxo);
+  pdf.circle(margin + 15, yPos + 20, 10, 'F');
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(16);
+  pdf.text('💬', margin + 10, yPos + 24);
+  
+  pdf.setTextColor(...VEON_COLORS.azulEscuro);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Ao falar com esta pessoa:', margin + 35, yPos + 5);
+  
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  const comoComunicarLines = pdf.splitTextToSize(profile.comunicacao.comoComunicar, contentWidth - 45);
+  pdf.text(comoComunicarLines, margin + 35, yPos + 15);
+  
+  yPos += 70;
+  
+  // Como este Perfil Recebe Informações
+  pdf.setFillColor(...VEON_COLORS.azulMedio);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('COMO ESTE PERFIL RECEBE INFORMAÇÕES', margin + 5, yPos + 3);
+  
+  yPos += 18;
+  
+  // Icon and description box
+  pdf.setFillColor(...VEON_COLORS.cinzaClaro);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 60, 4, 4, 'F');
+  
+  // Ear/listening icon simulation
+  pdf.setFillColor(...VEON_COLORS.azulMedio);
+  pdf.circle(margin + 15, yPos + 20, 10, 'F');
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(16);
+  pdf.text('👂', margin + 10, yPos + 24);
+  
+  pdf.setTextColor(...VEON_COLORS.azulEscuro);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Ao receber feedback ou informações:', margin + 35, yPos + 5);
+  
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  const comoReceberLines = pdf.splitTextToSize(profile.comunicacao.comoReceber, contentWidth - 45);
+  pdf.text(comoReceberLines, margin + 35, yPos + 15);
+  
+  yPos += 75;
+  
+  // Dicas Práticas section
+  pdf.setFillColor(...VEON_COLORS.vermelho);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('DICAS PRÁTICAS PARA O DIA A DIA', margin + 5, yPos + 3);
+  
+  yPos += 18;
+  
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  
+  // Generate practical tips based on profile
+  const dicasPraticas = [
+    'Adapte seu estilo de comunicação ao interlocutor',
+    'Observe as reações e ajuste sua abordagem',
+    'Pratique a escuta ativa antes de responder',
+    'Use perguntas abertas para entender melhor',
+    'Confirme entendimento ao final de conversas importantes'
+  ];
+  
+  dicasPraticas.forEach((dica, index) => {
+    pdf.setFillColor(...VEON_COLORS.azulEscuro);
+    pdf.circle(margin + 8, yPos + 1, 4, 'F');
+    pdf.setTextColor(...VEON_COLORS.branco);
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(`${index + 1}`, margin + 8, yPos + 3, { align: 'center' });
+    
+    pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(dica, margin + 18, yPos + 3);
+    yPos += 10;
+  });
 
   // ========================================
   // FOOTER EM TODAS AS PÁGINAS
