@@ -6,23 +6,23 @@
 
 @layer base {
   :root {
-    /* VEON Brand Colors */
-    --veon-red: 0 78% 48%;
-    --veon-red-light: 0 78% 58%;
-    --veon-red-dark: 0 78% 38%;
-    --veon-blue: 222 58% 33%;
-    --veon-blue-light: 222 58% 43%;
-    --veon-blue-dark: 222 58% 23%;
+    /* VEON Brand Colors - #E31E24 (red), #003366 (blue) */
+    --veon-red: 358 83% 50%;
+    --veon-red-light: 358 83% 60%;
+    --veon-red-dark: 358 83% 40%;
+    --veon-blue: 210 100% 20%;
+    --veon-blue-light: 210 100% 30%;
+    --veon-blue-dark: 210 100% 15%;
     
-    /* NEW DISC Colors (CIS Assessment Style) */
-    --disc-d: 0 71% 70%;
+    /* DISC Colors */
+    --disc-d: 358 83% 50%;
     --disc-i: 33 100% 65%;
     --disc-s: 134 61% 56%;
     --disc-c: 205 100% 64%;
     
     /* Comparison Colors */
-    --color-natural: 180 100% 41%;
-    --color-adaptado: 0 100% 70%;
+    --color-natural: 210 100% 20%;
+    --color-adaptado: 358 83% 50%;
     
     /* Base Design System */
     --background: 220 20% 97%;
@@ -34,10 +34,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
     
-    --primary: 222 58% 33%;
+    --primary: 210 100% 20%;
     --primary-foreground: 0 0% 100%;
     
-    --secondary: 0 78% 48%;
+    --secondary: 358 83% 50%;
     --secondary-foreground: 0 0% 100%;
     
     --muted: 220 14% 90%;
@@ -51,7 +51,7 @@
     
     --border: 220 13% 87%;
     --input: 220 13% 87%;
-    --ring: 222 58% 33%;
+    --ring: 210 100% 20%;
     
     --radius: 0.75rem;
     

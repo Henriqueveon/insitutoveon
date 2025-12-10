@@ -1,4 +1,5 @@
 import { CandidateData } from '@/context/AssessmentContext';
+import veonLogo from '@/assets/veon-logo.png';
 
 interface ReportCoverProps {
   candidate: CandidateData;
@@ -6,7 +7,7 @@ interface ReportCoverProps {
 
 export function ReportCover({ candidate }: ReportCoverProps) {
   return (
-    <div className="min-h-[60vh] flex items-center justify-center bg-gradient-to-br from-[#00CED1] via-[#0099CC] to-[#0066AA] rounded-2xl shadow-2xl overflow-hidden relative">
+    <div className="min-h-[60vh] flex items-center justify-center bg-gradient-to-br from-veon-red via-veon-blue to-veon-blue-dark rounded-2xl shadow-2xl overflow-hidden relative">
       {/* Background pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-10 left-10 w-32 h-32 border-4 border-white rounded-full" />
@@ -16,15 +17,18 @@ export function ReportCover({ candidate }: ReportCoverProps) {
 
       <div className="text-center text-white p-8 relative z-10">
         <div className="mb-8">
-          <div className="w-24 h-24 mx-auto bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/30">
-            <span className="text-5xl">🧭</span>
-          </div>
+          <img 
+            src={veonLogo} 
+            alt="Instituto VEON" 
+            className="h-20 md:h-24 mx-auto object-contain"
+          />
+          <p className="text-lg mt-2 opacity-90 font-medium">Escola do Varejo</p>
         </div>
 
-        <h1 className="text-4xl md:text-6xl font-display font-bold mb-4 drop-shadow-lg">
+        <h1 className="text-4xl md:text-5xl font-display font-bold mb-4 drop-shadow-lg">
           RELATÓRIO DE PERFIL
         </h1>
-        <h2 className="text-3xl md:text-4xl font-display font-bold mb-8 drop-shadow-lg">
+        <h2 className="text-2xl md:text-3xl font-display font-bold mb-8 drop-shadow-lg">
           COMPORTAMENTAL DISC
         </h2>
 
