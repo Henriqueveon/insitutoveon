@@ -10,7 +10,7 @@
 
 /* ==================== HIDE ELEMENTS IN PDF ==================== */
 .no-print {
-  display: block;
+  display: block !important;
 }
 
 @media print {
@@ -26,18 +26,34 @@
 
 /* ==================== PAGE BREAKS ==================== */
 .page-break-before {
-  page-break-before: always;
-  break-before: page;
+  page-break-before: always !important;
+  break-before: page !important;
 }
 
 .page-break-after {
-  page-break-after: always;
-  break-after: page;
+  page-break-after: always !important;
+  break-after: page !important;
 }
 
-.no-break {
-  page-break-inside: avoid;
-  break-inside: avoid;
+/* ==================== AVOID BREAKS ==================== */
+.no-break,
+section,
+.card,
+[class*="rounded-xl"],
+[class*="shadow-lg"],
+.bg-white {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+/* Charts and SVGs never break */
+svg,
+canvas,
+.recharts-wrapper,
+[class*="chart"] {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  display: block !important;
 }
 
 /* ==================== FORCE PRINT COLORS ==================== */
@@ -45,6 +61,12 @@
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
   color-adjust: exact !important;
+}
+
+/* ==================== PAGE MARGINS ==================== */
+@page {
+  size: A4;
+  margin: 0;
 }
 
 /* ==================== PDF CONTAINER ==================== */
@@ -59,7 +81,7 @@
 }
 
 .pdf-content {
-  padding: 20mm;
+  padding: 15mm;
 }
 
 /* ==================== ENSURE VEON COLORS IN PDF ==================== */
@@ -85,8 +107,8 @@
 
 /* ==================== CHART CONTAINERS ==================== */
 .pdf-container .recharts-wrapper {
-  page-break-inside: avoid;
-  break-inside: avoid;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
 }
 
 .pdf-container .recharts-surface {
@@ -94,16 +116,17 @@
 }
 
 /* ==================== CARD STYLING FOR PDF ==================== */
-.pdf-container .card-elevated {
-  page-break-inside: avoid;
-  break-inside: avoid;
+.pdf-container .card-elevated,
+.pdf-container section {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
   margin-bottom: 16px;
 }
 
-/* ==================== SECTION SPACING ==================== */
-.pdf-content section {
-  margin-bottom: 24px;
-  page-break-inside: avoid;
+/* Cards with spacing */
+section + section,
+.card + .card {
+  margin-top: 1.5rem !important;
 }
 
 /* ==================== TYPOGRAPHY FOR PDF ==================== */
@@ -129,9 +152,11 @@
 }
 
 /* ==================== IMAGE HANDLING ==================== */
-.pdf-container img {
-  max-width: 100%;
-  page-break-inside: avoid;
+.pdf-container img,
+.pdf-container svg {
+  max-width: 100% !important;
+  height: auto !important;
+  page-break-inside: avoid !important;
 }
 
 /* ==================== GRADIENT BACKGROUNDS ==================== */

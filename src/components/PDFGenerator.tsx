@@ -209,25 +209,37 @@ export const PDFGenerator = ({ candidatoNome, children, onPDFGenerated }: PDFGen
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
-          scrollY: 0,
-          windowWidth: element.scrollWidth,
+          removeContainer: true,
+          imageTimeout: 0,
+          allowTaint: false,
         },
         jsPDF: { 
           unit: 'mm' as const, 
           format: 'a4' as const, 
           orientation: 'portrait' as const,
+          compress: true,
         },
         pagebreak: { 
-          mode: ['avoid-all', 'css', 'legacy'],
+          mode: ['css', 'legacy'],
           before: '.page-break-before',
           after: '.page-break-after',
-          avoid: '.no-break',
+          avoid: ['.no-break', 'img', 'svg', 'canvas', '.recharts-wrapper'],
         },
       };
 
       // Hide elements with .no-print class
       const elementosOcultar = element.querySelectorAll('.no-print');
       elementosOcultar.forEach(el => (el as HTMLElement).style.display = 'none');
+
+      // Fix SVG dimensions for better rendering
+      const svgs = element.querySelectorAll('svg');
+      svgs.forEach(svg => {
+        const rect = svg.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          svg.setAttribute('width', String(rect.width));
+          svg.setAttribute('height', String(rect.height));
+        }
+      });
 
       // Generate PDF as blob
       const pdfBlob = await html2pdf().set(options).from(element).outputPdf('blob');
@@ -302,27 +314,43 @@ export const PDFGenerator = ({ candidatoNome, children, onPDFGenerated }: PDFGen
   return (
     <>
       {/* Download PDF Button (VEON colors) */}
-      <Button
+      <button
         onClick={gerarPDF}
         disabled={gerando}
-        className="no-print fixed top-4 right-4 z-50 gap-2 shadow-lg"
+        className="no-print"
         style={{
-          backgroundColor: gerando ? '#c01a1f' : VEON_COLORS.vermelho,
+          position: 'fixed',
+          top: '1rem',
+          right: '1rem',
+          backgroundColor: VEON_COLORS.vermelho,
           color: VEON_COLORS.branco,
+          padding: '0.75rem 1.5rem',
+          borderRadius: '0.5rem',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          transition: 'all 0.3s',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          zIndex: 9999,
+          fontWeight: '600',
+          border: 'none',
+          cursor: gerando ? 'not-allowed' : 'pointer',
+          opacity: gerando ? 0.7 : 1,
+          fontFamily: 'Inter, sans-serif',
         }}
       >
         {gerando ? (
           <>
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-5 h-5 animate-spin" />
             Gerando PDF...
           </>
         ) : (
           <>
-            <Download className="w-4 h-4" />
+            <Download className="w-5 h-5" />
             Baixar PDF
           </>
         )}
-      </Button>
+      </button>
 
       {/* Report Container */}
       <div ref={reportRef} className="pdf-container">
