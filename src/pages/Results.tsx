@@ -1,14 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/Logo';
-import { ProfileChart } from '@/components/ProfileChart';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 import { useAssessment } from '@/context/AssessmentContext';
 import { getProfileDescription } from '@/data/discProfiles';
 import { generatePDF } from '@/utils/generatePDF';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+// Report Components
+import { ReportCover } from '@/components/report/ReportCover';
+import { ReportNavigation } from '@/components/report/ReportNavigation';
+import { DISCHorizontalChart } from '@/components/report/DISCHorizontalChart';
+import { AmplitudeAnalysis } from '@/components/report/AmplitudeAnalysis';
+import { ProgressComparison } from '@/components/report/ProgressComparison';
+import { CompetenciesRadar } from '@/components/report/CompetenciesRadar';
+import { LeadershipPieChart } from '@/components/report/LeadershipPieChart';
+
 import { 
   Target, 
   Users, 
@@ -22,7 +32,10 @@ import {
   Star,
   TrendingUp,
   Download,
-  Loader2
+  Loader2,
+  BookOpen,
+  Lightbulb,
+  Save
 } from 'lucide-react';
 
 export default function Results() {
@@ -31,6 +44,7 @@ export default function Results() {
   const chartRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [notionSynced, setNotionSynced] = useState(false);
+  const [actionPlan, setActionPlan] = useState('');
 
   useEffect(() => {
     if (!candidate || !naturalProfile || !adaptedProfile) {
@@ -103,13 +117,11 @@ export default function Results() {
   const handleDownloadPDF = async () => {
     setIsGeneratingPDF(true);
     try {
-      // Generate PDF and get blob for upload
       const result = await generatePDF(candidate, naturalProfile, adaptedProfile, profile, chartRef.current, true);
       
       if (result) {
         const { blob, fileName } = result;
         
-        // Upload to Supabase Storage
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('teste')
           .upload(`pdfs/${fileName}`, blob, {
@@ -120,7 +132,6 @@ export default function Results() {
         if (uploadError) {
           console.error('Error uploading PDF:', uploadError);
         } else {
-          // Get public URL
           const { data: urlData } = supabase.storage
             .from('teste')
             .getPublicUrl(`pdfs/${fileName}`);
@@ -128,7 +139,6 @@ export default function Results() {
           const pdfUrl = urlData.publicUrl;
           console.log('📤 PDF uploaded to:', pdfUrl);
 
-          // Send PDF URL to Notion
           const notionPageId = localStorage.getItem('candidato_notion_id');
           if (notionPageId && pdfUrl) {
             const response = await supabase.functions.invoke('notion-sync', {
@@ -149,7 +159,6 @@ export default function Results() {
           }
         }
 
-        // Also trigger download
         const downloadUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = downloadUrl;
@@ -167,17 +176,22 @@ export default function Results() {
     }
   };
 
+  const handleSaveActionPlan = () => {
+    localStorage.setItem('disc_action_plan', actionPlan);
+    toast.success('Plano de ação salvo com sucesso!');
+  };
+
   return (
-    <div className="min-h-screen gradient-hero">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="w-full py-6 px-4 sm:px-8 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="w-full py-4 px-4 sm:px-8 border-b border-border bg-card/95 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Logo />
           <div className="flex gap-2">
             <Button 
               onClick={handleDownloadPDF} 
               disabled={isGeneratingPDF}
-              className="gradient-veon hover:opacity-90 transition-opacity gap-2"
+              className="bg-gradient-to-r from-[#00CED1] to-[#0099CC] hover:opacity-90 transition-opacity gap-2"
             >
               {isGeneratingPDF ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -188,234 +202,333 @@ export default function Results() {
             </Button>
             <Button variant="outline" onClick={handleNewAssessment} className="gap-2">
               <RotateCcw className="w-4 h-4" />
-              Novo Teste
+              <span className="hidden sm:inline">Novo Teste</span>
             </Button>
           </div>
         </div>
       </header>
 
+      {/* Navigation */}
+      <ReportNavigation />
+
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
-        {/* Hero Section */}
-        <Card className="card-elevated animate-slide-up overflow-hidden">
-          <div className="gradient-veon p-6 sm:p-8 text-white">
-            <h1 className="font-display text-2xl sm:text-3xl font-bold mb-2">
-              Relatório de Perfil Comportamental
-            </h1>
-            <p className="opacity-90">
-              {candidate.nome_completo} • {candidate.cargo_atual} • {candidate.empresa_instagram}
+        {/* Cover Section */}
+        <section id="overview" className="animate-fade-in">
+          <ReportCover candidate={candidate} />
+        </section>
+
+        {/* Methodology Card */}
+        <Card className="animate-slide-up" style={{ animationDelay: '100ms' }}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <BookOpen className="w-5 h-5 text-primary" />
+              Metodologia DISC
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm max-w-none text-muted-foreground">
+            <p>
+              O modelo DISC foi desenvolvido por William Moulton Marston em 1928 e identifica quatro dimensões comportamentais principais:
             </p>
-            <p className="text-sm opacity-75 mt-1">
-              Avaliação realizada em {new Date().toLocaleDateString('pt-BR')}
-            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 not-prose">
+              <div className="p-3 rounded-lg bg-[#FF6B6B]/10 border border-[#FF6B6B]/30">
+                <span className="text-2xl font-bold text-[#FF6B6B]">D</span>
+                <p className="text-sm font-medium text-foreground">Dominância</p>
+                <p className="text-xs text-muted-foreground">Resultados e desafios</p>
+              </div>
+              <div className="p-3 rounded-lg bg-[#FFB84D]/10 border border-[#FFB84D]/30">
+                <span className="text-2xl font-bold text-[#FFB84D]">I</span>
+                <p className="text-sm font-medium text-foreground">Influência</p>
+                <p className="text-xs text-muted-foreground">Pessoas e expressão</p>
+              </div>
+              <div className="p-3 rounded-lg bg-[#51CF66]/10 border border-[#51CF66]/30">
+                <span className="text-2xl font-bold text-[#51CF66]">S</span>
+                <p className="text-sm font-medium text-foreground">Estabilidade</p>
+                <p className="text-xs text-muted-foreground">Ritmo e cooperação</p>
+              </div>
+              <div className="p-3 rounded-lg bg-[#4DABF7]/10 border border-[#4DABF7]/30">
+                <span className="text-2xl font-bold text-[#4DABF7]">C</span>
+                <p className="text-sm font-medium text-foreground">Conformidade</p>
+                <p className="text-xs text-muted-foreground">Regras e precisão</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Profile Summary */}
+        <Card className="card-elevated animate-slide-up overflow-hidden" style={{ animationDelay: '150ms' }}>
+          <div className="bg-gradient-to-r from-[#00CED1] to-[#0099CC] p-6 text-white">
+            <div className="flex items-center gap-3">
+              <Star className="w-8 h-8" />
+              <div>
+                <h2 className="font-display text-2xl font-bold">{profile.nome}</h2>
+                <p className="opacity-90">{profile.descricaoCurta}</p>
+              </div>
+            </div>
           </div>
-          <CardContent className="p-6 sm:p-8">
-            <div className="flex flex-col lg:flex-row gap-8">
-              <div className="flex-1">
-                <h2 className="font-display text-xl font-semibold text-foreground mb-2 flex items-center gap-2">
-                  <Star className="w-5 h-5 text-disc-i" />
-                  {profile.nome}
-                </h2>
-                <p className="text-lg text-primary font-medium mb-4">{profile.descricaoCurta}</p>
-                <p className="text-muted-foreground leading-relaxed">{profile.descricaoCompleta}</p>
-              </div>
-              <div className="lg:w-96" ref={chartRef}>
-                <ProfileChart naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
-              </div>
-            </div>
+          <CardContent className="p-6">
+            <p className="text-muted-foreground leading-relaxed">{profile.descricaoCompleta}</p>
           </CardContent>
         </Card>
 
-        {/* Grid of Cards */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Potencialidades */}
-          <Card className="card-elevated animate-slide-up" style={{ animationDelay: '100ms' }}>
+        {/* DISC Charts Section */}
+        <section id="disc-chart" className="space-y-6">
+          <div ref={chartRef}>
+            <DISCHorizontalChart naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
+          </div>
+        </section>
+
+        {/* Amplitude Analysis */}
+        <section id="amplitude">
+          <AmplitudeAnalysis naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
+        </section>
+
+        {/* Progress Comparison */}
+        <section id="progress">
+          <ProgressComparison naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
+        </section>
+
+        {/* Competencies Radar */}
+        <section id="competencies">
+          <CompetenciesRadar naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
+        </section>
+
+        {/* Leadership Pie Chart */}
+        <section id="leadership">
+          <LeadershipPieChart naturalProfile={naturalProfile} />
+        </section>
+
+        {/* Recommendations Section */}
+        <section id="recommendations" className="space-y-6">
+          {/* Grid of Cards */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Potencialidades */}
+            <Card className="card-elevated animate-slide-up">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <TrendingUp className="w-5 h-5 text-[#51CF66]" />
+                  Potencialidades
+                </CardTitle>
+                <CardDescription>Seus pontos fortes naturais</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {profile.potencialidades.slice(0, 6).map((item, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#51CF66] mt-0.5 flex-shrink-0" />
+                      <span className="text-foreground text-sm">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Pontos a Desenvolver */}
+            <Card className="card-elevated animate-slide-up">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Target className="w-5 h-5 text-[#FFB84D]" />
+                  Pontos a Desenvolver
+                </CardTitle>
+                <CardDescription>Oportunidades de crescimento</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {profile.pontosDesenvolver.map((item, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-[#FFB84D] mt-0.5 flex-shrink-0" />
+                      <span className="text-foreground text-sm">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Relações Interpessoais */}
+            <Card className="card-elevated animate-slide-up">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Users className="w-5 h-5 text-[#4DABF7]" />
+                  Relações Interpessoais
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-foreground text-sm leading-relaxed">
+                  {profile.relacoesInterpessoais}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Tomada de Decisão */}
+            <Card className="card-elevated animate-slide-up">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Brain className="w-5 h-5 text-primary" />
+                  Tomada de Decisão
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-foreground text-sm leading-relaxed">
+                  {profile.tomadaDecisao}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Motivadores */}
+            <Card className="card-elevated animate-slide-up">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Heart className="w-5 h-5 text-[#FF6B6B]" />
+                  Motivadores
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Principal</span>
+                  <p className="text-foreground text-sm">{profile.motivadores.principal}</p>
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Secundário</span>
+                  <p className="text-foreground text-sm">{profile.motivadores.secundario}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Medos */}
+            <Card className="card-elevated animate-slide-up">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                  Medos e Receios
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-1">
+                  {profile.medos.map((medo, index) => (
+                    <li key={index} className="text-foreground text-sm flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-destructive flex-shrink-0" />
+                      {medo}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Full Width Cards */}
+          <Card className="card-elevated animate-slide-up">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <TrendingUp className="w-5 h-5 text-disc-s" />
-                Potencialidades
+                <Briefcase className="w-5 h-5 text-primary" />
+                Funções Ideais
               </CardTitle>
-              <CardDescription>Seus pontos fortes naturais</CardDescription>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-2">
-                {profile.potencialidades.slice(0, 6).map((item, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-disc-s mt-0.5 flex-shrink-0" />
-                    <span className="text-foreground text-sm">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-
-          {/* Pontos a Desenvolver */}
-          <Card className="card-elevated animate-slide-up" style={{ animationDelay: '150ms' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Target className="w-5 h-5 text-disc-i" />
-                Pontos a Desenvolver
-              </CardTitle>
-              <CardDescription>Oportunidades de crescimento</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {profile.pontosDesenvolver.map((item, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-disc-i mt-0.5 flex-shrink-0" />
-                    <span className="text-foreground text-sm">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-
-          {/* Relações Interpessoais */}
-          <Card className="card-elevated animate-slide-up" style={{ animationDelay: '200ms' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Users className="w-5 h-5 text-veon-blue" />
-                Relações Interpessoais
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-foreground text-sm leading-relaxed">
-                {profile.relacoesInterpessoais}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Tomada de Decisão */}
-          <Card className="card-elevated animate-slide-up" style={{ animationDelay: '250ms' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Brain className="w-5 h-5 text-disc-c" />
-                Tomada de Decisão
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-foreground text-sm leading-relaxed">
-                {profile.tomadaDecisao}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Motivadores */}
-          <Card className="card-elevated animate-slide-up" style={{ animationDelay: '300ms' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Heart className="w-5 h-5 text-veon-red" />
-                Motivadores
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Principal</span>
-                <p className="text-foreground text-sm">{profile.motivadores.principal}</p>
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Secundário</span>
-                <p className="text-foreground text-sm">{profile.motivadores.secundario}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Medos */}
-          <Card className="card-elevated animate-slide-up" style={{ animationDelay: '350ms' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <AlertTriangle className="w-5 h-5 text-destructive" />
-                Medos e Receios
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-1">
-                {profile.medos.map((medo, index) => (
-                  <li key={index} className="text-foreground text-sm flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-destructive flex-shrink-0" />
-                    {medo}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Full Width Cards */}
-        <Card className="card-elevated animate-slide-up" style={{ animationDelay: '400ms' }}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Briefcase className="w-5 h-5 text-primary" />
-              Melhor Adequação Profissional
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-foreground mb-4">{profile.melhorAdequacao}</p>
-            <div className="flex flex-wrap gap-2">
-              {profile.cargosIdeais.map((cargo, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium"
-                >
-                  {cargo}
-                </span>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-elevated animate-slide-up" style={{ animationDelay: '450ms' }}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <MessageSquare className="w-5 h-5 text-disc-i" />
-              Sugestões de Comunicação
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-foreground mb-2">Como Comunicar com Este Perfil</h4>
-              <p className="text-muted-foreground text-sm">{profile.comunicacao.comoComunicar}</p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-foreground mb-2">Como Este Perfil Recebe Comunicação</h4>
-              <p className="text-muted-foreground text-sm">{profile.comunicacao.comoReceber}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-elevated animate-slide-up" style={{ animationDelay: '500ms' }}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Target className="w-5 h-5 text-disc-s" />
-              Plano de Ação para Desenvolvimento
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ol className="space-y-3">
-              {profile.planoAcao.map((acao, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <span className="w-6 h-6 rounded-full gradient-veon text-white text-sm font-semibold flex items-center justify-center flex-shrink-0">
-                    {index + 1}
+              <p className="text-foreground mb-4">{profile.melhorAdequacao}</p>
+              <div className="flex flex-wrap gap-2">
+                {profile.cargosIdeais.map((cargo, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 rounded-full bg-[#00CED1]/10 text-[#00CED1] text-sm font-medium border border-[#00CED1]/30"
+                  >
+                    {cargo}
                   </span>
-                  <span className="text-foreground">{acao}</span>
-                </li>
-              ))}
-            </ol>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="card-elevated animate-slide-up">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <MessageSquare className="w-5 h-5 text-[#FFB84D]" />
+                Dicas de Comunicação
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid md:grid-cols-2 gap-6">
+              <div className="p-4 rounded-lg bg-[#00CED1]/5 border border-[#00CED1]/20">
+                <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                  <span className="text-lg">💬</span>
+                  Como Comunicar com Este Perfil
+                </h4>
+                <p className="text-muted-foreground text-sm">{profile.comunicacao.comoComunicar}</p>
+              </div>
+              <div className="p-4 rounded-lg bg-[#FF6B6B]/5 border border-[#FF6B6B]/20">
+                <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                  <span className="text-lg">👂</span>
+                  Como Este Perfil Recebe Comunicação
+                </h4>
+                <p className="text-muted-foreground text-sm">{profile.comunicacao.comoReceber}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Action Plan Section */}
+        <section id="action-plan" className="space-y-6">
+          <Card className="card-elevated animate-slide-up">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Target className="w-5 h-5 text-[#51CF66]" />
+                Plano de Ação Sugerido
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ol className="space-y-3">
+                {profile.planoAcao.map((acao, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-gradient-to-r from-[#00CED1] to-[#0099CC] text-white text-sm font-semibold flex items-center justify-center flex-shrink-0">
+                      {index + 1}
+                    </span>
+                    <span className="text-foreground">{acao}</span>
+                  </li>
+                ))}
+              </ol>
+            </CardContent>
+          </Card>
+
+          {/* Editable Action Plan */}
+          <Card className="bg-[#00CED1]/5 border-[#00CED1]/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Lightbulb className="w-5 h-5 text-[#FFB84D]" />
+                Seu Plano de Ação Personalizado
+              </CardTitle>
+              <CardDescription>
+                Com base no seu relatório, quais ações você pode tomar para seu desenvolvimento?
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Textarea
+                value={actionPlan}
+                onChange={(e) => setActionPlan(e.target.value)}
+                placeholder="Escreva aqui suas metas pessoais, ações de desenvolvimento e compromissos baseados nos insights do seu perfil DISC..."
+                className="min-h-[150px] bg-card border-[#00CED1]/30 focus:border-[#00CED1]"
+              />
+              <Button
+                onClick={handleSaveActionPlan}
+                className="bg-gradient-to-r from-[#00CED1] to-[#0099CC] hover:opacity-90 gap-2"
+              >
+                <Save className="w-4 h-4" />
+                Salvar Plano
+              </Button>
+            </CardContent>
+          </Card>
+        </section>
 
         {/* Footer */}
-        <div className="text-center py-8 space-y-4">
+        <div className="text-center py-8 space-y-4 border-t border-border">
           <Button
             onClick={handleNewAssessment}
             size="lg"
-            className="gradient-veon hover:opacity-90 transition-opacity shadow-lg"
+            variant="outline"
+            className="gap-2"
           >
-            <RotateCcw className="w-5 h-5 mr-2" />
+            <RotateCcw className="w-5 h-5" />
             Realizar Nova Avaliação
           </Button>
           <p className="text-sm text-muted-foreground">
-            Instituto VEON • "Eu sou a bússola que aponta para o sucesso!"
+            Instituto VEON • "A bússola que aponta para o sucesso!"
           </p>
         </div>
       </main>

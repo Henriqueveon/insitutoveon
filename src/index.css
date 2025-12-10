@@ -14,11 +14,15 @@
     --veon-blue-light: 222 58% 43%;
     --veon-blue-dark: 222 58% 23%;
     
-    /* DISC Colors */
-    --disc-d: 0 78% 48%;
-    --disc-i: 45 100% 51%;
-    --disc-s: 142 76% 36%;
-    --disc-c: 222 58% 33%;
+    /* NEW DISC Colors (CIS Assessment Style) */
+    --disc-d: 0 71% 70%;
+    --disc-i: 33 100% 65%;
+    --disc-s: 134 61% 56%;
+    --disc-c: 205 100% 64%;
+    
+    /* Comparison Colors */
+    --color-natural: 180 100% 41%;
+    --color-adaptado: 0 100% 70%;
     
     /* Base Design System */
     --background: 220 20% 97%;
@@ -55,6 +59,7 @@
     --gradient-veon: linear-gradient(135deg, hsl(var(--veon-blue)) 0%, hsl(var(--veon-red)) 100%);
     --gradient-hero: linear-gradient(180deg, hsl(220 20% 97%) 0%, hsl(220 20% 92%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 20% 98%) 100%);
+    --gradient-cover: linear-gradient(135deg, hsl(180 100% 35%) 0%, hsl(205 100% 45%) 100%);
     
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
