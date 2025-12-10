@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useAssessment } from '@/context/AssessmentContext';
 import { getProfileDescription } from '@/data/discProfiles';
 import { generatePDF } from '@/utils/generatePDF';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { 
   Target, 
@@ -29,12 +30,58 @@ export default function Results() {
   const { candidate, naturalProfile, adaptedProfile, resetAssessment } = useAssessment();
   const chartRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [notionSynced, setNotionSynced] = useState(false);
 
   useEffect(() => {
     if (!candidate || !naturalProfile || !adaptedProfile) {
       navigate('/');
     }
   }, [candidate, naturalProfile, adaptedProfile, navigate]);
+
+  // Sync DISC profile result to Notion
+  useEffect(() => {
+    const syncToNotion = async () => {
+      if (notionSynced || !naturalProfile || !adaptedProfile) return;
+
+      const notionPageId = localStorage.getItem('candidato_notion_id');
+      if (!notionPageId) {
+        console.log('No Notion page ID found, skipping sync');
+        return;
+      }
+
+      const profile = getProfileDescription(
+        naturalProfile.D,
+        naturalProfile.I,
+        naturalProfile.S,
+        naturalProfile.C
+      );
+
+      const perfilResultado = `${profile.nome} | Natural: D${naturalProfile.D} I${naturalProfile.I} S${naturalProfile.S} C${naturalProfile.C} | Adaptado: D${adaptedProfile.D} I${adaptedProfile.I} S${adaptedProfile.S} C${adaptedProfile.C} | ${new Date().toLocaleString('pt-BR')}`;
+
+      try {
+        const response = await supabase.functions.invoke('notion-sync', {
+          body: {
+            action: 'update_profile',
+            data: {
+              notionPageId,
+              perfilResultado,
+            },
+          },
+        });
+
+        if (response.data?.success) {
+          console.log('✅ Perfil DISC enviado ao Notion com sucesso');
+          setNotionSynced(true);
+        } else {
+          console.warn('Notion profile sync failed:', response.error || response.data?.error);
+        }
+      } catch (error) {
+        console.warn('Notion profile sync error:', error);
+      }
+    };
+
+    syncToNotion();
+  }, [naturalProfile, adaptedProfile, notionSynced]);
 
   if (!candidate || !naturalProfile || !adaptedProfile) {
     return null;
@@ -49,6 +96,7 @@ export default function Results() {
 
   const handleNewAssessment = () => {
     resetAssessment();
+    localStorage.removeItem('candidato_notion_id');
     navigate('/');
   };
 

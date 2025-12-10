@@ -108,6 +108,7 @@ export default function Identification() {
     setIsLoading(true);
 
     try {
+      // Save to Supabase
       const { data, error } = await supabase
         .from('candidatos_disc')
         .insert({
@@ -120,6 +121,32 @@ export default function Identification() {
         .single();
 
       if (error) throw error;
+
+      // Save to Notion via edge function
+      try {
+        const notionResponse = await supabase.functions.invoke('notion-sync', {
+          body: {
+            action: 'create_candidate',
+            data: {
+              nomeCompleto: formData.nome_completo.trim(),
+              telefoneWhatsApp: formData.telefone_whatsapp,
+              cargoAtual: formData.cargo_atual,
+              instagram: formData.empresa_instagram,
+              candidatoId: data.id,
+            },
+          },
+        });
+
+        if (notionResponse.data?.notionPageId) {
+          localStorage.setItem('candidato_notion_id', notionResponse.data.notionPageId);
+          console.log('✅ Dados salvos no Notion:', notionResponse.data.notionPageId);
+        } else {
+          console.warn('Notion sync failed:', notionResponse.error || notionResponse.data?.error);
+        }
+      } catch (notionError) {
+        console.warn('Notion sync error (não crítico):', notionError);
+        // Continue even if Notion fails - Supabase is the primary database
+      }
 
       setCandidate({
         id: data.id,
