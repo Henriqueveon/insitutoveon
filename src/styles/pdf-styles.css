@@ -6,6 +6,8 @@
   --veon-cinza-claro: #F5F5F5;
   --veon-cinza-medio: #6B7280;
   --veon-preto: #1F2937;
+  --color-natural: #00CED1;
+  --color-adaptado: #FF6B6B;
 }
 
 /* ==================== HIDE ELEMENTS IN PDF ==================== */
@@ -17,10 +19,27 @@
   .no-print {
     display: none !important;
   }
-  
-  body {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+}
+
+/* ==================== A4 PAGE COMPONENT ==================== */
+.a4-page {
+  width: 210mm;
+  min-height: 297mm;
+  background: white;
+  margin: 0 auto 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  position: relative;
+  page-break-after: always;
+  break-after: page;
+}
+
+@media print {
+  .a4-page {
+    box-shadow: none;
+    margin: 0;
+    page-break-after: always;
+    break-after: page;
   }
 }
 
@@ -41,7 +60,8 @@ section,
 .card,
 [class*="rounded-xl"],
 [class*="shadow-lg"],
-.bg-white {
+.bg-white,
+.bg-card {
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
@@ -63,10 +83,24 @@ canvas,
   color-adjust: exact !important;
 }
 
-/* ==================== PAGE MARGINS ==================== */
+/* ==================== PAGE SETTINGS ==================== */
 @page {
   size: A4;
   margin: 0;
+}
+
+@media print {
+  html, body {
+    width: 210mm;
+    height: 297mm;
+  }
+  
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 /* ==================== PDF CONTAINER ==================== */
@@ -113,6 +147,11 @@ canvas,
 
 .pdf-container .recharts-surface {
   overflow: visible;
+}
+
+/* Ensure charts render for print */
+.recharts-wrapper svg {
+  overflow: visible !important;
 }
 
 /* ==================== CARD STYLING FOR PDF ==================== */
@@ -171,5 +210,10 @@ section + section,
   .pdf-container .shadow-xl,
   .pdf-container .shadow-2xl {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+  }
+  
+  /* Remove margins between pages */
+  .mb-8 {
+    margin-bottom: 0 !important;
   }
 }

@@ -115,7 +115,7 @@ export function SprangerValuesChart({ naturalProfile }: SprangerValuesChartProps
                 }}
                 formatter={(value: number) => [`${value}%`, 'Intensidade']}
               />
-              <Bar dataKey="valor" radius={[8, 8, 0, 0]}>
+              <Bar dataKey="valor" radius={[8, 8, 0, 0]} isAnimationActive={false}>
                 {valoresData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.cor} />
                 ))}

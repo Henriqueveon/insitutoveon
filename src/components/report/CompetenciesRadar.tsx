@@ -66,34 +66,36 @@ export function CompetenciesRadar({ naturalProfile, adaptedProfile }: Competenci
         Visualização completa das 16 competências comportamentais
       </p>
 
-      <div className="w-full h-[500px]">
+      <div className="w-full h-[600px]">
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart data={competenciasData} margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
+          <RadarChart data={competenciasData} margin={{ top: 20, right: 40, bottom: 20, left: 40 }}>
             <PolarGrid stroke="hsl(var(--border))" />
             <PolarAngleAxis
               dataKey="competencia"
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
             />
             <PolarRadiusAxis
               angle={90}
               domain={[0, 100]}
-              tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}
             />
             <Radar
               name="Natural"
               dataKey="natural"
               stroke="#00CED1"
               fill="#00CED1"
-              fillOpacity={0.3}
+              fillOpacity={0.4}
               strokeWidth={2}
+              isAnimationActive={false}
             />
             <Radar
               name="Adaptado"
               dataKey="adaptado"
               stroke="#FF6B6B"
-              fill="#FF6B6B"
-              fillOpacity={0.3}
+              fill="transparent"
               strokeWidth={2}
+              strokeDasharray="4 4"
+              isAnimationActive={false}
             />
             <Legend
               wrapperStyle={{ paddingTop: '20px' }}
