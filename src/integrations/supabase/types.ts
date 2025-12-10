@@ -14,7 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      candidatos_disc: {
+        Row: {
+          cargo_atual: string
+          created_at: string | null
+          empresa_instagram: string
+          id: string
+          nome_completo: string
+          telefone_whatsapp: string
+          updated_at: string | null
+        }
+        Insert: {
+          cargo_atual: string
+          created_at?: string | null
+          empresa_instagram: string
+          id?: string
+          nome_completo: string
+          telefone_whatsapp: string
+          updated_at?: string | null
+        }
+        Update: {
+          cargo_atual?: string
+          created_at?: string | null
+          empresa_instagram?: string
+          id?: string
+          nome_completo?: string
+          telefone_whatsapp?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

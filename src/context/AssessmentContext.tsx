@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface CandidateData {
-  nome: string;
-  telefone: string;
-  cargoAtual: string;
-  empresa: string;
+  id?: string;
+  nome_completo: string;
+  telefone_whatsapp: string;
+  cargo_atual: string;
+  empresa_instagram: string;
 }
 
 export interface Answer {

@@ -101,7 +101,7 @@ export default function Results() {
               Relatório de Perfil Comportamental
             </h1>
             <p className="opacity-90">
-              {candidate.nome} • {candidate.cargoAtual} • {candidate.empresa}
+              {candidate.nome_completo} • {candidate.cargo_atual} • {candidate.empresa_instagram}
             </p>
             <p className="text-sm opacity-75 mt-1">
               Avaliação realizada em {new Date().toLocaleDateString('pt-BR')}

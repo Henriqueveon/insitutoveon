@@ -2,10 +2,11 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 interface CandidateData {
-  nome: string;
-  telefone: string;
-  empresa: string;
-  cargoAtual: string;
+  id?: string;
+  nome_completo: string;
+  telefone_whatsapp: string;
+  cargo_atual: string;
+  empresa_instagram: string;
 }
 
 interface ProfileScores {
@@ -112,10 +113,10 @@ export async function generatePDF(
   pdf.setTextColor(...colors.textDark);
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  pdf.text(`Nome: ${candidate.nome}`, margin + 5, yPosition + 18);
-  pdf.text(`Telefone: ${candidate.telefone}`, margin + 5, yPosition + 25);
-  pdf.text(`Empresa: ${candidate.empresa}`, margin + 90, yPosition + 18);
-  pdf.text(`Cargo: ${candidate.cargoAtual}`, margin + 90, yPosition + 25);
+  pdf.text(`Nome: ${candidate.nome_completo}`, margin + 5, yPosition + 18);
+  pdf.text(`Telefone: ${candidate.telefone_whatsapp}`, margin + 5, yPosition + 25);
+  pdf.text(`Empresa: ${candidate.empresa_instagram}`, margin + 90, yPosition + 18);
+  pdf.text(`Cargo: ${candidate.cargo_atual}`, margin + 90, yPosition + 25);
 
   yPosition += 45;
 
@@ -416,6 +417,6 @@ export async function generatePDF(
   }
 
   // Save the PDF
-  const fileName = `Relatorio_DISC_${candidate.nome.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+  const fileName = `Relatorio_DISC_${candidate.nome_completo.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
   pdf.save(fileName);
 }
