@@ -61,6 +61,10 @@ export default {
           s: "hsl(var(--disc-s))",
           c: "hsl(var(--disc-c))",
         },
+        comparison: {
+          natural: "hsl(var(--color-natural))",
+          adaptado: "hsl(var(--color-adaptado))",
+        },
       },
       fontFamily: {
         sans: ["Inter", "sans-serif"],
