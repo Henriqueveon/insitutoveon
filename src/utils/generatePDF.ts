@@ -38,6 +38,102 @@ interface ProfileData {
   cargosIdeais: string[];
 }
 
+// VEON Brand Colors
+const VEON_COLORS = {
+  azulEscuro: [27, 59, 95] as [number, number, number],
+  azulMedio: [44, 82, 130] as [number, number, number],
+  vermelho: [227, 30, 36] as [number, number, number],
+  roxo: [107, 59, 140] as [number, number, number],
+  branco: [255, 255, 255] as [number, number, number],
+  cinzaClaro: [247, 250, 252] as [number, number, number],
+  cinzaTexto: [74, 85, 104] as [number, number, number],
+  discD: [227, 30, 36] as [number, number, number],
+  discI: [245, 158, 11] as [number, number, number],
+  discS: [34, 197, 94] as [number, number, number],
+  discC: [59, 130, 246] as [number, number, number],
+};
+
+// Helper function to draw gradient background (simulated with rectangles)
+function drawGradientBackground(pdf: jsPDF, width: number, height: number) {
+  const steps = 50;
+  for (let i = 0; i < steps; i++) {
+    const progress = i / steps;
+    const r = Math.round(VEON_COLORS.roxo[0] * (1 - progress) + VEON_COLORS.azulMedio[0] * progress);
+    const g = Math.round(VEON_COLORS.roxo[1] * (1 - progress) + VEON_COLORS.azulMedio[1] * progress);
+    const b = Math.round(VEON_COLORS.roxo[2] * (1 - progress) + VEON_COLORS.azulMedio[2] * progress);
+    pdf.setFillColor(r, g, b);
+    pdf.rect(0, (height / steps) * i, width, height / steps + 1, 'F');
+  }
+}
+
+// Helper to normalize DISC scores from -25/+25 to percentage
+function normalizeScore(score: number): number {
+  return Math.round(((score + 25) / 50) * 100);
+}
+
+// Helper to draw bar chart
+function drawBarChart(
+  pdf: jsPDF, 
+  scores: ProfileScores, 
+  x: number, 
+  y: number, 
+  title: string,
+  subtitle: string
+) {
+  const barHeight = 12;
+  const barSpacing = 20;
+  const maxBarWidth = 100;
+  const labelWidth = 50;
+  
+  // Section header
+  pdf.setFillColor(...VEON_COLORS.azulEscuro);
+  pdf.roundedRect(x - 5, y - 8, 180, 22, 3, 3, 'F');
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(title, x, y + 3);
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(subtitle, x, y + 11);
+  
+  y += 30;
+  
+  const factors = [
+    { label: 'D - Dominância', key: 'D' as keyof ProfileScores, color: VEON_COLORS.discD },
+    { label: 'I - Influência', key: 'I' as keyof ProfileScores, color: VEON_COLORS.discI },
+    { label: 'S - Estabilidade', key: 'S' as keyof ProfileScores, color: VEON_COLORS.discS },
+    { label: 'C - Conformidade', key: 'C' as keyof ProfileScores, color: VEON_COLORS.discC },
+  ];
+  
+  factors.forEach((factor, index) => {
+    const barY = y + (index * barSpacing);
+    const normalizedValue = normalizeScore(scores[factor.key]);
+    const barWidth = (normalizedValue / 100) * maxBarWidth;
+    
+    // Label
+    pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(factor.label, x, barY + 3);
+    
+    // Background bar
+    pdf.setFillColor(230, 230, 230);
+    pdf.roundedRect(x + labelWidth, barY - 4, maxBarWidth, barHeight, 2, 2, 'F');
+    
+    // Value bar
+    pdf.setFillColor(...factor.color);
+    pdf.roundedRect(x + labelWidth, barY - 4, barWidth, barHeight, 2, 2, 'F');
+    
+    // Value text
+    pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(`${normalizedValue}%`, x + labelWidth + maxBarWidth + 5, barY + 3);
+  });
+  
+  return y + (factors.length * barSpacing);
+}
+
 export async function generatePDF(
   candidate: CandidateData,
   naturalProfile: ProfileScores,
@@ -51,374 +147,407 @@ export async function generatePDF(
   const pageHeight = 297;
   const margin = 20;
   const contentWidth = pageWidth - (margin * 2);
-  let yPosition = margin;
 
-  const colors = {
-    veonBlue: [30, 58, 138] as [number, number, number],
-    veonRed: [217, 37, 29] as [number, number, number],
-    textDark: [31, 41, 55] as [number, number, number],
-    textMuted: [107, 114, 128] as [number, number, number],
-    bgLight: [248, 250, 252] as [number, number, number],
-    white: [255, 255, 255] as [number, number, number],
-    discD: [239, 68, 68] as [number, number, number],
-    discI: [234, 179, 8] as [number, number, number],
-    discS: [34, 197, 94] as [number, number, number],
-    discC: [59, 130, 246] as [number, number, number],
-  };
-
-  const addNewPage = () => {
-    pdf.addPage();
-    yPosition = margin;
-  };
-
-  const checkPageBreak = (height: number) => {
-    if (yPosition + height > pageHeight - margin) {
-      addNewPage();
-      return true;
-    }
-    return false;
-  };
-
-  // Header with gradient background
-  pdf.setFillColor(...colors.veonBlue);
-  pdf.rect(0, 0, pageWidth, 50, 'F');
+  // ========================================
+  // PÁGINA 1 - CAPA
+  // ========================================
   
-  // Accent line
-  pdf.setFillColor(...colors.veonRed);
-  pdf.rect(0, 50, pageWidth, 3, 'F');
-
-  // Title
-  pdf.setTextColor(...colors.white);
-  pdf.setFontSize(22);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Relatório de Perfil Comportamental DISC', margin, 25);
+  // Gradient background
+  drawGradientBackground(pdf, pageWidth, pageHeight);
   
-  pdf.setFontSize(11);
-  pdf.setFont('helvetica', 'normal');
-  pdf.text('Instituto VEON - "Eu sou a bússola que aponta para o sucesso!"', margin, 35);
+  // Logo area - white circle with compass icon simulation
+  pdf.setFillColor(...VEON_COLORS.branco);
+  pdf.circle(pageWidth / 2, 70, 25, 'F');
   
-  pdf.setFontSize(10);
-  pdf.text(`Avaliação realizada em ${new Date().toLocaleDateString('pt-BR')}`, margin, 45);
-
-  yPosition = 65;
-
-  // Candidate Information Box
-  pdf.setFillColor(...colors.bgLight);
-  pdf.roundedRect(margin, yPosition, contentWidth, 35, 3, 3, 'F');
+  // Compass icon (simplified representation)
+  pdf.setFillColor(...VEON_COLORS.azulEscuro);
+  pdf.circle(pageWidth / 2, 70, 20, 'F');
+  pdf.setFillColor(...VEON_COLORS.branco);
+  pdf.circle(pageWidth / 2, 70, 15, 'F');
   
-  pdf.setTextColor(...colors.veonBlue);
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Informações do Candidato', margin + 5, yPosition + 8);
-
-  pdf.setTextColor(...colors.textDark);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  pdf.text(`Nome: ${candidate.nome_completo}`, margin + 5, yPosition + 18);
-  pdf.text(`Telefone: ${candidate.telefone_whatsapp}`, margin + 5, yPosition + 25);
-  pdf.text(`Empresa: ${candidate.empresa_instagram}`, margin + 90, yPosition + 18);
-  pdf.text(`Cargo: ${candidate.cargo_atual}`, margin + 90, yPosition + 25);
-
-  yPosition += 45;
-
-  // Profile Name Section
-  pdf.setFillColor(...colors.veonBlue);
-  pdf.roundedRect(margin, yPosition, contentWidth, 25, 3, 3, 'F');
+  // Compass needle simulation
+  pdf.setFillColor(...VEON_COLORS.azulEscuro);
+  // Triangle pointing up
+  pdf.triangle(pageWidth / 2, 55, pageWidth / 2 - 5, 75, pageWidth / 2 + 5, 75, 'F');
   
-  pdf.setTextColor(...colors.white);
+  // "INSTITUTO VEON" text
+  pdf.setTextColor(...VEON_COLORS.branco);
   pdf.setFontSize(14);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(profile.nome, margin + 5, yPosition + 10);
+  pdf.text('INSTITUTO', pageWidth / 2, 110, { align: 'center' });
+  pdf.setFontSize(28);
+  pdf.text('VEON', pageWidth / 2, 122, { align: 'center' });
   
+  // Divider line
+  pdf.setDrawColor(...VEON_COLORS.branco);
+  pdf.setLineWidth(0.5);
+  pdf.line(pageWidth / 2 + 40, 105, pageWidth / 2 + 40, 125);
+  
+  // "Escola do Varejo"
+  pdf.setFontSize(18);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('Escola do Varejo', pageWidth / 2 + 70, 117, { align: 'center' });
+  
+  // Main title section
+  pdf.setDrawColor(...VEON_COLORS.branco);
+  pdf.setLineWidth(0.3);
+  pdf.line(55, 145, 155, 145);
+  
+  pdf.setFontSize(22);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('RELATÓRIO DE PERFIL', pageWidth / 2, 165, { align: 'center' });
+  pdf.text('COMPORTAMENTAL DISC', pageWidth / 2, 178, { align: 'center' });
+  
+  pdf.line(55, 190, 155, 190);
+  
+  // Candidate info
+  pdf.setFontSize(16);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(candidate.nome_completo, pageWidth / 2, 210, { align: 'center' });
+  
+  pdf.setFontSize(12);
+  pdf.text(new Date().toLocaleDateString('pt-BR', { 
+    day: '2-digit', 
+    month: 'long', 
+    year: 'numeric' 
+  }), pageWidth / 2, 222, { align: 'center' });
+  
+  // Motivational phrase
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'italic');
+  pdf.text('"A bússola que aponta', pageWidth / 2, 255, { align: 'center' });
+  pdf.text('para o sucesso"', pageWidth / 2, 265, { align: 'center' });
+
+  // ========================================
+  // PÁGINA 2 - PERFIL NATURAL
+  // ========================================
+  pdf.addPage();
+  
+  // Header
+  pdf.setFillColor(...VEON_COLORS.azulEscuro);
+  pdf.rect(0, 0, pageWidth, 35, 'F');
+  pdf.setFillColor(...VEON_COLORS.vermelho);
+  pdf.rect(0, 35, pageWidth, 3, 'F');
+  
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(18);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('PERFIL NATURAL', margin, 18);
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  pdf.text(profile.descricaoCurta, margin + 5, yPosition + 18);
-
-  yPosition += 35;
-
-  // DISC Scores Table
-  pdf.setTextColor(...colors.veonBlue);
+  pdf.text('Como você realmente é em sua essência', margin, 28);
+  
+  let yPos = 55;
+  
+  // Bar chart for natural profile
+  yPos = drawBarChart(pdf, naturalProfile, margin, yPos, 'PONTUAÇÃO DISC - NATURAL', 'Seu comportamento em situações naturais');
+  
+  yPos += 15;
+  
+  // Profile identified box
+  pdf.setFillColor(...VEON_COLORS.vermelho);
+  pdf.roundedRect(margin, yPos, contentWidth, 18, 4, 4, 'F');
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(13);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`PERFIL IDENTIFICADO: ${profile.nome.toUpperCase()}`, pageWidth / 2, yPos + 12, { align: 'center' });
+  
+  yPos += 30;
+  
+  // Características principais
+  pdf.setTextColor(...VEON_COLORS.azulEscuro);
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('Pontuação DISC', margin, yPosition);
+  pdf.text('CARACTERÍSTICAS PRINCIPAIS', margin, yPos);
+  
+  yPos += 8;
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  
+  const descLines = pdf.splitTextToSize(profile.descricaoCompleta, contentWidth);
+  pdf.text(descLines, margin, yPos);
+  yPos += descLines.length * 5 + 10;
+  
+  // Pontos fortes (potencialidades)
+  pdf.setTextColor(...VEON_COLORS.azulEscuro);
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('PONTOS FORTES', margin, yPos);
+  
+  yPos += 7;
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  
+  const pontosFortes = profile.potencialidades.slice(0, 4);
+  pontosFortes.forEach((ponto) => {
+    pdf.text(`• ${ponto}`, margin + 3, yPos);
+    yPos += 6;
+  });
+  
+  yPos += 8;
+  
+  // Pontos de atenção
+  pdf.setTextColor(...VEON_COLORS.vermelho);
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('PONTOS DE ATENÇÃO', margin, yPos);
+  
+  yPos += 7;
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  
+  const pontosAtencao = profile.pontosDesenvolver.slice(0, 3);
+  pontosAtencao.forEach((ponto) => {
+    pdf.text(`• ${ponto}`, margin + 3, yPos);
+    yPos += 6;
+  });
 
-  yPosition += 8;
-
-  const scoreBoxWidth = (contentWidth - 15) / 4;
-  const scoreLabels = ['D', 'I', 'S', 'C'];
-  const scoreColors = [colors.discD, colors.discI, colors.discS, colors.discC];
-  const scoreNames = ['Dominância', 'Influência', 'Estabilidade', 'Conformidade'];
-  const naturalScores = [naturalProfile.D, naturalProfile.I, naturalProfile.S, naturalProfile.C];
-  const adaptedScores = [adaptedProfile.D, adaptedProfile.I, adaptedProfile.S, adaptedProfile.C];
-
-  scoreLabels.forEach((label, index) => {
-    const xPos = margin + (index * (scoreBoxWidth + 5));
+  // ========================================
+  // PÁGINA 3 - PERFIL ADAPTADO
+  // ========================================
+  pdf.addPage();
+  
+  // Header
+  pdf.setFillColor(...VEON_COLORS.azulEscuro);
+  pdf.rect(0, 0, pageWidth, 35, 'F');
+  pdf.setFillColor(...VEON_COLORS.vermelho);
+  pdf.rect(0, 35, pageWidth, 3, 'F');
+  
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(18);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('PERFIL ADAPTADO', margin, 18);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('Como você age no ambiente de trabalho', margin, 28);
+  
+  yPos = 55;
+  
+  // Bar chart for adapted profile
+  yPos = drawBarChart(pdf, adaptedProfile, margin, yPos, 'PONTUAÇÃO DISC - ADAPTADO', 'Seu comportamento em situações profissionais');
+  
+  yPos += 15;
+  
+  // Comparison box
+  pdf.setFillColor(...VEON_COLORS.cinzaClaro);
+  pdf.roundedRect(margin, yPos, contentWidth, 50, 4, 4, 'F');
+  
+  pdf.setTextColor(...VEON_COLORS.azulEscuro);
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('ADAPTAÇÃO OBSERVADA', margin + 5, yPos + 12);
+  
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  
+  const adaptText = 'Você adapta seu comportamento no ambiente profissional para atender às demandas do trabalho. Esta diferença entre perfil natural e adaptado indica como você se ajusta às expectativas do cargo.';
+  const adaptLines = pdf.splitTextToSize(adaptText, contentWidth - 10);
+  pdf.text(adaptLines, margin + 5, yPos + 22);
+  
+  yPos += 60;
+  
+  // Diferenças Natural vs Adaptado
+  pdf.setTextColor(...VEON_COLORS.azulEscuro);
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('DIFERENÇAS NATURAL vs ADAPTADO', margin, yPos);
+  
+  yPos += 10;
+  
+  const factors = [
+    { key: 'D' as keyof ProfileScores, name: 'Dominância', color: VEON_COLORS.discD },
+    { key: 'I' as keyof ProfileScores, name: 'Influência', color: VEON_COLORS.discI },
+    { key: 'S' as keyof ProfileScores, name: 'Estabilidade', color: VEON_COLORS.discS },
+    { key: 'C' as keyof ProfileScores, name: 'Conformidade', color: VEON_COLORS.discC },
+  ];
+  
+  factors.forEach((factor, index) => {
+    const naturalNorm = normalizeScore(naturalProfile[factor.key]);
+    const adaptedNorm = normalizeScore(adaptedProfile[factor.key]);
+    const diff = adaptedNorm - naturalNorm;
+    const diffText = diff > 0 ? `+${diff}` : `${diff}`;
+    const interpretation = diff > 10 ? '(mais no trabalho)' : diff < -10 ? '(menos no trabalho)' : '(similar)';
     
-    pdf.setFillColor(...scoreColors[index]);
-    pdf.roundedRect(xPos, yPosition, scoreBoxWidth, 30, 2, 2, 'F');
+    pdf.setFillColor(...factor.color);
+    pdf.circle(margin + 5, yPos + 2, 4, 'F');
     
-    pdf.setTextColor(...colors.white);
-    pdf.setFontSize(18);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text(label, xPos + scoreBoxWidth / 2, yPosition + 12, { align: 'center' });
-    
-    pdf.setFontSize(8);
-    pdf.text(scoreNames[index], xPos + scoreBoxWidth / 2, yPosition + 19, { align: 'center' });
-    
+    pdf.setTextColor(...VEON_COLORS.cinzaTexto);
     pdf.setFontSize(10);
-    pdf.text(`N: ${naturalScores[index]}% | A: ${adaptedScores[index]}%`, xPos + scoreBoxWidth / 2, yPosition + 27, { align: 'center' });
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(factor.name, margin + 12, yPos + 4);
+    
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`${diffText} pontos ${interpretation}`, margin + 50, yPos + 4);
+    
+    yPos += 12;
   });
-
-  yPosition += 40;
-
-  // Capture chart if available
-  if (chartElement) {
-    try {
-      const canvas = await html2canvas(chartElement, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        logging: false,
-      });
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 80;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      checkPageBreak(imgHeight + 10);
-      
-      pdf.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, yPosition, imgWidth, imgHeight);
-      yPosition += imgHeight + 15;
-    } catch (error) {
-      console.log('Could not capture chart');
-    }
-  }
-
-  // Description
-  checkPageBreak(40);
-  pdf.setTextColor(...colors.veonBlue);
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Descrição do Perfil', margin, yPosition);
-
-  yPosition += 7;
-  pdf.setTextColor(...colors.textDark);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  const descriptionLines = pdf.splitTextToSize(profile.descricaoCompleta, contentWidth);
-  pdf.text(descriptionLines, margin, yPosition);
-  yPosition += descriptionLines.length * 5 + 10;
-
-  // New page for detailed sections
-  addNewPage();
-
-  // Potencialidades
-  pdf.setTextColor(...colors.veonBlue);
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Potencialidades', margin, yPosition);
-
-  yPosition += 7;
-  pdf.setTextColor(...colors.textDark);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  profile.potencialidades.forEach((item, index) => {
-    checkPageBreak(7);
-    pdf.text(`• ${item}`, margin + 3, yPosition);
-    yPosition += 6;
-  });
-
-  yPosition += 8;
-
-  // Pontos a Desenvolver
-  checkPageBreak(20);
-  pdf.setTextColor(...colors.veonBlue);
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Pontos a Desenvolver', margin, yPosition);
-
-  yPosition += 7;
-  pdf.setTextColor(...colors.textDark);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  profile.pontosDesenvolver.forEach((item) => {
-    checkPageBreak(7);
-    pdf.text(`• ${item}`, margin + 3, yPosition);
-    yPosition += 6;
-  });
-
-  yPosition += 8;
-
+  
+  yPos += 15;
+  
   // Relações Interpessoais
-  checkPageBreak(30);
-  pdf.setTextColor(...colors.veonBlue);
+  pdf.setTextColor(...VEON_COLORS.azulEscuro);
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('Relações Interpessoais', margin, yPosition);
-
-  yPosition += 7;
-  pdf.setTextColor(...colors.textDark);
+  pdf.text('RELAÇÕES INTERPESSOAIS', margin, yPos);
+  
+  yPos += 8;
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
   const relLines = pdf.splitTextToSize(profile.relacoesInterpessoais, contentWidth);
-  pdf.text(relLines, margin, yPosition);
-  yPosition += relLines.length * 5 + 10;
+  pdf.text(relLines, margin, yPos);
 
-  // Tomada de Decisão
-  checkPageBreak(30);
-  pdf.setTextColor(...colors.veonBlue);
-  pdf.setFontSize(12);
+  // ========================================
+  // PÁGINA 4 - RECOMENDAÇÕES
+  // ========================================
+  pdf.addPage();
+  
+  // Header
+  pdf.setFillColor(...VEON_COLORS.azulEscuro);
+  pdf.rect(0, 0, pageWidth, 35, 'F');
+  pdf.setFillColor(...VEON_COLORS.vermelho);
+  pdf.rect(0, 35, pageWidth, 3, 'F');
+  
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(18);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('Tomada de Decisão', margin, yPosition);
-
-  yPosition += 7;
-  pdf.setTextColor(...colors.textDark);
+  pdf.text('RECOMENDAÇÕES PROFISSIONAIS', margin, 18);
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  const decLines = pdf.splitTextToSize(profile.tomadaDecisao, contentWidth);
-  pdf.text(decLines, margin, yPosition);
-  yPosition += decLines.length * 5 + 10;
-
-  // Motivadores
-  checkPageBreak(40);
-  pdf.setTextColor(...colors.veonBlue);
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Motivadores', margin, yPosition);
-
-  yPosition += 7;
-  pdf.setTextColor(...colors.textDark);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Principal:', margin + 3, yPosition);
-  pdf.setFont('helvetica', 'normal');
-  const motivadorPrincipalLines = pdf.splitTextToSize(profile.motivadores.principal, contentWidth - 25);
-  pdf.text(motivadorPrincipalLines, margin + 25, yPosition);
-  yPosition += motivadorPrincipalLines.length * 5 + 3;
-
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Secundário:', margin + 3, yPosition);
-  pdf.setFont('helvetica', 'normal');
-  const motivadorSecundarioLines = pdf.splitTextToSize(profile.motivadores.secundario, contentWidth - 25);
-  pdf.text(motivadorSecundarioLines, margin + 30, yPosition);
-  yPosition += motivadorSecundarioLines.length * 5 + 10;
-
-  // Medos
-  checkPageBreak(30);
-  pdf.setTextColor(...colors.veonBlue);
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Medos e Receios', margin, yPosition);
-
-  yPosition += 7;
-  pdf.setTextColor(...colors.textDark);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  profile.medos.forEach((item) => {
-    checkPageBreak(7);
-    pdf.text(`• ${item}`, margin + 3, yPosition);
-    yPosition += 6;
-  });
-
-  yPosition += 8;
-
-  // New page for professional info
-  addNewPage();
-
-  // Melhor Adequação Profissional
-  pdf.setTextColor(...colors.veonBlue);
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Melhor Adequação Profissional', margin, yPosition);
-
-  yPosition += 7;
-  pdf.setTextColor(...colors.textDark);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  const adequacaoLines = pdf.splitTextToSize(profile.melhorAdequacao, contentWidth);
-  pdf.text(adequacaoLines, margin, yPosition);
-  yPosition += adequacaoLines.length * 5 + 8;
-
-  // Cargos Ideais
-  pdf.setTextColor(...colors.veonBlue);
+  pdf.text('Direcionamento para desenvolvimento e carreira', margin, 28);
+  
+  yPos = 55;
+  
+  // Funções Ideais
+  pdf.setFillColor(...VEON_COLORS.roxo);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 8, 2, 2, 'F');
+  pdf.setTextColor(...VEON_COLORS.branco);
   pdf.setFontSize(11);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('Cargos Ideais:', margin, yPosition);
-
-  yPosition += 6;
-  pdf.setTextColor(...colors.textDark);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  pdf.text(profile.cargosIdeais.join(' | '), margin + 3, yPosition);
-  yPosition += 15;
-
-  // Comunicação
-  checkPageBreak(50);
-  pdf.setTextColor(...colors.veonBlue);
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Sugestões de Comunicação', margin, yPosition);
-
-  yPosition += 8;
-  pdf.setFillColor(...colors.bgLight);
-  pdf.roundedRect(margin, yPosition, contentWidth / 2 - 5, 45, 2, 2, 'F');
-  pdf.roundedRect(margin + contentWidth / 2 + 5, yPosition, contentWidth / 2 - 5, 45, 2, 2, 'F');
-
-  pdf.setTextColor(...colors.veonBlue);
-  pdf.setFontSize(9);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Como Comunicar com Este Perfil', margin + 3, yPosition + 8);
-  pdf.text('Como Este Perfil Recebe', margin + contentWidth / 2 + 8, yPosition + 8);
-
-  pdf.setTextColor(...colors.textDark);
-  pdf.setFontSize(8);
-  pdf.setFont('helvetica', 'normal');
-  const comunicarLines = pdf.splitTextToSize(profile.comunicacao.comoComunicar, contentWidth / 2 - 15);
-  pdf.text(comunicarLines, margin + 3, yPosition + 15);
+  pdf.text('FUNÇÕES IDEAIS', margin + 5, yPos + 1);
   
-  const receberLines = pdf.splitTextToSize(profile.comunicacao.comoReceber, contentWidth / 2 - 15);
-  pdf.text(receberLines, margin + contentWidth / 2 + 8, yPosition + 15);
-
-  yPosition += 55;
-
-  // Plano de Ação
-  checkPageBreak(60);
-  pdf.setTextColor(...colors.veonBlue);
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Plano de Ação para Desenvolvimento', margin, yPosition);
-
-  yPosition += 8;
-  pdf.setTextColor(...colors.textDark);
+  yPos += 12;
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  profile.planoAcao.forEach((item, index) => {
-    checkPageBreak(12);
-    pdf.setFillColor(...colors.veonBlue);
-    pdf.circle(margin + 3, yPosition - 1.5, 3, 'F');
-    pdf.setTextColor(...colors.white);
-    pdf.setFontSize(8);
-    pdf.text(`${index + 1}`, margin + 3, yPosition, { align: 'center' });
-    
-    pdf.setTextColor(...colors.textDark);
-    pdf.setFontSize(10);
-    const actionLines = pdf.splitTextToSize(item, contentWidth - 15);
-    pdf.text(actionLines, margin + 10, yPosition);
-    yPosition += actionLines.length * 5 + 5;
+  
+  profile.cargosIdeais.slice(0, 6).forEach((cargo) => {
+    pdf.text(`• ${cargo}`, margin + 5, yPos);
+    yPos += 6;
   });
+  
+  yPos += 10;
+  
+  // Trabalho em Equipe
+  pdf.setFillColor(...VEON_COLORS.roxo);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 8, 2, 2, 'F');
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('TRABALHO EM EQUIPE', margin + 5, yPos + 1);
+  
+  yPos += 12;
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  
+  const teamLines = pdf.splitTextToSize(profile.melhorAdequacao, contentWidth - 10);
+  pdf.text(teamLines, margin + 5, yPos);
+  yPos += teamLines.length * 5 + 10;
+  
+  // Desenvolvimento Sugerido
+  pdf.setFillColor(...VEON_COLORS.roxo);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 8, 2, 2, 'F');
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('DESENVOLVIMENTO SUGERIDO', margin + 5, yPos + 1);
+  
+  yPos += 12;
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  
+  profile.planoAcao.slice(0, 4).forEach((acao, index) => {
+    pdf.setFillColor(...VEON_COLORS.azulEscuro);
+    pdf.circle(margin + 5, yPos - 1, 3, 'F');
+    pdf.setTextColor(...VEON_COLORS.branco);
+    pdf.setFontSize(8);
+    pdf.text(`${index + 1}`, margin + 5, yPos, { align: 'center' });
+    
+    pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+    pdf.setFontSize(10);
+    const acaoLines = pdf.splitTextToSize(acao, contentWidth - 20);
+    pdf.text(acaoLines, margin + 12, yPos);
+    yPos += acaoLines.length * 5 + 5;
+  });
+  
+  yPos += 10;
+  
+  // Cursos Recomendados VEON
+  pdf.setFillColor(...VEON_COLORS.vermelho);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 8, 2, 2, 'F');
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('CURSOS RECOMENDADOS VEON', margin + 5, yPos + 1);
+  
+  yPos += 12;
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  
+  const cursosVeon = [
+    'Liderança em Vendas',
+    'Gestão de Relacionamentos',
+    'High Performance Team',
+    'Comunicação Assertiva'
+  ];
+  
+  cursosVeon.forEach((curso) => {
+    pdf.text(`• ${curso}`, margin + 5, yPos);
+    yPos += 6;
+  });
+  
+  // Footer block with VEON branding
+  pdf.setFillColor(...VEON_COLORS.azulEscuro);
+  pdf.roundedRect(margin, pageHeight - 55, contentWidth, 35, 4, 4, 'F');
+  
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Instituto VEON', margin + 10, pageHeight - 40);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('Escola do Varejo', margin + 10, pageHeight - 32);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'italic');
+  pdf.text('"A bússola que aponta para o sucesso"', margin + 10, pageHeight - 24);
 
-  // Footer
+  // ========================================
+  // FOOTER EM TODAS AS PÁGINAS
+  // ========================================
   const totalPages = pdf.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     pdf.setPage(i);
-    pdf.setFillColor(...colors.veonBlue);
-    pdf.rect(0, pageHeight - 15, pageWidth, 15, 'F');
-    pdf.setTextColor(...colors.white);
-    pdf.setFontSize(8);
-    pdf.text('Instituto VEON - Análise Comportamental DISC', margin, pageHeight - 6);
-    pdf.text(`Página ${i} de ${totalPages}`, pageWidth - margin, pageHeight - 6, { align: 'right' });
+    
+    // Skip cover page footer styling
+    if (i > 1) {
+      pdf.setFillColor(...VEON_COLORS.azulEscuro);
+      pdf.rect(0, pageHeight - 12, pageWidth, 12, 'F');
+      pdf.setTextColor(...VEON_COLORS.branco);
+      pdf.setFontSize(8);
+      pdf.text('Instituto VEON - Escola do Varejo | Análise Comportamental DISC', margin, pageHeight - 4);
+      pdf.text(`Página ${i} de ${totalPages}`, pageWidth - margin, pageHeight - 4, { align: 'right' });
+    }
   }
 
   // Save the PDF
-  const fileName = `Relatorio_DISC_${candidate.nome_completo.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+  const fileName = `Perfil-DISC-${candidate.nome_completo.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
   
   if (returnBlob) {
     const pdfBlob = pdf.output('blob');
