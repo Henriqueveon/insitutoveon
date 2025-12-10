@@ -10,6 +10,7 @@ import Instructions from "./pages/Instructions";
 import Assessment from "./pages/Assessment";
 import Results from "./pages/Results";
 import Admin from "./pages/Admin";
+import PDFPreview from "./pages/PDFPreview";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/teste" element={<Assessment />} />
             <Route path="/resultado" element={<Results />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/pdf-preview" element={<PDFPreview />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

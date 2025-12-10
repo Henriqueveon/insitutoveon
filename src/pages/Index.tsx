@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, Target, BarChart3, Users, Award, Compass } from 'lucide-react';
+import { ArrowRight, Target, BarChart3, Users, Award, Compass, FileText } from 'lucide-react';
 
 export default function Index() {
   const navigate = useNavigate();
@@ -127,10 +127,19 @@ export default function Index() {
       </main>
 
       {/* Footer */}
-      <footer className="py-6 text-center border-t border-border">
+      <footer className="py-6 text-center border-t border-border space-y-3">
         <p className="text-sm text-muted-foreground">
           Instituto VEON © {new Date().getFullYear()} • "Eu sou a bússola que aponta para o sucesso!"
         </p>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/pdf-preview')}
+          className="text-xs text-muted-foreground hover:text-primary"
+        >
+          <FileText className="w-3 h-3 mr-1" />
+          Visualizar Exemplo de PDF
+        </Button>
       </footer>
     </div>
   );

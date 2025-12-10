@@ -10,6 +10,29 @@
   --color-adaptado: #FF6B6B;
 }
 
+/* ==================== FORCE PRINT COLORS - CRITICAL ==================== */
+* {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+
+/* ==================== PAGE SETTINGS ==================== */
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  html, body {
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+}
+
 /* ==================== HIDE ELEMENTS IN PDF ==================== */
 .no-print {
   display: block !important;
