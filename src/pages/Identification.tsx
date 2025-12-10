@@ -5,44 +5,151 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAssessment } from '@/context/AssessmentContext';
-import { User, Phone, Briefcase, Building2, ArrowRight } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { User, Phone, Briefcase, Instagram, ArrowRight, Loader2 } from 'lucide-react';
+
+const CARGO_OPTIONS = [
+  'Sócio/Empresário',
+  'Executivo/C-level',
+  'Gerente Comercial',
+  'Consultor/Vendedor',
+  'Auxiliar de Escritório',
+  'SDR',
+  'Closer',
+];
 
 export default function Identification() {
   const navigate = useNavigate();
   const { setCandidate } = useAssessment();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    nome: '',
-    telefone: '',
-    cargoAtual: '',
-    empresa: '',
+    nome_completo: '',
+    telefone_whatsapp: '',
+    cargo_atual: '',
+    empresa_instagram: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 7) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+    if (numbers.length <= 11) return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7)}`;
+    return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+  };
+
+  const formatInstagram = (value: string) => {
+    const cleaned = value.replace(/^@+/, '').trim();
+    return cleaned ? `@${cleaned}` : '';
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    let formattedValue = value;
+
+    if (name === 'telefone_whatsapp') {
+      formattedValue = formatPhone(value);
+    } else if (name === 'empresa_instagram') {
+      formattedValue = formatInstagram(value);
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: formattedValue }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
+  const handleCargoChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, cargo_atual: value }));
+    if (errors.cargo_atual) {
+      setErrors((prev) => ({ ...prev, cargo_atual: '' }));
+    }
+  };
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.nome.trim()) newErrors.nome = 'Nome é obrigatório';
-    if (!formData.telefone.trim()) newErrors.telefone = 'Telefone é obrigatório';
-    if (!formData.cargoAtual.trim()) newErrors.cargoAtual = 'Cargo é obrigatório';
-    if (!formData.empresa.trim()) newErrors.empresa = 'Empresa é obrigatória';
+    
+    if (!formData.nome_completo.trim()) {
+      newErrors.nome_completo = 'Nome é obrigatório';
+    } else if (formData.nome_completo.trim().length < 3) {
+      newErrors.nome_completo = 'Nome deve ter pelo menos 3 caracteres';
+    }
+    
+    const phoneNumbers = formData.telefone_whatsapp.replace(/\D/g, '');
+    if (!phoneNumbers) {
+      newErrors.telefone_whatsapp = 'Telefone é obrigatório';
+    } else if (phoneNumbers.length < 10 || phoneNumbers.length > 11) {
+      newErrors.telefone_whatsapp = 'Telefone inválido';
+    }
+    
+    if (!formData.cargo_atual) {
+      newErrors.cargo_atual = 'Cargo é obrigatório';
+    }
+    
+    if (!formData.empresa_instagram.trim()) {
+      newErrors.empresa_instagram = '@ da empresa é obrigatório';
+    } else if (!formData.empresa_instagram.startsWith('@')) {
+      newErrors.empresa_instagram = 'Deve começar com @';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validate()) {
-      setCandidate(formData);
+    
+    if (!validate()) return;
+
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase
+        .from('candidatos_disc')
+        .insert({
+          nome_completo: formData.nome_completo.trim(),
+          telefone_whatsapp: formData.telefone_whatsapp,
+          cargo_atual: formData.cargo_atual,
+          empresa_instagram: formData.empresa_instagram,
+        })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
+      setCandidate({
+        id: data.id,
+        ...formData,
+      });
+
+      localStorage.setItem('candidato_id', data.id);
+
+      toast({
+        title: 'Cadastro realizado!',
+        description: 'Seus dados foram salvos com sucesso.',
+      });
+
       navigate('/instrucoes');
+    } catch (error) {
+      console.error('Error saving candidate:', error);
+      toast({
+        title: 'Erro ao salvar',
+        description: 'Não foi possível salvar seus dados. Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const getInputClass = (fieldName: string) => {
+    if (errors[fieldName]) return 'border-destructive focus:ring-destructive';
+    if (formData[fieldName as keyof typeof formData]) return 'border-green-500 focus:ring-green-500';
+    return '';
   };
 
   return (
@@ -67,84 +174,108 @@ export default function Identification() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="nome" className="flex items-center gap-2">
+                <Label htmlFor="nome_completo" className="flex items-center gap-2">
                   <User className="w-4 h-4 text-muted-foreground" />
                   Nome Completo
                 </Label>
                 <Input
-                  id="nome"
-                  name="nome"
+                  id="nome_completo"
+                  name="nome_completo"
                   placeholder="Digite seu nome completo"
-                  value={formData.nome}
+                  value={formData.nome_completo}
                   onChange={handleChange}
-                  className={errors.nome ? 'border-destructive' : ''}
+                  className={getInputClass('nome_completo')}
+                  disabled={isLoading}
                 />
-                {errors.nome && (
-                  <p className="text-sm text-destructive">{errors.nome}</p>
+                {errors.nome_completo && (
+                  <p className="text-sm text-destructive">{errors.nome_completo}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="telefone" className="flex items-center gap-2">
+                <Label htmlFor="telefone_whatsapp" className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-muted-foreground" />
                   Telefone / WhatsApp
                 </Label>
                 <Input
-                  id="telefone"
-                  name="telefone"
+                  id="telefone_whatsapp"
+                  name="telefone_whatsapp"
                   type="tel"
                   placeholder="(00) 00000-0000"
-                  value={formData.telefone}
+                  value={formData.telefone_whatsapp}
                   onChange={handleChange}
-                  className={errors.telefone ? 'border-destructive' : ''}
+                  className={getInputClass('telefone_whatsapp')}
+                  disabled={isLoading}
                 />
-                {errors.telefone && (
-                  <p className="text-sm text-destructive">{errors.telefone}</p>
+                {errors.telefone_whatsapp && (
+                  <p className="text-sm text-destructive">{errors.telefone_whatsapp}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="cargoAtual" className="flex items-center gap-2">
+                <Label htmlFor="cargo_atual" className="flex items-center gap-2">
                   <Briefcase className="w-4 h-4 text-muted-foreground" />
                   Cargo Atual
                 </Label>
-                <Input
-                  id="cargoAtual"
-                  name="cargoAtual"
-                  placeholder="Ex: Gerente de Vendas"
-                  value={formData.cargoAtual}
-                  onChange={handleChange}
-                  className={errors.cargoAtual ? 'border-destructive' : ''}
-                />
-                {errors.cargoAtual && (
-                  <p className="text-sm text-destructive">{errors.cargoAtual}</p>
+                <Select 
+                  value={formData.cargo_atual} 
+                  onValueChange={handleCargoChange}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger 
+                    id="cargo_atual"
+                    className={getInputClass('cargo_atual')}
+                  >
+                    <SelectValue placeholder="Selecione seu cargo" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border border-border z-50">
+                    {CARGO_OPTIONS.map((cargo) => (
+                      <SelectItem key={cargo} value={cargo}>
+                        {cargo}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.cargo_atual && (
+                  <p className="text-sm text-destructive">{errors.cargo_atual}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="empresa" className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-muted-foreground" />
-                  Empresa
+                <Label htmlFor="empresa_instagram" className="flex items-center gap-2">
+                  <Instagram className="w-4 h-4 text-muted-foreground" />
+                  Coloque o @exato da empresa/loja que trabalha
                 </Label>
                 <Input
-                  id="empresa"
-                  name="empresa"
-                  placeholder="Nome da empresa"
-                  value={formData.empresa}
+                  id="empresa_instagram"
+                  name="empresa_instagram"
+                  placeholder="@nomedaempresa"
+                  value={formData.empresa_instagram}
                   onChange={handleChange}
-                  className={errors.empresa ? 'border-destructive' : ''}
+                  className={getInputClass('empresa_instagram')}
+                  disabled={isLoading}
                 />
-                {errors.empresa && (
-                  <p className="text-sm text-destructive">{errors.empresa}</p>
+                {errors.empresa_instagram && (
+                  <p className="text-sm text-destructive">{errors.empresa_instagram}</p>
                 )}
               </div>
 
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-semibold gradient-veon hover:opacity-90 transition-opacity"
+                disabled={isLoading}
               >
-                Próximo
-                <ArrowRight className="w-5 h-5 ml-2" />
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    Próximo
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </>
+                )}
               </Button>
             </form>
           </CardContent>
