@@ -56,7 +56,7 @@ export default function Results() {
         naturalProfile.C
       );
 
-      const perfilResultado = `${profile.nome} | Natural: D${naturalProfile.D} I${naturalProfile.I} S${naturalProfile.S} C${naturalProfile.C} | Adaptado: D${adaptedProfile.D} I${adaptedProfile.I} S${adaptedProfile.S} C${adaptedProfile.C} | ${new Date().toLocaleString('pt-BR')}`;
+      const perfilResultado = `Perfil: ${profile.nome} | Natural: D${naturalProfile.D} I${naturalProfile.I} S${naturalProfile.S} C${naturalProfile.C} | Adaptado: D${adaptedProfile.D} I${adaptedProfile.I} S${adaptedProfile.S} C${adaptedProfile.C} | Teste: ${new Date().toLocaleString('pt-BR')}`;
 
       try {
         const response = await supabase.functions.invoke('notion-sync', {
