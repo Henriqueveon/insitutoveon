@@ -1,0 +1,150 @@
+/* ==================== VEON COLORS ==================== */
+:root {
+  --veon-azul: #003366;
+  --veon-vermelho: #E31E24;
+  --veon-branco: #FFFFFF;
+  --veon-cinza-claro: #F5F5F5;
+  --veon-cinza-medio: #6B7280;
+  --veon-preto: #1F2937;
+}
+
+/* ==================== HIDE ELEMENTS IN PDF ==================== */
+.no-print {
+  display: block;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* ==================== PAGE BREAKS ==================== */
+.page-break-before {
+  page-break-before: always;
+  break-before: page;
+}
+
+.page-break-after {
+  page-break-after: always;
+  break-after: page;
+}
+
+.no-break {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+/* ==================== FORCE PRINT COLORS ==================== */
+* {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+
+/* ==================== PDF CONTAINER ==================== */
+.pdf-container {
+  max-width: 210mm;
+  margin: 0 auto;
+}
+
+.pdf-capa {
+  width: 210mm;
+  min-height: 297mm;
+}
+
+.pdf-content {
+  padding: 20mm;
+}
+
+/* ==================== ENSURE VEON COLORS IN PDF ==================== */
+.bg-veon-azul,
+[style*="background: #003366"],
+[style*="background-color: #003366"] {
+  background-color: #003366 !important;
+}
+
+.bg-veon-vermelho,
+[style*="background: #E31E24"],
+[style*="background-color: #E31E24"] {
+  background-color: #E31E24 !important;
+}
+
+.text-veon-azul {
+  color: #003366 !important;
+}
+
+.text-veon-vermelho {
+  color: #E31E24 !important;
+}
+
+/* ==================== CHART CONTAINERS ==================== */
+.pdf-container .recharts-wrapper {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.pdf-container .recharts-surface {
+  overflow: visible;
+}
+
+/* ==================== CARD STYLING FOR PDF ==================== */
+.pdf-container .card-elevated {
+  page-break-inside: avoid;
+  break-inside: avoid;
+  margin-bottom: 16px;
+}
+
+/* ==================== SECTION SPACING ==================== */
+.pdf-content section {
+  margin-bottom: 24px;
+  page-break-inside: avoid;
+}
+
+/* ==================== TYPOGRAPHY FOR PDF ==================== */
+.pdf-container h1,
+.pdf-container h2,
+.pdf-container h3 {
+  page-break-after: avoid;
+}
+
+.pdf-container p,
+.pdf-container li {
+  orphans: 3;
+  widows: 3;
+}
+
+/* ==================== TABLE STYLING ==================== */
+.pdf-container table {
+  page-break-inside: avoid;
+}
+
+.pdf-container tr {
+  page-break-inside: avoid;
+}
+
+/* ==================== IMAGE HANDLING ==================== */
+.pdf-container img {
+  max-width: 100%;
+  page-break-inside: avoid;
+}
+
+/* ==================== GRADIENT BACKGROUNDS ==================== */
+.pdf-container [class*="bg-gradient"] {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* ==================== SHADOWS FOR PRINT ==================== */
+@media print {
+  .pdf-container .shadow-lg,
+  .pdf-container .shadow-xl,
+  .pdf-container .shadow-2xl {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+  }
+}

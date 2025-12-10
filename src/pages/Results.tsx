@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { useAssessment } from '@/context/AssessmentContext';
 import { getProfileDescription } from '@/data/discProfiles';
-import { generatePDF } from '@/utils/generatePDF';
 import { supabase } from '@/integrations/supabase/client';
+import PDFGenerator from '@/components/PDFGenerator';
+import '@/styles/pdf-styles.css';
 import { toast } from 'sonner';
 
 // Report Components
@@ -31,8 +32,6 @@ import {
   RotateCcw,
   Star,
   TrendingUp,
-  Download,
-  Loader2,
   BookOpen,
   Lightbulb,
   Save
@@ -42,7 +41,6 @@ export default function Results() {
   const navigate = useNavigate();
   const { candidate, naturalProfile, adaptedProfile, resetAssessment } = useAssessment();
   const chartRef = useRef<HTMLDivElement>(null);
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [notionSynced, setNotionSynced] = useState(false);
   const [actionPlan, setActionPlan] = useState('');
 
@@ -114,105 +112,32 @@ export default function Results() {
     navigate('/');
   };
 
-  const handleDownloadPDF = async () => {
-    setIsGeneratingPDF(true);
-    try {
-      const result = await generatePDF(candidate, naturalProfile, adaptedProfile, profile, chartRef.current, true);
-      
-      if (result) {
-        const { blob, fileName } = result;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('teste')
-          .upload(`pdfs/${fileName}`, blob, {
-            contentType: 'application/pdf',
-            upsert: true,
-          });
-
-        if (uploadError) {
-          console.error('Error uploading PDF:', uploadError);
-        } else {
-          const { data: urlData } = supabase.storage
-            .from('teste')
-            .getPublicUrl(`pdfs/${fileName}`);
-
-          const pdfUrl = urlData.publicUrl;
-          console.log('📤 PDF uploaded to:', pdfUrl);
-
-          const notionPageId = localStorage.getItem('candidato_notion_id');
-          if (notionPageId && pdfUrl) {
-            const response = await supabase.functions.invoke('notion-sync', {
-              body: {
-                action: 'update_pdf',
-                data: {
-                  notionPageId,
-                  pdfUrl,
-                },
-              },
-            });
-
-            if (response.data?.success) {
-              console.log('✅ Link do PDF salvo no Notion!');
-            } else {
-              console.warn('Erro ao salvar PDF no Notion:', response.error);
-            }
-          }
-        }
-
-        const downloadUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = fileName;
-        link.click();
-        URL.revokeObjectURL(downloadUrl);
-      }
-
-      toast.success('PDF gerado com sucesso!');
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error('Erro ao gerar o PDF. Tente novamente.');
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
-
   const handleSaveActionPlan = () => {
     localStorage.setItem('disc_action_plan', actionPlan);
     toast.success('Plano de ação salvo com sucesso!');
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="w-full py-4 px-4 sm:px-8 border-b border-border bg-card/95 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Logo />
-          <div className="flex gap-2">
-            <Button 
-              onClick={handleDownloadPDF} 
-              disabled={isGeneratingPDF}
-              className="bg-gradient-to-r from-[#00CED1] to-[#0099CC] hover:opacity-90 transition-opacity gap-2"
-            >
-              {isGeneratingPDF ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Download className="w-4 h-4" />
-              )}
-              {isGeneratingPDF ? 'Gerando...' : 'Baixar PDF'}
-            </Button>
+    <PDFGenerator candidatoNome={candidate.nome_completo}>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="w-full py-4 px-4 sm:px-8 border-b border-border bg-card/95 backdrop-blur-md sticky top-0 z-40 no-print">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <Logo />
             <Button variant="outline" onClick={handleNewAssessment} className="gap-2">
               <RotateCcw className="w-4 h-4" />
               <span className="hidden sm:inline">Novo Teste</span>
             </Button>
           </div>
+        </header>
+
+        {/* Navigation */}
+        <div className="no-print">
+          <ReportNavigation />
         </div>
-      </header>
 
-      {/* Navigation */}
-      <ReportNavigation />
-
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {/* Main Content */}
+        <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         {/* Cover Section */}
         <section id="overview" className="animate-fade-in">
           <ReportCover candidate={candidate} />
@@ -533,5 +458,6 @@ export default function Results() {
         </div>
       </main>
     </div>
+    </PDFGenerator>
   );
 }
