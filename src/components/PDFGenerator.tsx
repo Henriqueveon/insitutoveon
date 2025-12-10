@@ -22,126 +22,81 @@ interface PDFGeneratorProps {
   onPDFGenerated?: (blob: Blob, fileName: string) => void;
 }
 
-// Cover Page Component with VEON Branding
+// Cover Page Component - TEXT ONLY (no logos, icons, or images)
 const CapaPDF = ({ candidatoNome, data }: { candidatoNome: string; data: string }) => (
   <div 
     className="pdf-capa"
     style={{
       minHeight: '297mm',
       width: '210mm',
-      background: `linear-gradient(135deg, ${VEON_COLORS.azul} 0%, ${VEON_COLORS.azulEscuro} 100%)`,
+      background: 'linear-gradient(135deg, #14b8a6 0%, #3b82f6 100%)',
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
-      color: VEON_COLORS.branco,
+      color: '#FFFFFF',
       textAlign: 'center',
-      padding: '40px',
+      padding: '60px 40px',
       position: 'relative',
       pageBreakAfter: 'always',
       boxSizing: 'border-box',
     }}
   >
-    {/* Boat Icon SVG (White) */}
-    <svg 
-      width="140" 
-      height="140" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ marginBottom: '30px' }}
-    >
-      {/* Sail */}
-      <path 
-        d="M12 2L6 12h12L12 2z" 
-        fill={VEON_COLORS.branco}
-        stroke={VEON_COLORS.vermelho}
-        strokeWidth="0.5"
-      />
-      {/* Mast */}
-      <line 
-        x1="12" 
-        y1="2" 
-        x2="12" 
-        y2="14" 
-        stroke={VEON_COLORS.branco}
-        strokeWidth="1"
-      />
-      {/* Hull */}
-      <path 
-        d="M4 14c0 0 2-2 4-2s4 2 4 2 2-2 4-2 4 2 4 2v2c-1 1-3 2-8 2s-7-1-8-2v-2z" 
-        fill={VEON_COLORS.branco}
-      />
-      {/* Waves */}
-      <path 
-        d="M2 18c1-.5 2-1 3-1s2 .5 3 1 2 1 3 1 2-.5 3-1 2-.5 3-1 2 .5 3 1" 
-        stroke={VEON_COLORS.branco}
-        strokeWidth="1.5"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path 
-        d="M2 21c1-.5 2-1 3-1s2 .5 3 1 2 1 3 1 2-.5 3-1 2-.5 3-1 2 .5 3 1" 
-        stroke={VEON_COLORS.branco}
-        strokeWidth="1"
-        fill="none"
-        strokeLinecap="round"
-        opacity="0.6"
-      />
-    </svg>
-
-    {/* Top Divider (VEON Red) */}
+    {/* Top decorative line (white) */}
     <div style={{
-      width: '250px',
-      height: '3px',
-      background: VEON_COLORS.vermelho,
-      marginBottom: '40px',
-      boxShadow: `0 0 15px ${VEON_COLORS.vermelho}60`,
+      width: '256px',
+      height: '4px',
+      background: '#FFFFFF',
+      marginBottom: '48px',
+      opacity: 0.8,
+      borderRadius: '2px',
     }} />
 
-    {/* Title */}
+    {/* Main Title */}
     <h1 style={{
-      fontSize: '32pt',
+      fontSize: '48pt',
       fontWeight: 'bold',
-      marginBottom: '10px',
+      marginBottom: '8px',
       fontFamily: 'Inter, Poppins, sans-serif',
-      lineHeight: '1.3',
-      color: VEON_COLORS.branco,
-      textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
-      letterSpacing: '2px',
+      lineHeight: '1.15',
+      color: '#FFFFFF',
+      textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
+      letterSpacing: '-0.5px',
     }}>
       RELATÓRIO DE PERFIL
     </h1>
-    <h2 style={{
-      fontSize: '28pt',
+    <h1 style={{
+      fontSize: '48pt',
       fontWeight: 'bold',
       marginBottom: '0',
       fontFamily: 'Inter, Poppins, sans-serif',
-      lineHeight: '1.3',
-      color: VEON_COLORS.branco,
-      textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
-      letterSpacing: '2px',
+      lineHeight: '1.15',
+      color: '#FFFFFF',
+      textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
+      letterSpacing: '-0.5px',
     }}>
       COMPORTAMENTAL DISC
-    </h2>
+    </h1>
 
-    {/* Bottom Divider (VEON Red) */}
+    {/* Bottom decorative line (white) */}
     <div style={{
-      width: '250px',
-      height: '3px',
-      background: VEON_COLORS.vermelho,
-      marginTop: '40px',
-      marginBottom: '40px',
-      boxShadow: `0 0 15px ${VEON_COLORS.vermelho}60`,
+      width: '256px',
+      height: '4px',
+      background: '#FFFFFF',
+      marginTop: '48px',
+      marginBottom: '48px',
+      opacity: 0.8,
+      borderRadius: '2px',
     }} />
 
     {/* Motivational phrase */}
     <p style={{
-      fontSize: '16pt',
+      fontSize: '24pt',
       fontStyle: 'italic',
+      fontWeight: '300',
       marginBottom: '80px',
       fontFamily: 'Inter, Poppins, sans-serif',
-      color: VEON_COLORS.branco,
+      color: '#FFFFFF',
       letterSpacing: '0.5px',
       opacity: 0.95,
     }}>
@@ -150,39 +105,40 @@ const CapaPDF = ({ candidatoNome, data }: { candidatoNome: string; data: string 
 
     {/* Candidate name */}
     <p style={{
-      fontSize: '22pt',
+      fontSize: '30pt',
       fontWeight: '600',
-      marginBottom: '12px',
+      marginBottom: '16px',
       fontFamily: 'Inter, Poppins, sans-serif',
-      color: VEON_COLORS.branco,
+      color: '#FFFFFF',
     }}>
       {candidatoNome}
     </p>
 
     {/* Date */}
     <p style={{
-      fontSize: '12pt',
+      fontSize: '18pt',
+      fontWeight: '300',
       fontFamily: 'Inter, Poppins, sans-serif',
-      color: VEON_COLORS.branco,
-      opacity: '0.85',
+      color: '#FFFFFF',
+      opacity: 0.9,
     }}>
-      {data}
+      Realizado em: {data}
     </p>
 
     {/* Discrete footer (bottom right corner) */}
     <div style={{
       position: 'absolute',
-      bottom: '30px',
-      right: '30px',
-      fontSize: '10pt',
-      opacity: '0.7',
+      bottom: '32px',
+      right: '32px',
+      fontSize: '12pt',
+      opacity: 0.7,
       textAlign: 'right',
       fontFamily: 'Inter, Poppins, sans-serif',
-      color: VEON_COLORS.branco,
+      color: '#FFFFFF',
       lineHeight: '1.5',
     }}>
-      Instituto VEON<br/>
-      <span style={{ fontSize: '8pt' }}>A Escola do Varejo</span>
+      <span style={{ fontWeight: '600', display: 'block' }}>Instituto VEON</span>
+      <span style={{ fontSize: '10pt', fontWeight: '300' }}>A Escola do Varejo</span>
     </div>
   </div>
 );
