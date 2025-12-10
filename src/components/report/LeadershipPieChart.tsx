@@ -70,6 +70,7 @@ export function LeadershipPieChart({ naturalProfile }: LeadershipPieChartProps) 
                 outerRadius={100}
                 paddingAngle={5}
                 dataKey="value"
+                isAnimationActive={false}
               >
                 {liderancaData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />

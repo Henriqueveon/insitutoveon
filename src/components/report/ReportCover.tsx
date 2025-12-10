@@ -6,7 +6,7 @@ interface ReportCoverProps {
 
 export function ReportCover({ candidate }: ReportCoverProps) {
   return (
-    <div className="min-h-[70vh] flex items-center justify-center bg-gradient-to-br from-cyan-500 via-blue-500 to-blue-700 rounded-2xl shadow-2xl overflow-hidden relative">
+    <div className="min-h-[70vh] flex items-center justify-center bg-gradient-to-br from-[#003366] to-[#001a33] rounded-2xl shadow-2xl overflow-hidden relative print:rounded-none print:min-h-[297mm]">
       {/* Subtle background decoration */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-10 left-10 w-64 h-64 border border-white rounded-full" />
