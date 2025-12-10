@@ -269,21 +269,28 @@ export default function Identification() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="empresa_instagram" className="flex items-center gap-2">
-                  <Instagram className="w-4 h-4 text-muted-foreground" />
-                  Coloque o @exato da empresa/loja que trabalha
+                <Label htmlFor="empresa_instagram" className="flex items-center gap-2 text-base font-semibold">
+                  <Instagram className="w-5 h-5 text-veon-red" />
+                  Instagram da empresa/loja onde você trabalha
                 </Label>
+                <p className="text-sm text-muted-foreground italic -mt-1">
+                  Exemplo: @institutoveon ou @suaempresa (com o @)
+                </p>
                 <Input
                   id="empresa_instagram"
                   name="empresa_instagram"
                   placeholder="@nomedaempresa"
                   value={formData.empresa_instagram}
                   onChange={handleChange}
-                  className={getInputClass('empresa_instagram')}
+                  className={`${getInputClass('empresa_instagram')} text-base h-12 border-2`}
                   disabled={isLoading}
                 />
+                <p className="text-xs text-veon-red font-semibold flex items-center gap-1">
+                  <span>⚠️</span>
+                  Coloque o @ exato da empresa no Instagram (não o seu @ pessoal)
+                </p>
                 {errors.empresa_instagram && (
-                  <p className="text-sm text-destructive">{errors.empresa_instagram}</p>
+                  <p className="text-sm text-destructive font-medium">{errors.empresa_instagram}</p>
                 )}
               </div>
 
