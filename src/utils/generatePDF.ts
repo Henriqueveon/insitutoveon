@@ -43,8 +43,9 @@ export async function generatePDF(
   naturalProfile: ProfileScores,
   adaptedProfile: ProfileScores,
   profile: ProfileData,
-  chartElement: HTMLElement | null
-): Promise<void> {
+  chartElement: HTMLElement | null,
+  returnBlob: boolean = false
+): Promise<{ blob: Blob; fileName: string } | void> {
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageWidth = 210;
   const pageHeight = 297;
@@ -418,5 +419,11 @@ export async function generatePDF(
 
   // Save the PDF
   const fileName = `Relatorio_DISC_${candidate.nome_completo.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+  
+  if (returnBlob) {
+    const pdfBlob = pdf.output('blob');
+    return { blob: pdfBlob, fileName };
+  }
+  
   pdf.save(fileName);
 }

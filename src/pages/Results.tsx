@@ -103,7 +103,61 @@ export default function Results() {
   const handleDownloadPDF = async () => {
     setIsGeneratingPDF(true);
     try {
-      await generatePDF(candidate, naturalProfile, adaptedProfile, profile, chartRef.current);
+      // Generate PDF and get blob for upload
+      const result = await generatePDF(candidate, naturalProfile, adaptedProfile, profile, chartRef.current, true);
+      
+      if (result) {
+        const { blob, fileName } = result;
+        
+        // Upload to Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('teste')
+          .upload(`pdfs/${fileName}`, blob, {
+            contentType: 'application/pdf',
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.error('Error uploading PDF:', uploadError);
+        } else {
+          // Get public URL
+          const { data: urlData } = supabase.storage
+            .from('teste')
+            .getPublicUrl(`pdfs/${fileName}`);
+
+          const pdfUrl = urlData.publicUrl;
+          console.log('📤 PDF uploaded to:', pdfUrl);
+
+          // Send PDF URL to Notion
+          const notionPageId = localStorage.getItem('candidato_notion_id');
+          if (notionPageId && pdfUrl) {
+            const response = await supabase.functions.invoke('notion-sync', {
+              body: {
+                action: 'update_pdf',
+                data: {
+                  notionPageId,
+                  pdfUrl,
+                },
+              },
+            });
+
+            if (response.data?.success) {
+              console.log('✅ Link do PDF salvo no Notion!');
+            } else {
+              console.warn('Erro ao salvar PDF no Notion:', response.error);
+            }
+          }
+        }
+
+        // Also trigger download
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(downloadUrl);
+      }
+
       toast.success('PDF gerado com sucesso!');
     } catch (error) {
       console.error('Error generating PDF:', error);
