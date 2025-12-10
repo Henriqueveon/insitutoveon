@@ -1,5 +1,4 @@
 import { CandidateData } from '@/context/AssessmentContext';
-import veonLogo from '@/assets/veon-logo.png';
 
 interface ReportCoverProps {
   candidate: CandidateData;
@@ -7,54 +6,64 @@ interface ReportCoverProps {
 
 export function ReportCover({ candidate }: ReportCoverProps) {
   return (
-    <div className="min-h-[60vh] flex items-center justify-center bg-gradient-to-br from-veon-red via-veon-blue to-veon-blue-dark rounded-2xl shadow-2xl overflow-hidden relative">
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 border-4 border-white rounded-full" />
-        <div className="absolute bottom-20 right-20 w-48 h-48 border-4 border-white rounded-full" />
-        <div className="absolute top-1/2 left-1/3 w-24 h-24 border-4 border-white rounded-full" />
+    <div className="min-h-[70vh] flex items-center justify-center bg-gradient-to-br from-cyan-500 via-blue-500 to-blue-700 rounded-2xl shadow-2xl overflow-hidden relative">
+      {/* Subtle background decoration */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-10 left-10 w-64 h-64 border border-white rounded-full" />
+        <div className="absolute bottom-10 right-10 w-80 h-80 border border-white rounded-full" />
       </div>
 
-      <div className="text-center text-white p-8 relative z-10">
-        <div className="mb-8">
-          <img 
-            src={veonLogo} 
-            alt="Instituto VEON" 
-            className="h-20 md:h-24 mx-auto object-contain"
-          />
-          <p className="text-lg mt-2 opacity-90 font-medium">Escola do Varejo</p>
-        </div>
+      <div className="text-center text-white px-8 py-12 relative z-10 max-w-4xl">
+        {/* Top decorative line */}
+        <div className="w-80 h-1 bg-white mx-auto mb-12 opacity-80 rounded-full" />
 
-        <h1 className="text-4xl md:text-5xl font-display font-bold mb-4 drop-shadow-lg">
+        {/* Main title */}
+        <h1 className="text-5xl md:text-7xl font-display font-bold mb-4 leading-tight tracking-tight drop-shadow-lg">
           RELATÓRIO DE PERFIL
         </h1>
-        <h2 className="text-2xl md:text-3xl font-display font-bold mb-8 drop-shadow-lg">
+        <h2 className="text-4xl md:text-6xl font-display font-bold mb-8 leading-tight tracking-tight drop-shadow-lg">
           COMPORTAMENTAL DISC
         </h2>
 
-        <div className="w-48 h-0.5 bg-white/50 mx-auto mb-8" />
+        {/* Middle decorative line */}
+        <div className="w-80 h-1 bg-white mx-auto my-10 opacity-80 rounded-full" />
 
-        <div className="space-y-2">
-          <p className="text-2xl md:text-3xl font-semibold">{candidate.nome_completo}</p>
-          <p className="text-lg opacity-90">{candidate.cargo_atual}</p>
-          <p className="text-base opacity-75">{candidate.empresa_instagram}</p>
+        {/* Motivational phrase */}
+        <p className="text-2xl md:text-3xl italic mb-16 font-light tracking-wide opacity-95">
+          "A bússola que aponta para o sucesso"
+        </p>
+
+        {/* Candidate info */}
+        <div className="mt-12 space-y-3">
+          <p className="text-3xl md:text-4xl font-semibold tracking-wide">
+            {candidate.nome_completo}
+          </p>
+          <p className="text-lg md:text-xl opacity-90 font-light">
+            {candidate.cargo_atual}
+          </p>
+          {candidate.empresa_instagram && (
+            <p className="text-base opacity-75">{candidate.empresa_instagram}</p>
+          )}
         </div>
 
-        <div className="mt-12 space-y-1">
-          <p className="text-sm opacity-75">Realizado em</p>
-          <p className="text-xl font-semibold">
-            {new Date().toLocaleDateString('pt-BR', {
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric',
-            })}
+        {/* Date */}
+        <div className="mt-16 space-y-1">
+          <p className="text-xl md:text-2xl font-light opacity-90">
+            Realizado em:{' '}
+            <span className="font-medium">
+              {new Date().toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </span>
           </p>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-white/20">
-          <p className="text-lg italic opacity-90">
-            "A bússola que aponta para o sucesso"
-          </p>
+        {/* Institutional footer */}
+        <div className="absolute bottom-8 right-8 text-right opacity-70">
+          <p className="font-semibold text-base">Instituto VEON</p>
+          <p className="text-xs font-light mt-1">A Escola do Varejo</p>
         </div>
       </div>
     </div>
