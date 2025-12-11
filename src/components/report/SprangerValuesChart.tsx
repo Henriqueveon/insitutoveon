@@ -1,7 +1,6 @@
 import { Profile } from '@/context/AssessmentContext';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Diamond } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Info } from 'lucide-react';
 
 interface SprangerValuesChartProps {
   naturalProfile: Profile;
@@ -13,168 +12,187 @@ interface ValueData {
   cor: string;
   icone: string;
   descricao: string;
+  exemplos: string[];
 }
 
+const normalizeScore = (score: number): number => {
+  return Math.round(((score + 25) / 50) * 100);
+};
+
 export function SprangerValuesChart({ naturalProfile }: SprangerValuesChartProps) {
-  // Calculate values based on DISC profile
-  const calculateValues = (): ValueData[] => {
-    const { D, I, S, C } = naturalProfile;
-    
-    return [
-      { 
-        nome: 'Teórico', 
-        valor: Math.round((C * 0.6 + D * 0.2 + 20) * 0.8), 
-        cor: '#9C27B0', 
-        icone: '🧠',
-        descricao: 'Busca conhecimento e verdade'
-      },
-      { 
-        nome: 'Econômico', 
-        valor: Math.round((D * 0.5 + C * 0.3 + 25) * 0.85), 
-        cor: '#4CAF50', 
-        icone: '💰',
-        descricao: 'Foco em resultados práticos e ROI'
-      },
-      { 
-        nome: 'Estético', 
-        valor: Math.round((I * 0.4 + S * 0.3 + 15) * 0.7), 
-        cor: '#FF9800', 
-        icone: '🎨',
-        descricao: 'Valoriza harmonia e beleza'
-      },
-      { 
-        nome: 'Social', 
-        valor: Math.round((I * 0.5 + S * 0.4 + 20) * 0.75), 
-        cor: '#2196F3', 
-        icone: '❤️',
-        descricao: 'Ajudar e servir aos outros'
-      },
-      { 
-        nome: 'Político', 
-        valor: Math.round((D * 0.6 + I * 0.3 + 20) * 0.8), 
-        cor: '#F44336', 
-        icone: '⚖️',
-        descricao: 'Influência e liderança'
-      },
-      { 
-        nome: 'Tradicional', 
-        valor: Math.round((S * 0.5 + C * 0.4 + 10) * 0.65), 
-        cor: '#795548', 
-        icone: '🙏',
-        descricao: 'Valores e princípios sólidos'
-      },
-    ];
+  // Normalizar scores DISC para calcular valores
+  const nD = normalizeScore(naturalProfile.D);
+  const nI = normalizeScore(naturalProfile.I);
+  const nS = normalizeScore(naturalProfile.S);
+  const nC = normalizeScore(naturalProfile.C);
+
+  // Calcular valores baseado em correlações comportamentais DISC
+  // Nota: Esta é uma estimativa baseada em comportamento, não uma medição direta de valores
+  const valoresData: ValueData[] = [
+    {
+      nome: 'Conhecimento',
+      valor: Math.min(100, Math.round(nC * 0.5 + nD * 0.2 + 25)),
+      cor: '#7C3AED', // Roxo
+      icone: '🧠',
+      descricao: 'Você valoriza aprender coisas novas e entender como as coisas funcionam.',
+      exemplos: ['Gosta de estudar', 'Busca informações', 'Questiona tudo']
+    },
+    {
+      nome: 'Resultados',
+      valor: Math.min(100, Math.round(nD * 0.5 + nC * 0.25 + 20)),
+      cor: '#059669', // Verde escuro
+      icone: '💰',
+      descricao: 'Você foca no que é prático e traz retorno. Não gosta de perder tempo.',
+      exemplos: ['Foco em eficiência', 'Quer ver resultados', 'Pensa no ROI']
+    },
+    {
+      nome: 'Harmonia',
+      valor: Math.min(100, Math.round(nI * 0.35 + nS * 0.35 + 15)),
+      cor: '#F59E0B', // Laranja
+      icone: '🎨',
+      descricao: 'Você aprecia ambientes agradáveis, coisas bonitas e bem organizadas.',
+      exemplos: ['Gosta de beleza', 'Valoriza equilíbrio', 'Sensível ao ambiente']
+    },
+    {
+      nome: 'Pessoas',
+      valor: Math.min(100, Math.round(nI * 0.4 + nS * 0.35 + 15)),
+      cor: '#EC4899', // Rosa
+      icone: '❤️',
+      descricao: 'Você se preocupa com o bem-estar dos outros e gosta de ajudar.',
+      exemplos: ['Gosta de ajudar', 'Pensa nos outros', 'Empatia natural']
+    },
+    {
+      nome: 'Influência',
+      valor: Math.min(100, Math.round(nD * 0.45 + nI * 0.3 + 15)),
+      cor: '#E53935', // Vermelho
+      icone: '👑',
+      descricao: 'Você gosta de liderar, influenciar decisões e ter voz ativa.',
+      exemplos: ['Quer liderar', 'Busca reconhecimento', 'Gosta de decidir']
+    },
+    {
+      nome: 'Tradição',
+      valor: Math.min(100, Math.round(nS * 0.45 + nC * 0.3 + 10)),
+      cor: '#78716C', // Marrom
+      icone: '🏛️',
+      descricao: 'Você valoriza princípios, consistência e o que já foi comprovado.',
+      exemplos: ['Respeita regras', 'Valoriza lealdade', 'Prefere o seguro']
+    },
+  ];
+
+  // Ordenar por valor (maior primeiro)
+  const sortedValues = [...valoresData].sort((a, b) => b.valor - a.valor);
+  const topValue = sortedValues[0];
+  const secondValue = sortedValues[1];
+
+  const getIntensityLabel = (valor: number): { label: string; color: string } => {
+    if (valor >= 70) return { label: 'Muito importante para você', color: 'text-green-600' };
+    if (valor >= 50) return { label: 'Importante', color: 'text-blue-600' };
+    if (valor >= 30) return { label: 'Moderado', color: 'text-amber-600' };
+    return { label: 'Menos prioritário', color: 'text-muted-foreground' };
   };
-
-  const valoresData = calculateValues();
-
-  const getClassificacao = (valor: number) => {
-    if (valor < 33) return { label: 'Indiferente', cor: 'text-muted-foreground', emoji: '⚪', bg: 'bg-muted' };
-    if (valor < 67) return { label: 'Circunstancial', cor: 'text-amber-600', emoji: '🟡', bg: 'bg-amber-50' };
-    return { label: 'Significativo', cor: 'text-emerald-600', emoji: '🟢', bg: 'bg-emerald-50' };
-  };
-
-  // Find top value
-  const topValue = valoresData.reduce((prev, current) => 
-    prev.valor > current.valor ? prev : current
-  );
 
   return (
     <Card className="card-elevated animate-slide-up no-break">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Diamond className="w-5 h-5 text-[#FFB84D]" />
-          Teoria de Valores (Spranger)
-        </CardTitle>
-        <CardDescription>
-          Identifica seus motivadores e sistemas de valores predominantes
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Chart */}
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={valoresData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis 
-                dataKey="nome" 
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                axisLine={{ stroke: 'hsl(var(--border))' }}
-              />
-              <YAxis 
-                domain={[0, 100]} 
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                axisLine={{ stroke: 'hsl(var(--border))' }}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--card))', 
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}
-                formatter={(value: number) => [`${value}%`, 'Intensidade']}
-              />
-              <Bar dataKey="valor" radius={[8, 8, 0, 0]} isAnimationActive={false}>
-                {valoresData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.cor} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <h3 className="font-display text-xl font-bold text-foreground mb-2">
+          O que te motiva?
+        </h3>
 
-        {/* Top value highlight */}
-        <div className="p-4 bg-gradient-to-r from-[#FFB84D]/10 to-[#FF9800]/10 rounded-xl border border-[#FFB84D]/30">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{topValue.icone}</span>
-            <div>
-              <h4 className="font-bold text-foreground">
-                Valor Predominante: <span style={{ color: topValue.cor }}>{topValue.nome}</span>
-              </h4>
-              <p className="text-sm text-muted-foreground">{topValue.descricao}</p>
+        {/* Explicação didática */}
+        <div className="bg-muted/50 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <Info className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-muted-foreground">
+              <p className="mb-2">
+                <strong className="text-foreground">Todos temos valores diferentes.</strong> O que motiva uma pessoa
+                pode não motivar outra. Conhecer seus valores ajuda a escolher atividades e carreiras mais satisfatórias.
+              </p>
+              <p>
+                <strong className="text-foreground">Como interpretar:</strong> Valores com pontuação alta são mais
+                importantes para você. Os mais baixos não são "ruins", apenas menos prioritários na sua vida.
+              </p>
             </div>
-            <span className="ml-auto text-2xl font-bold" style={{ color: topValue.cor }}>
-              {topValue.valor}%
-            </span>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-6">
+        {/* Top 2 values highlight */}
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div
+            className="p-4 rounded-xl border-2"
+            style={{ backgroundColor: `${topValue.cor}10`, borderColor: `${topValue.cor}50` }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-3xl">{topValue.icone}</span>
+              <div>
+                <span className="text-xs text-muted-foreground">Seu valor principal:</span>
+                <h4 className="font-bold text-lg text-foreground">{topValue.nome}</h4>
+              </div>
+              <span className="ml-auto text-2xl font-bold" style={{ color: topValue.cor }}>
+                {topValue.valor}%
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">{topValue.descricao}</p>
+          </div>
+
+          <div
+            className="p-4 rounded-xl border-2"
+            style={{ backgroundColor: `${secondValue.cor}10`, borderColor: `${secondValue.cor}50` }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-3xl">{secondValue.icone}</span>
+              <div>
+                <span className="text-xs text-muted-foreground">Segundo mais importante:</span>
+                <h4 className="font-bold text-lg text-foreground">{secondValue.nome}</h4>
+              </div>
+              <span className="ml-auto text-2xl font-bold" style={{ color: secondValue.cor }}>
+                {secondValue.valor}%
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">{secondValue.descricao}</p>
           </div>
         </div>
 
-        {/* Classification grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {valoresData.map((valor) => {
-            const classificacao = getClassificacao(valor.valor);
+        {/* All values grid */}
+        <div className="space-y-3">
+          <h4 className="font-semibold text-foreground">Todos os seus valores:</h4>
+          {sortedValues.map((valor, index) => {
+            const intensity = getIntensityLabel(valor.valor);
             return (
-              <div 
-                key={valor.nome}
-                className={`p-3 rounded-lg border border-border ${classificacao.bg} hover:shadow-md transition-shadow`}
-              >
-                <div className="flex items-center gap-2 mb-2">
+              <div key={valor.nome} className="p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-3 mb-2">
                   <span className="text-xl">{valor.icone}</span>
-                  <h4 className="font-semibold text-sm text-foreground">{valor.nome}</h4>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-foreground">
+                        {index + 1}. {valor.nome}
+                      </span>
+                      <span className="font-bold" style={{ color: valor.cor }}>{valor.valor}%</span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${valor.valor}%`, backgroundColor: valor.cor }}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <p className="text-2xl font-bold mb-1" style={{ color: valor.cor }}>
-                  {valor.valor}%
-                </p>
-                <p className={`text-xs font-medium ${classificacao.cor}`}>
-                  {classificacao.emoji} {classificacao.label}
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">{valor.descricao}</p>
+                  <span className={`text-xs font-medium ${intensity.color}`}>{intensity.label}</span>
+                </div>
               </div>
             );
           })}
         </div>
 
-        {/* Legend */}
-        <div className="flex flex-wrap gap-4 justify-center text-xs text-muted-foreground pt-4 border-t border-border">
-          <div className="flex items-center gap-1">
-            <span>⚪</span> Indiferente (0-32%)
-          </div>
-          <div className="flex items-center gap-1">
-            <span>🟡</span> Circunstancial (33-66%)
-          </div>
-          <div className="flex items-center gap-1">
-            <span>🟢</span> Significativo (67-100%)
-          </div>
+        {/* Note about methodology */}
+        <div className="text-xs text-center text-muted-foreground pt-4 border-t border-border">
+          <p>
+            💡 <strong>Nota:</strong> Esta análise é uma estimativa baseada no seu perfil comportamental DISC.
+            Para uma avaliação mais precisa de valores, existem testes específicos como o Inventário de Valores de Spranger.
+          </p>
         </div>
       </CardContent>
     </Card>

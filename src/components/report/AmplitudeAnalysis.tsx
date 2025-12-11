@@ -1,10 +1,18 @@
 import { Profile } from '@/context/AssessmentContext';
-import { AlertTriangle, Check } from 'lucide-react';
+import { AlertTriangle, Check, Info } from 'lucide-react';
 
 interface AmplitudeAnalysisProps {
   naturalProfile: Profile;
   adaptedProfile: Profile;
 }
+
+// Cores oficiais DISC
+const DISC_COLORS = {
+  D: '#E53935', // Vermelho
+  I: '#FBC02D', // Amarelo
+  S: '#43A047', // Verde
+  C: '#1E88E5', // Azul
+};
 
 const normalizeScore = (score: number): number => {
   return Math.round(((score + 25) / 50) * 100);
@@ -12,42 +20,57 @@ const normalizeScore = (score: number): number => {
 
 const getAmplitudeInterpretation = (factor: string, natural: number, adapted: number): string => {
   const diff = adapted - natural;
-  
+
   if (factor === 'D') {
-    if (diff < -15) return "Você percebe que precisa ser menos enérgico e exigente, indicando pressão do ambiente para mais ponderação e cautela.";
-    if (diff > 15) return "Você está se adaptando para ser mais assertivo e direto no ambiente de trabalho do que naturalmente seria.";
+    if (diff < -15) return "No trabalho, você está se contendo e sendo mais cauteloso do que normalmente é. Isso pode causar cansaço se mantido por muito tempo.";
+    if (diff > 15) return "Você está forçando a barra para ser mais decisivo e firme no trabalho. Lembre-se de respeitar seu ritmo natural.";
   }
   if (factor === 'I') {
-    if (diff < -15) return "No ambiente de trabalho, você contém sua expressividade natural, adotando postura mais reservada.";
-    if (diff > 15) return "Você está se esforçando para ser mais comunicativo e sociável do que seu perfil natural.";
+    if (diff < -15) return "Você está se segurando para falar menos e ser mais reservado. Sua energia social natural está sendo contida.";
+    if (diff > 15) return "Você está fazendo esforço extra para ser mais comunicativo e sociável no trabalho.";
   }
   if (factor === 'S') {
-    if (diff < -15) return "Você está acelerando seu ritmo natural, adaptando-se a um ambiente mais dinâmico.";
-    if (diff > 15) return "Você busca mais estabilidade e paciência no trabalho do que naturalmente possui.";
+    if (diff < -15) return "Você está correndo mais do que gostaria. Seu ritmo natural é mais calmo, mas o ambiente está te acelerando.";
+    if (diff > 15) return "Você está buscando mais calma e estabilidade do que naturalmente tem. Pode estar evitando mudanças.";
   }
   if (factor === 'C') {
-    if (diff < -15) return "Você está sendo menos detalhista e metódico do que seu perfil natural indica.";
-    if (diff > 15) return "Você está se adaptando para ser mais analítico e preciso do que naturalmente seria.";
+    if (diff < -15) return "Você está sendo menos detalhista do que gostaria. O ambiente não permite que você seja tão cuidadoso quanto quer.";
+    if (diff > 15) return "Você está se esforçando para ser mais organizado e preciso do que naturalmente é.";
   }
-  return "Seu comportamento natural está alinhado com as demandas do ambiente.";
+  return "Tudo certo! Você está agindo no trabalho de forma parecida com seu jeito natural.";
 };
 
 export function AmplitudeAnalysis({ naturalProfile, adaptedProfile }: AmplitudeAnalysisProps) {
   const factors = [
-    { key: 'D' as const, label: 'Dominância', icon: '🎯' },
-    { key: 'I' as const, label: 'Influência', icon: '💬' },
-    { key: 'S' as const, label: 'Estabilidade', icon: '🤝' },
-    { key: 'C' as const, label: 'Conformidade', icon: '📊' },
+    { key: 'D' as const, label: 'Dominância', color: DISC_COLORS.D, description: 'Firmeza e decisão' },
+    { key: 'I' as const, label: 'Influência', color: DISC_COLORS.I, description: 'Comunicação e entusiasmo' },
+    { key: 'S' as const, label: 'Estabilidade', color: DISC_COLORS.S, description: 'Calma e paciência' },
+    { key: 'C' as const, label: 'Conformidade', color: DISC_COLORS.C, description: 'Precisão e organização' },
   ];
 
   return (
     <div className="bg-card rounded-xl p-6 shadow-lg">
       <h3 className="font-display text-xl font-bold text-foreground mb-2">
-        📈 Análise de Amplitude
+        Você está se adaptando muito?
       </h3>
-      <p className="text-sm text-muted-foreground mb-6">
-        Diferenças significativas entre seu perfil Natural e Adaptado indicam esforço de adaptação ao ambiente.
-      </p>
+
+      {/* Explicação didática */}
+      <div className="bg-muted/50 rounded-lg p-4 mb-6">
+        <div className="flex items-start gap-3">
+          <Info className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-muted-foreground">
+            <p className="mb-2">
+              <strong className="text-foreground">O que é isso?</strong> Aqui comparamos como você é naturalmente
+              (em casa, com amigos) com como você age no trabalho.
+            </p>
+            <p>
+              <strong className="text-foreground">Por que importa?</strong> Quando a diferença é muito grande,
+              significa que você está fazendo muito esforço para se adaptar. Isso pode causar estresse e cansaço
+              se durar muito tempo.
+            </p>
+          </div>
+        </div>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         {factors.map((factor) => {
@@ -62,46 +85,57 @@ export function AmplitudeAnalysis({ naturalProfile, adaptedProfile }: AmplitudeA
               key={factor.key}
               className={`p-4 rounded-lg border-2 transition-all ${
                 isSignificant
-                  ? 'border-destructive/50 bg-destructive/5'
-                  : 'border-border bg-muted/30'
+                  ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/20'
+                  : 'border-green-400 bg-green-50 dark:bg-green-950/20'
               }`}
             >
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-3">
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                  style={{ backgroundColor: factor.color }}
+                >
+                  {factor.key}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground">{factor.label}</h4>
+                  <span className="text-xs text-muted-foreground">{factor.description}</span>
+                </div>
                 {isSignificant ? (
-                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                  <AlertTriangle className="w-5 h-5 text-amber-500 ml-auto" />
                 ) : (
-                  <Check className="w-5 h-5 text-disc-s" />
+                  <Check className="w-5 h-5 text-green-500 ml-auto" />
                 )}
-                <span className="text-lg">{factor.icon}</span>
-                <h4 className="font-semibold text-foreground">{factor.label}</h4>
               </div>
 
               <div className="space-y-1 mb-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Natural:</span>
-                  <span className="font-medium text-[#00CED1]">{natural}%</span>
+                  <span className="text-muted-foreground">Como você é:</span>
+                  <span className="font-bold" style={{ color: factor.color }}>{natural}%</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Adaptado:</span>
-                  <span className="font-medium text-[#FF6B6B]">{adapted}%</span>
+                  <span className="text-muted-foreground">No trabalho:</span>
+                  <span className="font-medium text-muted-foreground">{adapted}%</span>
                 </div>
-                <div className="flex justify-between text-sm pt-1 border-t border-border">
+                <div className="flex justify-between text-sm pt-2 border-t border-border">
                   <span className="text-muted-foreground">Diferença:</span>
-                  <span className={`font-bold ${isSignificant ? 'text-destructive' : 'text-disc-s'}`}>
+                  <span className={`font-bold ${isSignificant ? 'text-amber-600' : 'text-green-600'}`}>
                     {direction}{adapted - natural} pontos
+                    {isSignificant ? ' ⚠️' : ' ✓'}
                   </span>
                 </div>
               </div>
 
-              {isSignificant && (
-                <p className="text-xs italic text-muted-foreground leading-relaxed">
-                  {getAmplitudeInterpretation(factor.key, natural, adapted)}
-                </p>
-              )}
+              <p className={`text-xs leading-relaxed ${isSignificant ? 'text-amber-700 dark:text-amber-300' : 'text-green-700 dark:text-green-300'}`}>
+                {getAmplitudeInterpretation(factor.key, natural, adapted)}
+              </p>
             </div>
           );
         })}
       </div>
+
+      <p className="text-xs text-center text-muted-foreground mt-4">
+        💡 <strong>Dica:</strong> Diferenças de até 15 pontos são normais. Acima disso, vale refletir se o ambiente está te exigindo demais.
+      </p>
     </div>
   );
 }

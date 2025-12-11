@@ -17,7 +17,6 @@ import { DISCHorizontalChart } from '@/components/report/DISCHorizontalChart';
 import { AmplitudeAnalysis } from '@/components/report/AmplitudeAnalysis';
 import { ProgressComparison } from '@/components/report/ProgressComparison';
 import { CompetenciesRadar } from '@/components/report/CompetenciesRadar';
-import { JungPsychologicalTypes } from '@/components/report/JungPsychologicalTypes';
 import { SprangerValuesChart } from '@/components/report/SprangerValuesChart';
 import { LeadershipPieChart } from '@/components/report/LeadershipPieChart';
 
@@ -292,11 +291,6 @@ export default function Results() {
         {/* Competencies Radar */}
         <section id="competencies">
           <CompetenciesRadar naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
-        </section>
-
-        {/* Jung Psychological Types */}
-        <section id="jung">
-          <JungPsychologicalTypes naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
         </section>
 
         {/* Spranger Values */}
