@@ -7,7 +7,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAssessment } from '@/context/AssessmentContext';
 import { getProfileDescription } from '@/data/discProfiles';
 import { supabase } from '@/integrations/supabase/client';
-import PDFGenerator from '@/components/PDFGenerator';
 import '@/styles/pdf-styles.css';
 import { toast } from 'sonner';
 
@@ -22,13 +21,13 @@ import { JungPsychologicalTypes } from '@/components/report/JungPsychologicalTyp
 import { SprangerValuesChart } from '@/components/report/SprangerValuesChart';
 import { LeadershipPieChart } from '@/components/report/LeadershipPieChart';
 
-import { 
-  Target, 
-  Users, 
-  Brain, 
-  Heart, 
-  AlertTriangle, 
-  Briefcase, 
+import {
+  Target,
+  Users,
+  Brain,
+  Heart,
+  AlertTriangle,
+  Briefcase,
   MessageSquare,
   CheckCircle2,
   RotateCcw,
@@ -36,15 +35,20 @@ import {
   TrendingUp,
   BookOpen,
   Lightbulb,
-  Save
+  Save,
+  Download,
+  Loader2
 } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 
 export default function Results() {
   const navigate = useNavigate();
   const { candidate, naturalProfile, adaptedProfile, resetAssessment } = useAssessment();
   const chartRef = useRef<HTMLDivElement>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
   const [notionSynced, setNotionSynced] = useState(false);
   const [actionPlan, setActionPlan] = useState('');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
     if (!candidate || !naturalProfile || !adaptedProfile) {
@@ -119,19 +123,89 @@ export default function Results() {
     toast.success('Plano de ação salvo com sucesso!');
   };
 
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current || !candidate) return;
+
+    setIsGeneratingPDF(true);
+
+    try {
+      const element = reportRef.current;
+      const fileName = `relatorio-disc-${candidate.nome_completo.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
+
+      const options = {
+        margin: [10, 10, 10, 10] as [number, number, number, number],
+        filename: fileName,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+        },
+        jsPDF: {
+          unit: 'mm' as const,
+          format: 'a4' as const,
+          orientation: 'portrait' as const,
+        },
+        pagebreak: {
+          mode: ['css', 'legacy'],
+          before: '.page-break-before',
+          after: '.page-break-after',
+          avoid: ['.no-break', 'img', 'svg', 'canvas'],
+        },
+      };
+
+      // Hide elements with .no-print class
+      const elementosOcultar = element.querySelectorAll('.no-print');
+      elementosOcultar.forEach(el => (el as HTMLElement).style.display = 'none');
+
+      // Generate and download PDF
+      await html2pdf().set(options).from(element).save();
+
+      // Restore hidden elements
+      elementosOcultar.forEach(el => (el as HTMLElement).style.display = '');
+
+      toast.success('PDF baixado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast.error('Erro ao gerar PDF. Tente novamente.');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
   return (
-    <PDFGenerator candidatoNome={candidate.nome_completo}>
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <header className="w-full py-4 px-4 sm:px-8 border-b border-border bg-card/95 backdrop-blur-md sticky top-0 z-40 no-print">
-          <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <Logo />
+    <div ref={reportRef} className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="w-full py-4 px-4 sm:px-8 border-b border-border bg-card/95 backdrop-blur-md sticky top-0 z-40 no-print">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <Logo />
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleDownloadPDF}
+              disabled={isGeneratingPDF}
+              className="gap-2 gradient-veon hover:opacity-90"
+            >
+              {isGeneratingPDF ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="hidden sm:inline">Gerando...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline">Baixar Relatório em PDF</span>
+                  <span className="sm:hidden">PDF</span>
+                </>
+              )}
+            </Button>
             <Button variant="outline" onClick={handleNewAssessment} className="gap-2">
               <RotateCcw className="w-4 h-4" />
               <span className="hidden sm:inline">Novo Teste</span>
             </Button>
           </div>
-        </header>
+        </div>
+      </header>
 
         {/* Navigation */}
         <div className="no-print">
@@ -470,6 +544,5 @@ export default function Results() {
         </div>
       </main>
     </div>
-    </PDFGenerator>
   );
 }

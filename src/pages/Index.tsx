@@ -67,7 +67,7 @@ export default function Index() {
           {/* CTA Button */}
           <div className="animate-slide-up" style={{ animationDelay: '200ms' }}>
             <Button
-              onClick={() => navigate('/identificacao')}
+              onClick={() => navigate('/teste')}
               size="lg"
               className="h-14 px-10 text-lg font-semibold gradient-veon hover:opacity-90 transition-all shadow-lg hover:shadow-xl hover:scale-105"
             >
