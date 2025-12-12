@@ -60,10 +60,10 @@ export function ReportCover({ candidate }: ReportCoverProps) {
           </p>
         </div>
 
-        {/* Institutional footer */}
-        <div className="absolute bottom-8 right-8 text-right opacity-70">
-          <p className="font-semibold text-base">Instituto VEON</p>
-          <p className="text-xs font-light mt-1">A Escola do Varejo</p>
+        {/* Institutional footer - centered */}
+        <div className="absolute bottom-8 left-0 right-0 text-center opacity-80">
+          <p className="font-semibold text-lg">Instituto VEON</p>
+          <p className="text-sm font-light mt-1">A Escola do Varejo</p>
         </div>
       </div>
     </div>

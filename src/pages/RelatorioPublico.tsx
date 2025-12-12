@@ -16,6 +16,8 @@ const ProgressComparison = lazy(() => import('@/components/report/ProgressCompar
 const CompetenciesRadar = lazy(() => import('@/components/report/CompetenciesRadar').then(m => ({ default: m.CompetenciesRadar })));
 const SprangerValuesChart = lazy(() => import('@/components/report/SprangerValuesChart').then(m => ({ default: m.SprangerValuesChart })));
 const LeadershipPieChart = lazy(() => import('@/components/report/LeadershipPieChart').then(m => ({ default: m.LeadershipPieChart })));
+const DISCProfileHeader = lazy(() => import('@/components/report/DISCProfileHeader').then(m => ({ default: m.DISCProfileHeader })));
+const DISCChallenges = lazy(() => import('@/components/report/DISCChallenges').then(m => ({ default: m.DISCChallenges })));
 
 import {
   Target,
@@ -26,7 +28,6 @@ import {
   Briefcase,
   MessageSquare,
   CheckCircle2,
-  Star,
   TrendingUp,
   BookOpen,
   Loader2,
@@ -275,21 +276,12 @@ export default function RelatorioPublico() {
           </CardContent>
         </Card>
 
-        {/* Profile Summary */}
-        <Card className="card-elevated animate-slide-up overflow-hidden" style={{ animationDelay: '150ms' }}>
-          <div className="bg-gradient-to-r from-[#00CED1] to-[#0099CC] p-6 text-white">
-            <div className="flex items-center gap-3">
-              <Star className="w-8 h-8" />
-              <div>
-                <h2 className="font-display text-2xl font-bold">{profile.nome}</h2>
-                <p className="opacity-90">{profile.descricaoCurta}</p>
-              </div>
-            </div>
-          </div>
-          <CardContent className="p-6">
-            <p className="text-muted-foreground leading-relaxed">{profile.descricaoCompleta}</p>
-          </CardContent>
-        </Card>
+        {/* Profile Summary with Dynamic DISC Colors */}
+        <div className="animate-slide-up" style={{ animationDelay: '150ms' }}>
+          <Suspense fallback={<ChartLoader />}>
+            <DISCProfileHeader naturalProfile={naturalProfile} profile={profile} />
+          </Suspense>
+        </div>
 
         {/* DISC Charts Section */}
         <section id="disc-chart" className="space-y-6">
@@ -449,6 +441,15 @@ export default function RelatorioPublico() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Desafios e Pontos de Atencao */}
+          <Suspense fallback={<ChartLoader />}>
+            <DISCChallenges
+              alertasCriticos={profile.alertasCriticos}
+              medos={profile.medos}
+              perfilNome={profile.nome}
+            />
+          </Suspense>
 
           {/* Full Width Cards */}
           <Card className="card-elevated animate-slide-up">
