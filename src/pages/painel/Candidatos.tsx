@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -80,7 +79,6 @@ const DISC_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 export default function PainelCandidatos() {
-  const { empresa } = useAuth();
   const { toast } = useToast();
 
   const [candidatos, setCandidatos] = useState<Candidato[]>([]);
@@ -92,14 +90,11 @@ export default function PainelCandidatos() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const fetchCandidatos = async () => {
-    if (!empresa) return;
-
     setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('candidatos_disc')
         .select('*')
-        .or(`empresa_id.eq.${empresa.id},empresa_id.is.null`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -118,7 +113,7 @@ export default function PainelCandidatos() {
 
   useEffect(() => {
     fetchCandidatos();
-  }, [empresa]);
+  }, []);
 
   // Função para copiar texto para área de transferência
   const copiarTexto = async (texto: string, tipo: string) => {
