@@ -26,6 +26,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -42,6 +52,7 @@ import {
   Copy,
   Link,
   ExternalLink,
+  Trash2,
 } from 'lucide-react';
 import { toast as sonnerToast } from 'sonner';
 import { format } from 'date-fns';
@@ -90,6 +101,9 @@ export default function PainelCandidatos() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCandidato, setSelectedCandidato] = useState<Candidato | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [candidatoToDelete, setCandidatoToDelete] = useState<Candidato | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchCandidatos = async () => {
     setIsLoading(true);
@@ -304,6 +318,49 @@ export default function PainelCandidatos() {
     setIsDetailOpen(true);
   };
 
+  const openDeleteDialog = (candidato: Candidato) => {
+    setCandidatoToDelete(candidato);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!candidatoToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('candidatos_disc')
+        .delete()
+        .eq('id', candidatoToDelete.id);
+
+      if (error) throw error;
+
+      setCandidatos((prev) => prev.filter((c) => c.id !== candidatoToDelete.id));
+
+      // Se o candidato deletado estava aberto no detail, fechar
+      if (selectedCandidato?.id === candidatoToDelete.id) {
+        setIsDetailOpen(false);
+        setSelectedCandidato(null);
+      }
+
+      toast({
+        title: 'Candidato excluído',
+        description: 'O candidato foi removido com sucesso.',
+      });
+    } catch (error) {
+      console.error('Erro ao excluir candidato:', error);
+      toast({
+        title: 'Erro ao excluir',
+        description: 'Não foi possível excluir o candidato.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+      setCandidatoToDelete(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -406,6 +463,7 @@ export default function PainelCandidatos() {
                   <TableHead className="text-slate-400">Instagram</TableHead>
                   <TableHead className="text-slate-400 text-center">Relatorio</TableHead>
                   <TableHead className="text-slate-400">Perfil DISC</TableHead>
+                  <TableHead className="text-slate-400 text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -440,7 +498,7 @@ export default function PainelCandidatos() {
                   ))
                 ) : paginatedCandidatos.length === 0 ? (
                   <TableRow className="border-slate-700">
-                    <TableCell colSpan={8} className="text-center py-12">
+                    <TableCell colSpan={9} className="text-center py-12">
                       <Users className="w-12 h-12 text-slate-600 mx-auto" />
                       <p className="mt-4 text-slate-400">Nenhum candidato encontrado</p>
                     </TableCell>
@@ -561,6 +619,22 @@ export default function PainelCandidatos() {
 
                       {/* Perfil DISC */}
                       <TableCell>{renderDISCProfile(candidato.perfil_tipo)}</TableCell>
+
+                      {/* Ações */}
+                      <TableCell className="text-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                          title="Excluir candidato"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDeleteDialog(candidato);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -756,6 +830,35 @@ export default function PainelCandidatos() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-slate-800 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Excluir Candidato</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              Tem certeza que deseja excluir o candidato{' '}
+              <strong className="text-white">{candidatoToDelete?.nome_completo}</strong>?
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="bg-slate-700 text-white hover:bg-slate-600 border-slate-600"
+              disabled={isDeleting}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-600 text-white hover:bg-red-700"
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

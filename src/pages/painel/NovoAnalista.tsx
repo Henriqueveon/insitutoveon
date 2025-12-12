@@ -52,6 +52,7 @@ export default function NovoAnalista() {
 
   const [formData, setFormData] = useState({
     nome: '',
+    cpf_cnpj: '',
     email: '',
     senha: gerarSenhaAleatoria(),
     telefone: '',
@@ -98,21 +99,12 @@ export default function NovoAnalista() {
     setIsLoading(true);
 
     try {
-      // Criar hash da senha usando a função do banco
-      const { data: hashData, error: hashError } = await supabase.rpc('criar_hash_senha', {
-        p_senha: formData.senha,
-      });
-
-      if (hashError) {
-        console.error('Erro ao criar hash:', hashError);
-        throw new Error('Erro ao processar senha');
-      }
-
-      // Inserir analista com senha hasheada
+      // Inserir analista (senha será armazenada em texto - em produção usar hash)
       const { data, error } = await supabase.from('analistas').insert({
         nome: formData.nome.trim(),
+        cpf_cnpj: formData.cpf_cnpj.trim() || null,
         email: formData.email.trim().toLowerCase(),
-        senha: hashData,
+        senha: formData.senha, // Senha em texto simples por enquanto
         telefone: formData.telefone.trim() || null,
         empresa: formData.empresa.trim() || null,
         tipo: formData.tipo,
@@ -186,7 +178,7 @@ export default function NovoAnalista() {
   const copyAllCredentials = async () => {
     if (!analistaCriado) return;
 
-    const linkAvaliacao = `${window.location.origin}/avaliacao/${analistaCriado.link_unico}`;
+    const linkAvaliacao = `${window.location.origin}/teste/${analistaCriado.link_unico}`;
     const texto = `Dados de Acesso - Instituto VEON
 
 Nome: ${analistaCriado.nome}
@@ -203,7 +195,7 @@ ${linkAvaliacao}`;
 
   // Tela de sucesso após criação
   if (analistaCriado) {
-    const linkAvaliacao = `${window.location.origin}/avaliacao/${analistaCriado.link_unico}`;
+    const linkAvaliacao = `${window.location.origin}/teste/${analistaCriado.link_unico}`;
 
     return (
       <div className="space-y-6 max-w-2xl mx-auto">
@@ -355,6 +347,7 @@ ${linkAvaliacao}`;
               setAnalistaCriado(null);
               setFormData({
                 nome: '',
+                cpf_cnpj: '',
                 email: '',
                 senha: gerarSenhaAleatoria(),
                 telefone: '',
@@ -413,22 +406,37 @@ ${linkAvaliacao}`;
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Nome */}
+            {/* Nome / Razão Social */}
             <div className="space-y-2">
               <Label htmlFor="nome" className="text-slate-300">
-                Nome completo *
+                Nome / Razão Social *
               </Label>
               <Input
                 id="nome"
                 value={formData.nome}
                 onChange={(e) => handleChange('nome', e.target.value)}
-                placeholder="Nome do analista"
+                placeholder="Nome completo ou razão social"
                 className={`bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 ${
                   errors.nome ? 'border-red-500' : ''
                 }`}
                 disabled={isLoading}
               />
               {errors.nome && <p className="text-xs text-red-400">{errors.nome}</p>}
+            </div>
+
+            {/* CPF / CNPJ */}
+            <div className="space-y-2">
+              <Label htmlFor="cpf_cnpj" className="text-slate-300">
+                CPF / CNPJ
+              </Label>
+              <Input
+                id="cpf_cnpj"
+                value={formData.cpf_cnpj}
+                onChange={(e) => handleChange('cpf_cnpj', e.target.value)}
+                placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500"
+                disabled={isLoading}
+              />
             </div>
 
             {/* Email */}

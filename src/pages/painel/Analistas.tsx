@@ -50,6 +50,7 @@ import { ptBR } from 'date-fns/locale';
 interface Analista {
   id: string;
   nome: string;
+  cpf_cnpj: string | null;
   email: string;
   telefone: string | null;
   empresa: string | null;
@@ -158,7 +159,7 @@ export default function PainelAnalistas() {
   };
 
   const copyLink = async (analista: Analista) => {
-    const link = `${window.location.origin}/avaliacao/${analista.link_unico}`;
+    const link = `${window.location.origin}/teste/${analista.link_unico}`;
     try {
       await navigator.clipboard.writeText(link);
       setCopiedId(analista.id);
