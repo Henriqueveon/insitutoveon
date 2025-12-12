@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useAssessment, Answer } from '@/context/AssessmentContext';
 import { discQuestions } from '@/data/discQuestions';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Cores definidas
@@ -111,6 +111,14 @@ export default function Assessment() {
     }
   };
 
+  // CORREÇÃO 1: Função para limpar respostas da pergunta atual
+  const handleClearAnswers = () => {
+    setSelectedMais(null);
+    setSelectedMenos(null);
+    setCurrentStage('mais');
+    setIsTransitioning(false);
+  };
+
   // Get stage info
   const getStageInfo = () => {
     switch (currentStage) {
@@ -140,13 +148,24 @@ export default function Assessment() {
   );
 
   return (
-    <div className={cn(
-      "min-h-screen bg-gradient-to-br from-background via-muted/30 to-background",
-      "transition-opacity duration-300",
-      isTransitioning ? "opacity-50" : "opacity-100"
-    )}>
+    <div
+      className={cn(
+        "min-h-screen transition-opacity duration-300",
+        isTransitioning ? "opacity-50" : "opacity-100"
+      )}
+      style={{
+        backgroundColor: '#0F172A',
+        backgroundImage: `repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 35px,
+          rgba(30, 41, 59, 0.3) 35px,
+          rgba(30, 41, 59, 0.3) 36px
+        )`,
+      }}
+    >
       {/* Header */}
-      <header className="w-full py-4 px-4 sm:px-8 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="w-full py-4 px-4 sm:px-8 border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Logo showText={false} />
         </div>
@@ -157,7 +176,7 @@ export default function Assessment() {
         {/* Progress */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-slate-400">
               Pergunta {currentQuestion + 1} de {totalGlobalQuestions}
             </span>
             <span className="text-sm font-medium text-primary">
@@ -165,7 +184,7 @@ export default function Assessment() {
             </span>
           </div>
           <Progress value={globalProgress} className="h-2" />
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Teste DISC • Pergunta {currentQuestion + 1} de {discQuestions.length}
           </p>
         </div>
@@ -196,7 +215,7 @@ export default function Assessment() {
 
             // Determine border color
             let borderColor = stageInfo.color;
-            let backgroundColor = 'transparent';
+            let backgroundColor = 'rgba(255, 255, 255, 0.95)';
 
             if (isMais) {
               borderColor = COLORS.green;
@@ -205,7 +224,8 @@ export default function Assessment() {
               borderColor = COLORS.red;
               backgroundColor = `${COLORS.red}20`;
             } else if (currentStage === 'complete') {
-              borderColor = '#e5e7eb';
+              borderColor = '#475569';
+              backgroundColor = 'rgba(255, 255, 255, 0.9)';
             }
 
             return (
@@ -225,9 +245,11 @@ export default function Assessment() {
                   backgroundColor,
                   borderWidth: isSelected ? '3px' : '2px',
                   borderStyle: 'solid',
+                  color: '#0F172A',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
                 }}
               >
-                <span className="font-semibold text-lg text-foreground">
+                <span className="font-semibold text-lg">
                   {descriptor.texto}
                 </span>
 
@@ -246,42 +268,57 @@ export default function Assessment() {
         </div>
 
         {/* Selection summary */}
-        <div className="bg-card rounded-xl p-4 shadow-lg mb-6">
+        <div className="bg-slate-800/80 rounded-xl p-4 shadow-lg mb-6 backdrop-blur-sm">
           <div className="flex items-center justify-center gap-8">
             <div className="flex items-center gap-2">
               <div
                 className="w-5 h-5 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: selectedMais ? COLORS.green : '#e5e7eb' }}
+                style={{ backgroundColor: selectedMais ? COLORS.green : '#475569' }}
               >
                 {selectedMais && <Check className="w-3 h-3 text-white" />}
               </div>
-              <span className="text-sm text-muted-foreground">Mais combina</span>
+              <span className="text-sm text-slate-300">Mais combina</span>
             </div>
             <div className="flex items-center gap-2">
               <div
                 className="w-5 h-5 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: selectedMenos ? COLORS.red : '#e5e7eb' }}
+                style={{ backgroundColor: selectedMenos ? COLORS.red : '#475569' }}
               >
                 {selectedMenos && <Check className="w-3 h-3 text-white" />}
               </div>
-              <span className="text-sm text-muted-foreground">Menos combina</span>
+              <span className="text-sm text-slate-300">Menos combina</span>
             </div>
           </div>
         </div>
 
-        {/* Navigation - only back button */}
-        {currentQuestion > 0 && (
-          <div className="flex justify-start">
+        {/* Navigation buttons */}
+        <div className="flex items-center justify-between gap-4">
+          {/* Back button */}
+          {currentQuestion > 0 ? (
             <Button
               variant="outline"
               onClick={handlePrevious}
-              className="gap-2"
+              className="gap-2 border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white"
             >
               <ArrowLeft className="w-4 h-4" />
               Voltar
             </Button>
-          </div>
-        )}
+          ) : (
+            <div />
+          )}
+
+          {/* Clear button - CORREÇÃO 1 */}
+          {(selectedMais || selectedMenos) && (
+            <Button
+              variant="ghost"
+              onClick={handleClearAnswers}
+              className="gap-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Limpar Respostas
+            </Button>
+          )}
+        </div>
       </main>
     </div>
   );

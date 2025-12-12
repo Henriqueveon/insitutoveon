@@ -4,6 +4,7 @@ import { useAssessment } from '@/context/AssessmentContext';
 import { sprangerQuestions } from '@/data/sprangerQuestions';
 import { SprangerInstructions } from '@/components/spranger/SprangerInstructions';
 import { SprangerQuestion } from '@/components/spranger/SprangerQuestion';
+import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -261,27 +262,48 @@ export default function SprangerTest() {
 
   if (phase === 'form') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background py-8 px-4">
-        <div className="max-w-lg mx-auto">
-          <Card className="shadow-xl border-2">
-            <CardHeader className="text-center pb-4">
-              <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-8 h-8 text-green-500" />
-              </div>
-              <CardTitle className="text-2xl font-display">
-                Parabéns! Teste Concluído
-              </CardTitle>
-              <CardDescription className="text-base">
-                Você respondeu todas as 35 perguntas! Agora preencha seus dados para ver seu resultado completo.
-              </CardDescription>
-            </CardHeader>
+      <div
+        className="min-h-screen"
+        style={{
+          backgroundColor: '#0F172A',
+          backgroundImage: `repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 35px,
+            rgba(30, 41, 59, 0.3) 35px,
+            rgba(30, 41, 59, 0.3) 36px
+          )`,
+        }}
+      >
+        {/* Header */}
+        <header className="w-full py-4 px-4 sm:px-8 border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-10">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <Logo showText={false} />
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="py-8 px-4">
+          <div className="max-w-lg mx-auto">
+            <Card className="shadow-xl border-2 border-slate-700 bg-slate-800/90 backdrop-blur-sm">
+              <CardHeader className="text-center pb-4">
+                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-8 h-8 text-green-500" />
+                </div>
+                <CardTitle className="text-2xl font-display text-white">
+                  Parabéns! Teste Concluído
+                </CardTitle>
+                <CardDescription className="text-base text-slate-400">
+                  Você respondeu todas as 35 perguntas! Agora preencha seus dados para ver seu resultado completo.
+                </CardDescription>
+              </CardHeader>
 
             <CardContent>
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 {/* Nome Completo */}
                 <div className="space-y-2">
-                  <Label htmlFor="nome_completo" className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-muted-foreground" />
+                  <Label htmlFor="nome_completo" className="flex items-center gap-2 text-slate-300">
+                    <User className="w-4 h-4 text-slate-400" />
                     Nome Completo
                   </Label>
                   <Input
@@ -290,18 +312,18 @@ export default function SprangerTest() {
                     placeholder="Digite seu nome completo"
                     value={formData.nome_completo}
                     onChange={handleFormChange}
-                    className={getInputClass('nome_completo')}
+                    className={`bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 ${getInputClass('nome_completo')}`}
                     disabled={isLoading}
                   />
                   {errors.nome_completo && (
-                    <p className="text-sm text-destructive">{errors.nome_completo}</p>
+                    <p className="text-sm text-red-400">{errors.nome_completo}</p>
                   )}
                 </div>
 
                 {/* E-mail */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-muted-foreground" />
+                  <Label htmlFor="email" className="flex items-center gap-2 text-slate-300">
+                    <Mail className="w-4 h-4 text-slate-400" />
                     E-mail
                   </Label>
                   <Input
@@ -311,18 +333,18 @@ export default function SprangerTest() {
                     placeholder="seuemail@exemplo.com"
                     value={formData.email}
                     onChange={handleFormChange}
-                    className={getInputClass('email')}
+                    className={`bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 ${getInputClass('email')}`}
                     disabled={isLoading}
                   />
                   {errors.email && (
-                    <p className="text-sm text-destructive">{errors.email}</p>
+                    <p className="text-sm text-red-400">{errors.email}</p>
                   )}
                 </div>
 
                 {/* Telefone/WhatsApp */}
                 <div className="space-y-2">
-                  <Label htmlFor="telefone_whatsapp" className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-muted-foreground" />
+                  <Label htmlFor="telefone_whatsapp" className="flex items-center gap-2 text-slate-300">
+                    <Phone className="w-4 h-4 text-slate-400" />
                     Telefone / WhatsApp
                   </Label>
                   <Input
@@ -332,18 +354,18 @@ export default function SprangerTest() {
                     placeholder="(00) 00000-0000"
                     value={formData.telefone_whatsapp}
                     onChange={handleFormChange}
-                    className={getInputClass('telefone_whatsapp')}
+                    className={`bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 ${getInputClass('telefone_whatsapp')}`}
                     disabled={isLoading}
                   />
                   {errors.telefone_whatsapp && (
-                    <p className="text-sm text-destructive">{errors.telefone_whatsapp}</p>
+                    <p className="text-sm text-red-400">{errors.telefone_whatsapp}</p>
                   )}
                 </div>
 
                 {/* Cargo Atual - Select com 15 opções */}
                 <div className="space-y-2">
-                  <Label htmlFor="cargo_atual" className="flex items-center gap-2">
-                    <Briefcase className="w-4 h-4 text-muted-foreground" />
+                  <Label htmlFor="cargo_atual" className="flex items-center gap-2 text-slate-300">
+                    <Briefcase className="w-4 h-4 text-slate-400" />
                     Cargo Atual
                   </Label>
                   <Select
@@ -351,26 +373,26 @@ export default function SprangerTest() {
                     onValueChange={handleCargoChange}
                     disabled={isLoading}
                   >
-                    <SelectTrigger className={getInputClass('cargo_atual')}>
+                    <SelectTrigger className={`bg-slate-700/50 border-slate-600 text-white ${getInputClass('cargo_atual')}`}>
                       <SelectValue placeholder="Selecione seu cargo" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-slate-800 border-slate-700">
                       {CARGO_OPTIONS.map((cargo) => (
-                        <SelectItem key={cargo} value={cargo}>
+                        <SelectItem key={cargo} value={cargo} className="text-white hover:bg-slate-700">
                           {cargo}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {errors.cargo_atual && (
-                    <p className="text-sm text-destructive">{errors.cargo_atual}</p>
+                    <p className="text-sm text-red-400">{errors.cargo_atual}</p>
                   )}
                 </div>
 
                 {/* Instagram da Empresa */}
                 <div className="space-y-2">
-                  <Label htmlFor="empresa_instagram" className="flex items-center gap-2">
-                    <Instagram className="w-4 h-4 text-muted-foreground" />
+                  <Label htmlFor="empresa_instagram" className="flex items-center gap-2 text-slate-300">
+                    <Instagram className="w-4 h-4 text-slate-400" />
                     Instagram da Empresa
                   </Label>
                   <Input
@@ -379,11 +401,11 @@ export default function SprangerTest() {
                     placeholder="@suaempresa"
                     value={formData.empresa_instagram}
                     onChange={handleFormChange}
-                    className={getInputClass('empresa_instagram')}
+                    className={`bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 ${getInputClass('empresa_instagram')}`}
                     disabled={isLoading}
                   />
                   {errors.empresa_instagram && (
-                    <p className="text-sm text-destructive">{errors.empresa_instagram}</p>
+                    <p className="text-sm text-red-400">{errors.empresa_instagram}</p>
                   )}
                 </div>
 
@@ -407,7 +429,8 @@ export default function SprangerTest() {
               </form>
             </CardContent>
           </Card>
-        </div>
+          </div>
+        </main>
       </div>
     );
   }

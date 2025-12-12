@@ -1,3 +1,4 @@
+import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Info, ArrowRight, MousePointer } from 'lucide-react';
@@ -8,33 +9,54 @@ interface SprangerInstructionsProps {
 
 export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        <Card className="shadow-xl border-2">
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundColor: '#0F172A',
+        backgroundImage: `repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 35px,
+          rgba(30, 41, 59, 0.3) 35px,
+          rgba(30, 41, 59, 0.3) 36px
+        )`,
+      }}
+    >
+      {/* Header */}
+      <header className="w-full py-4 px-4 sm:px-8 border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <Logo showText={false} />
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="py-8 px-4">
+        <div className="max-w-2xl mx-auto">
+          <Card className="shadow-xl border-2 border-slate-700 bg-slate-800/90 backdrop-blur-sm">
           <CardHeader className="text-center pb-4">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl">💎</span>
             </div>
-            <CardTitle className="text-2xl font-display">
+            <CardTitle className="text-2xl font-display text-white">
               Teste de Valores Motivacionais
             </CardTitle>
-            <CardDescription className="text-base">
+            <CardDescription className="text-base text-slate-400">
               Descubra o que realmente te motiva na vida
             </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
             {/* Introdução */}
-            <div className="bg-primary/5 rounded-xl p-4">
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Este teste vai te ajudar a entender <strong className="text-foreground">quais valores são mais importantes para você</strong>.
+            <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Este teste vai te ajudar a entender <strong className="text-white">quais valores são mais importantes para você</strong>.
                 Não existem respostas certas ou erradas - cada pessoa valoriza coisas diferentes!
               </p>
             </div>
 
             {/* Como funciona */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <h3 className="font-semibold text-white flex items-center gap-2">
                 <Info className="w-5 h-5 text-primary" />
                 Como funciona? Ordene as 6 opções!
               </h3>
@@ -132,10 +154,10 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
               </div>
 
               {/* Visual demo */}
-              <div className="bg-muted/30 rounded-xl p-4 mt-4">
+              <div className="bg-slate-700/50 rounded-xl p-4 mt-4">
                 <div className="flex items-center gap-2 mb-3">
                   <MousePointer className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">Só clicar nas opções em ordem!</span>
+                  <span className="text-sm font-medium text-white">Só clicar nas opções em ordem!</span>
                 </div>
                 <div className="grid grid-cols-6 gap-1">
                   <div className="p-1.5 rounded-lg text-center text-xs" style={{ backgroundColor: '#22C55E20', border: '2px solid #22C55E' }}>
@@ -162,13 +184,13 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
 
             {/* Dicas */}
             <div className="bg-amber-500/10 rounded-xl p-4 border border-amber-500/30">
-              <h4 className="font-semibold text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-2">
+              <h4 className="font-semibold text-amber-400 mb-2 flex items-center gap-2">
                 <span>💡</span> Dicas importantes
               </h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Responda de forma <strong className="text-foreground">sincera e espontânea</strong></li>
+              <ul className="text-sm text-slate-300 space-y-1">
+                <li>• Responda de forma <strong className="text-white">sincera e espontânea</strong></li>
                 <li>• Vá com sua primeira impressão - não pense demais!</li>
-                <li>• <strong className="text-foreground">10 perguntas</strong> • Avança automático ao completar</li>
+                <li>• <strong className="text-white">10 perguntas</strong> • Avança automático ao completar</li>
               </ul>
             </div>
 
@@ -183,7 +205,8 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
             </Button>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
