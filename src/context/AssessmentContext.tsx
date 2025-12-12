@@ -4,7 +4,7 @@ import { discSprangerCorrelation, sprangerQuestions } from '@/data/sprangerQuest
 export interface CandidateData {
   id?: string;
   nome_completo: string;
-  email: string;
+  email?: string;
   telefone_whatsapp: string;
   cargo_atual: string;
   empresa_instagram: string;

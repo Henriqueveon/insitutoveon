@@ -10,6 +10,7 @@ import SituationalTest from "./pages/SituationalTest";
 import SprangerTest from "./pages/SprangerTest";
 import Results from "./pages/Results";
 import Admin from "./pages/Admin";
+import Auth from "./pages/Auth";
 import PDFPreview from "./pages/PDFPreview";
 import NotFound from "./pages/NotFound";
 
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/teste-valores" element={<SprangerTest />} />
             <Route path="/resultado" element={<Results />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="/pdf-preview" element={<PDFPreview />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
