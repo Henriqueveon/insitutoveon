@@ -5,52 +5,42 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
-import { User, Building2, Lock, Loader2, Save } from 'lucide-react';
+import { toast } from 'sonner';
+import { User, Lock, Loader2, Save } from 'lucide-react';
 
 export default function PainelConfiguracoes() {
-  const { gestor, empresa, user } = useAuth();
-  const { toast } = useToast();
+  const { profile, user } = useAuth();
 
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   // Profile form
-  const [nome, setNome] = useState(gestor?.nome || '');
-  const [cargo, setCargo] = useState(gestor?.cargo || '');
+  const [nome, setNome] = useState(profile?.nome_completo || '');
+  const [cargo, setCargo] = useState(profile?.cargo || '');
 
   // Password form
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!gestor) return;
+    if (!user) return;
 
     setIsUpdatingProfile(true);
 
     try {
       const { error } = await supabase
-        .from('gestores')
-        .update({ nome, cargo })
-        .eq('id', gestor.id);
+        .from('profiles')
+        .update({ nome_completo: nome, cargo })
+        .eq('id', user.id);
 
       if (error) throw error;
 
-      toast({
-        title: 'Perfil atualizado',
-        description: 'Suas informações foram atualizadas com sucesso.',
-      });
+      toast.success('Perfil atualizado com sucesso.');
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível atualizar o perfil.',
-        variant: 'destructive',
-      });
+      toast.error('Não foi possível atualizar o perfil.');
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -60,20 +50,12 @@ export default function PainelConfiguracoes() {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      toast({
-        title: 'Senhas não coincidem',
-        description: 'A nova senha e a confirmação devem ser iguais.',
-        variant: 'destructive',
-      });
+      toast.error('As senhas não coincidem.');
       return;
     }
 
     if (newPassword.length < 6) {
-      toast({
-        title: 'Senha muito curta',
-        description: 'A nova senha deve ter pelo menos 6 caracteres.',
-        variant: 'destructive',
-      });
+      toast.error('A senha deve ter pelo menos 6 caracteres.');
       return;
     }
 
@@ -86,21 +68,12 @@ export default function PainelConfiguracoes() {
 
       if (error) throw error;
 
-      toast({
-        title: 'Senha atualizada',
-        description: 'Sua senha foi alterada com sucesso.',
-      });
-
-      setCurrentPassword('');
+      toast.success('Senha atualizada com sucesso.');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
       console.error('Erro ao atualizar senha:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível atualizar a senha.',
-        variant: 'destructive',
-      });
+      toast.error('Não foi possível atualizar a senha.');
     } finally {
       setIsUpdatingPassword(false);
     }
@@ -187,38 +160,6 @@ export default function PainelConfiguracoes() {
         </CardContent>
       </Card>
 
-      {/* Company Card */}
-      <Card className="bg-slate-800/50 border-slate-700">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-[#00D9FF]" />
-            Empresa
-          </CardTitle>
-          <CardDescription className="text-slate-400">
-            Informações da sua empresa
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 p-4 rounded-lg bg-slate-700/50 border border-slate-600">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#00D9FF] to-[#0099CC] flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="font-medium text-white">{empresa?.nome || 'Não definido'}</p>
-                <p className="text-sm text-slate-400">
-                  {empresa?.cnpj || 'CNPJ não cadastrado'}
-                </p>
-              </div>
-            </div>
-
-            <p className="text-sm text-slate-500">
-              Para alterar as informações da empresa, entre em contato com o suporte.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Password Card */}
       <Card className="bg-slate-800/50 border-slate-700">
         <CardHeader>
@@ -278,39 +219,6 @@ export default function PainelConfiguracoes() {
               )}
             </Button>
           </form>
-        </CardContent>
-      </Card>
-
-      {/* Danger Zone */}
-      <Card className="bg-slate-800/50 border-red-500/30">
-        <CardHeader>
-          <CardTitle className="text-red-400">Zona de Perigo</CardTitle>
-          <CardDescription className="text-slate-400">
-            Ações irreversíveis
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between p-4 rounded-lg bg-red-500/10 border border-red-500/30">
-            <div>
-              <p className="font-medium text-white">Excluir Conta</p>
-              <p className="text-sm text-slate-400">
-                Esta ação removerá permanentemente sua conta
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              className="border-red-500/50 text-red-400 hover:bg-red-500/10"
-              onClick={() => {
-                toast({
-                  title: 'Contate o suporte',
-                  description:
-                    'Para excluir sua conta, entre em contato com suporte@institutoveon.com.br',
-                });
-              }}
-            >
-              Excluir
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>

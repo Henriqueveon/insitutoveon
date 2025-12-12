@@ -3,13 +3,12 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Link2, CheckCircle2, Clock, TrendingUp, Calendar } from 'lucide-react';
+import { Users, CheckCircle2, Clock, TrendingUp, Calendar } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface DashboardStats {
   totalCandidatos: number;
-  totalLinks: number;
   completados: number;
   pendentes: number;
   candidatosHoje: number;
@@ -20,49 +19,34 @@ interface RecentCandidate {
   id: string;
   nome_completo: string;
   cargo_atual: string;
-  perfil_tipo: string | null;
   created_at: string;
-  status: string;
 }
 
 export default function PainelDashboard() {
-  const { empresa } = useAuth();
+  const { profile } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentCandidates, setRecentCandidates] = useState<RecentCandidate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!empresa) return;
-
       setIsLoading(true);
 
       try {
         const today = new Date();
         const weekAgo = subDays(today, 7);
 
-        // Buscar candidatos da empresa
+        // Buscar todos os candidatos
         const { data: candidatos, error: candidatosError } = await supabase
           .from('candidatos_disc')
-          .select('id, nome_completo, cargo_atual, perfil_tipo, created_at, status')
-          .or(`empresa_id.eq.${empresa.id},empresa_id.is.null`)
+          .select('id, nome_completo, cargo_atual, created_at')
           .order('created_at', { ascending: false });
 
         if (candidatosError) throw candidatosError;
 
-        // Buscar links da empresa
-        const { data: links, error: linksError } = await supabase
-          .from('links_avaliacao')
-          .select('id')
-          .eq('empresa_id', empresa.id);
-
-        if (linksError) throw linksError;
-
         // Calcular estatísticas
         const allCandidatos = candidatos || [];
         const totalCandidatos = allCandidatos.length;
-        const completados = allCandidatos.filter(c => c.perfil_tipo).length;
-        const pendentes = allCandidatos.filter(c => !c.perfil_tipo).length;
 
         const candidatosHoje = allCandidatos.filter(c => {
           const createdAt = new Date(c.created_at);
@@ -76,9 +60,8 @@ export default function PainelDashboard() {
 
         setStats({
           totalCandidatos,
-          totalLinks: links?.length || 0,
-          completados,
-          pendentes,
+          completados: totalCandidatos, // Todos os candidatos são considerados completados nesta versão
+          pendentes: 0,
           candidatosHoje,
           candidatosSemana,
         });
@@ -93,7 +76,7 @@ export default function PainelDashboard() {
     };
 
     fetchDashboardData();
-  }, [empresa]);
+  }, []);
 
   const statCards = [
     {
@@ -104,13 +87,6 @@ export default function PainelDashboard() {
       description: 'Cadastrados no sistema',
     },
     {
-      title: 'Links Ativos',
-      value: stats?.totalLinks || 0,
-      icon: Link2,
-      color: 'from-purple-500 to-purple-600',
-      description: 'Links de avaliação',
-    },
-    {
       title: 'Testes Completos',
       value: stats?.completados || 0,
       icon: CheckCircle2,
@@ -118,28 +94,20 @@ export default function PainelDashboard() {
       description: 'Avaliações finalizadas',
     },
     {
-      title: 'Pendentes',
-      value: stats?.pendentes || 0,
-      icon: Clock,
-      color: 'from-yellow-500 to-yellow-600',
-      description: 'Aguardando conclusão',
+      title: 'Hoje',
+      value: stats?.candidatosHoje || 0,
+      icon: Calendar,
+      color: 'from-purple-500 to-purple-600',
+      description: 'Cadastrados hoje',
+    },
+    {
+      title: 'Esta Semana',
+      value: stats?.candidatosSemana || 0,
+      icon: TrendingUp,
+      color: 'from-orange-500 to-orange-600',
+      description: 'Últimos 7 dias',
     },
   ];
-
-  const getStatusBadge = (status: string, perfilTipo: string | null) => {
-    if (perfilTipo) {
-      return (
-        <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-500/20 text-green-400">
-          Completo
-        </span>
-      );
-    }
-    return (
-      <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-500/20 text-yellow-400">
-        Pendente
-      </span>
-    );
-  };
 
   return (
     <div className="space-y-6">
@@ -147,7 +115,7 @@ export default function PainelDashboard() {
       <div>
         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
         <p className="text-slate-400 mt-1">
-          Visão geral das avaliações DISC
+          Bem-vindo, {profile?.nome_completo || 'Administrador'}
         </p>
       </div>
 
@@ -177,89 +145,6 @@ export default function PainelDashboard() {
             </CardContent>
           </Card>
         ))}
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Activity Card */}
-        <Card className="bg-slate-800/50 border-slate-700">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-[#00D9FF]" />
-              Atividade Recente
-            </CardTitle>
-            <CardDescription className="text-slate-400">
-              Candidatos cadastrados nos últimos 7 dias
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-20 w-full bg-slate-700" />
-            ) : (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-lg bg-slate-700/50 border border-slate-600">
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <Calendar className="w-4 h-4" />
-                    <span className="text-sm">Hoje</span>
-                  </div>
-                  <p className="text-2xl font-bold text-white mt-2">{stats?.candidatosHoje || 0}</p>
-                </div>
-                <div className="p-4 rounded-lg bg-slate-700/50 border border-slate-600">
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <TrendingUp className="w-4 h-4" />
-                    <span className="text-sm">Esta semana</span>
-                  </div>
-                  <p className="text-2xl font-bold text-white mt-2">{stats?.candidatosSemana || 0}</p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Completion Rate */}
-        <Card className="bg-slate-800/50 border-slate-700">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-400" />
-              Taxa de Conclusão
-            </CardTitle>
-            <CardDescription className="text-slate-400">
-              Porcentagem de testes finalizados
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-20 w-full bg-slate-700" />
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-end gap-2">
-                  <span className="text-4xl font-bold text-white">
-                    {stats && stats.totalCandidatos > 0
-                      ? Math.round((stats.completados / stats.totalCandidatos) * 100)
-                      : 0}%
-                  </span>
-                  <span className="text-slate-400 text-sm mb-1">de conclusão</span>
-                </div>
-                <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-500"
-                    style={{
-                      width: `${
-                        stats && stats.totalCandidatos > 0
-                          ? (stats.completados / stats.totalCandidatos) * 100
-                          : 0
-                      }%`,
-                    }}
-                  />
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-green-400">{stats?.completados || 0} completos</span>
-                  <span className="text-yellow-400">{stats?.pendentes || 0} pendentes</span>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       {/* Recent Candidates */}
@@ -306,7 +191,9 @@ export default function PainelDashboard() {
                     <p className="text-sm text-slate-400 truncate">{candidate.cargo_atual}</p>
                   </div>
                   <div className="text-right">
-                    {getStatusBadge(candidate.status, candidate.perfil_tipo)}
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-500/20 text-green-400">
+                      Completo
+                    </span>
                     <p className="text-xs text-slate-500 mt-1">
                       {format(new Date(candidate.created_at), 'dd/MM HH:mm', { locale: ptBR })}
                     </p>
