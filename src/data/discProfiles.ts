@@ -18,6 +18,11 @@ export interface ProfileData {
   };
   planoAcao: string[];
   cargosIdeais: string[];
+  alertasCriticos: {
+    malInterpretado: string[];
+    perdaColaboradores: string[];
+    medosTravas: string[];
+  };
 }
 
 export const discProfiles: Record<string, ProfileData> = {
@@ -68,7 +73,30 @@ export const discProfiles: Record<string, ProfileData> = {
       "Solicitar feedback sobre estilo de comunicação e ajustar",
       "Participar de treinamento de inteligência emocional"
     ],
-    cargosIdeais: ["CEO/Diretor Executivo", "Gerente de Projetos", "Empreendedor", "Consultor Estratégico", "Gerente de Vendas", "Diretor de Operações"]
+    cargosIdeais: ["CEO/Diretor Executivo", "Gerente de Projetos", "Empreendedor", "Consultor Estratégico", "Gerente de Vendas", "Diretor de Operações"],
+    alertasCriticos: {
+      malInterpretado: [
+        "Sua objetividade pode ser vista como frieza ou falta de sensibilidade",
+        "Sua assertividade pode parecer agressividade ou arrogância",
+        "Sua pressa por resultados pode parecer desrespeito com o tempo dos outros",
+        "Seu foco em metas pode parecer desinteresse pelas pessoas",
+        "Sua franqueza direta pode ser interpretada como grosseria"
+      ],
+      perdaColaboradores: [
+        "Colaboradores podem se sentir desvalorizados se não receberem reconhecimento emocional",
+        "A pressão constante por resultados pode gerar esgotamento na equipe",
+        "A falta de paciência com erros pode criar ambiente de medo",
+        "Pessoas podem sair por sentirem que suas ideias nunca são ouvidas",
+        "O estilo autoritário pode afastar talentos que buscam autonomia"
+      ],
+      medosTravas: [
+        "O medo de perder controle te impede de delegar e desenvolver líderes",
+        "O medo de parecer fraco te impede de pedir ajuda quando precisa",
+        "O medo de falhar te faz assumir tudo sozinho, gerando sobrecarga",
+        "O medo de perder tempo te impede de investir em relacionamentos importantes",
+        "O medo de ser manipulado te faz desconfiar de boas intenções"
+      ]
+    }
   },
   I: {
     nome: "Influente Puro",
@@ -117,7 +145,30 @@ export const discProfiles: Record<string, ProfileData> = {
       "Estabelecer limites claros de disponibilidade social no trabalho",
       "Participar de curso de gestão de projetos para estruturação"
     ],
-    cargosIdeais: ["Gerente de Vendas", "Especialista em Marketing", "Coordenador de RH", "Relações Públicas", "Facilitador/Trainer", "Gerente de Contas"]
+    cargosIdeais: ["Gerente de Vendas", "Especialista em Marketing", "Coordenador de RH", "Relações Públicas", "Facilitador/Trainer", "Gerente de Contas"],
+    alertasCriticos: {
+      malInterpretado: [
+        "Seu entusiasmo pode ser visto como falta de seriedade ou profissionalismo",
+        "Sua sociabilidade pode parecer fofoca ou perda de tempo",
+        "Sua expressividade pode ser interpretada como exagero ou drama",
+        "Sua necessidade de interação pode parecer carência ou dependência",
+        "Sua informalidade pode ser vista como desrespeito à hierarquia"
+      ],
+      perdaColaboradores: [
+        "Colaboradores podem se frustrar com promessas não cumpridas",
+        "A falta de foco pode sobrecarregar quem precisa compensar",
+        "Pessoas analíticas podem se irritar com a falta de detalhes",
+        "Funcionários podem sair por falta de direção clara e consistência",
+        "A evitação de conflitos pode deixar problemas sem solução"
+      ],
+      medosTravas: [
+        "O medo de rejeição te faz evitar decisões difíceis que desagradam",
+        "O medo de ser desinteressante te faz prometer mais do que pode entregar",
+        "O medo de conflito te impede de dar feedbacks necessários",
+        "O medo de ficar sozinho te faz aceitar qualquer convite, perdendo foco",
+        "O medo de perder popularidade te impede de liderar com firmeza"
+      ]
+    }
   },
   S: {
     nome: "Estável Puro",
@@ -166,7 +217,30 @@ export const discProfiles: Record<string, ProfileData> = {
       "Identificar uma 'pequena mudança' semanal para praticar adaptabilidade",
       "Treinamento em negociação e resolução de conflitos"
     ],
-    cargosIdeais: ["Analista de RH", "Assistente Executivo", "Coordenador Administrativo", "Atendimento ao Cliente", "Professor/Instrutor", "Gestor de Relacionamento"]
+    cargosIdeais: ["Analista de RH", "Assistente Executivo", "Coordenador Administrativo", "Atendimento ao Cliente", "Professor/Instrutor", "Gestor de Relacionamento"],
+    alertasCriticos: {
+      malInterpretado: [
+        "Sua calma pode ser vista como falta de urgência ou preguiça",
+        "Sua paciência pode parecer lentidão ou falta de iniciativa",
+        "Sua busca por harmonia pode parecer indecisão ou falta de opinião",
+        "Sua lealdade pode ser interpretada como submissão ou dependência",
+        "Sua resistência a mudanças pode parecer teimosia ou acomodação"
+      ],
+      perdaColaboradores: [
+        "Colaboradores ambiciosos podem sair por falta de desafios e crescimento",
+        "A evitação de conflitos pode deixar problemas crescerem sem solução",
+        "Pessoas dinâmicas podem se frustrar com a lentidão nas decisões",
+        "A dificuldade em dar feedback negativo pode prejudicar o desenvolvimento da equipe",
+        "Funcionários podem sair por falta de reconhecimento ou promoção"
+      ],
+      medosTravas: [
+        "O medo de mudança te faz perder oportunidades de crescimento",
+        "O medo de conflito te impede de defender suas ideias e conquistas",
+        "O medo de desagradar te faz aceitar mais trabalho do que deveria",
+        "O medo de instabilidade te mantém em situações que já não te servem",
+        "O medo de confronto te impede de cobrar o que é seu por direito"
+      ]
+    }
   },
   C: {
     nome: "Conforme Puro",
@@ -215,7 +289,30 @@ export const discProfiles: Record<string, ProfileData> = {
       "Curso de comunicação interpessoal e apresentações",
       "Praticar delegação de tarefas menos críticas"
     ],
-    cargosIdeais: ["Analista de Dados", "Contador/Auditor", "Engenheiro de Qualidade", "Analista de Sistemas", "Pesquisador", "Compliance Officer"]
+    cargosIdeais: ["Analista de Dados", "Contador/Auditor", "Engenheiro de Qualidade", "Analista de Sistemas", "Pesquisador", "Compliance Officer"],
+    alertasCriticos: {
+      malInterpretado: [
+        "Sua atenção a detalhes pode ser vista como perfeccionismo paralisante",
+        "Sua reserva pode parecer frieza ou desinteresse pelas pessoas",
+        "Suas perguntas podem ser interpretadas como desconfiança ou crítica",
+        "Sua cautela pode parecer pessimismo ou negatividade",
+        "Sua precisão pode ser vista como rigidez ou inflexibilidade"
+      ],
+      perdaColaboradores: [
+        "Colaboradores podem se sentir microgerenciados pela busca por perfeição",
+        "A lentidão nas decisões pode frustrar pessoas mais dinâmicas",
+        "O foco excessivo em erros pode desmotivar a equipe",
+        "A falta de reconhecimento emocional pode fazer pessoas se sentirem máquinas",
+        "Funcionários criativos podem sair por falta de espaço para experimentar"
+      ],
+      medosTravas: [
+        "O medo de errar te faz analisar demais e perder oportunidades de ação",
+        "O medo de crítica te impede de mostrar trabalho antes de estar 'perfeito'",
+        "O medo de ambiguidade te faz evitar projetos com incerteza",
+        "O medo de quebrar regras te impede de inovar e questionar processos",
+        "O medo de parecer incompetente te faz esconder dúvidas importantes"
+      ]
+    }
   },
   DI: {
     nome: "Dominante-Influente",
@@ -259,7 +356,30 @@ export const discProfiles: Record<string, ProfileData> = {
       "Delegar follow-through para garantir execução",
       "Buscar feedback sobre impacto nas pessoas"
     ],
-    cargosIdeais: ["Diretor Comercial", "CEO de Startup", "Consultor de Vendas", "Líder de Equipe", "Palestrante", "Head de Marketing"]
+    cargosIdeais: ["Diretor Comercial", "CEO de Startup", "Consultor de Vendas", "Líder de Equipe", "Palestrante", "Head de Marketing"],
+    alertasCriticos: {
+      malInterpretado: [
+        "Sua energia pode ser vista como impulsividade ou falta de reflexão",
+        "Sua confiança pode parecer arrogância ou ego inflado",
+        "Sua rapidez pode parecer atropelamento das pessoas e processos",
+        "Seu carisma pode ser visto como manipulação ou superficialidade",
+        "Sua ambição pode parecer insensibilidade aos outros"
+      ],
+      perdaColaboradores: [
+        "Colaboradores podem se sentir ofuscados pelo seu brilho pessoal",
+        "A pressão por resultados rápidos pode esgotar a equipe",
+        "Pessoas mais analíticas podem se frustrar com a falta de profundidade",
+        "Funcionários podem sair por sentirem-se usados para seus objetivos",
+        "A tendência a dominar pode silenciar vozes importantes da equipe"
+      ],
+      medosTravas: [
+        "O medo de falhar publicamente te faz evitar riscos importantes",
+        "O medo de perder influência te faz competir quando deveria colaborar",
+        "O medo de ser ignorado te faz falar demais e ouvir de menos",
+        "O medo de perder controle te impede de desenvolver sucessores",
+        "O medo de ser desvalorizado te faz buscar reconhecimento excessivo"
+      ]
+    }
   },
   DC: {
     nome: "Dominante-Conforme",
@@ -298,7 +418,30 @@ export const discProfiles: Record<string, ProfileData> = {
       "Praticar feedback construtivo",
       "Desenvolver inteligência emocional"
     ],
-    cargosIdeais: ["Diretor de Operações", "Gerente de Projetos", "Controller Financeiro", "Diretor de Qualidade", "CTO"]
+    cargosIdeais: ["Diretor de Operações", "Gerente de Projetos", "Controller Financeiro", "Diretor de Qualidade", "CTO"],
+    alertasCriticos: {
+      malInterpretado: [
+        "Sua exigência pode ser vista como perfeccionismo tóxico",
+        "Sua frieza analítica pode parecer falta de humanidade",
+        "Suas críticas podem ser interpretadas como ataques pessoais",
+        "Sua independência pode parecer arrogância ou desdém pela equipe",
+        "Seu foco em qualidade pode parecer desprezo por velocidade"
+      ],
+      perdaColaboradores: [
+        "Colaboradores podem se sentir nunca bons o suficiente",
+        "O ambiente de alta pressão pode gerar burnout na equipe",
+        "Pessoas criativas podem sair por falta de espaço para errar",
+        "A falta de conexão emocional pode criar distância da equipe",
+        "Funcionários podem sair por não receberem reconhecimento positivo"
+      ],
+      medosTravas: [
+        "O medo de errar te faz revisar obsessivamente ao invés de confiar",
+        "O medo de perder controle te impede de delegar trabalho importante",
+        "O medo de parecer incompetente te faz esconder vulnerabilidades",
+        "O medo de falhar te faz evitar projetos com risco de insucesso",
+        "O medo de crítica te faz ser excessivamente duro consigo mesmo"
+      ]
+    }
   },
   IS: {
     nome: "Influente-Estável",
@@ -337,7 +480,30 @@ export const discProfiles: Record<string, ProfileData> = {
       "Estabelecer prazos para decisões",
       "Treinamento em assertividade"
     ],
-    cargosIdeais: ["Coordenador de RH", "Trainer", "Coach", "Facilitador", "Gerente de Atendimento", "Assistente Social"]
+    cargosIdeais: ["Coordenador de RH", "Trainer", "Coach", "Facilitador", "Gerente de Atendimento", "Assistente Social"],
+    alertasCriticos: {
+      malInterpretado: [
+        "Sua gentileza pode ser vista como fraqueza ou falta de pulso",
+        "Sua busca por harmonia pode parecer indecisão ou falta de posição",
+        "Sua empatia pode parecer parcialidade ou favoritismo",
+        "Sua paciência pode ser interpretada como falta de urgência",
+        "Sua informalidade pode parecer falta de profissionalismo"
+      ],
+      perdaColaboradores: [
+        "Colaboradores ambiciosos podem sair por falta de direção firme",
+        "Problemas não resolvidos podem se acumular e explodir",
+        "Pessoas diretas podem se frustrar com a falta de decisões claras",
+        "A evitação de conflitos pode criar ambiente de passivo-agressividade",
+        "Funcionários podem sair por falta de feedbacks honestos sobre desempenho"
+      ],
+      medosTravas: [
+        "O medo de conflito te faz evitar conversas difíceis necessárias",
+        "O medo de rejeição te faz ceder demais em negociações",
+        "O medo de desagradar te impede de dar feedbacks construtivos",
+        "O medo de mudança te faz resistir a melhorias necessárias",
+        "O medo de parecer antipático te faz aceitar comportamentos inadequados"
+      ]
+    }
   },
   SC: {
     nome: "Estável-Conforme",
@@ -376,7 +542,30 @@ export const discProfiles: Record<string, ProfileData> = {
       "Estabelecer limites de tempo para análises",
       "Curso de comunicação assertiva"
     ],
-    cargosIdeais: ["Analista de Qualidade", "Auditor", "Contador", "Técnico Especialista", "Pesquisador", "Suporte Técnico"]
+    cargosIdeais: ["Analista de Qualidade", "Auditor", "Contador", "Técnico Especialista", "Pesquisador", "Suporte Técnico"],
+    alertasCriticos: {
+      malInterpretado: [
+        "Sua reserva pode ser vista como frieza ou desinteresse",
+        "Sua cautela pode parecer medo ou falta de confiança",
+        "Seu ritmo pode ser interpretado como lentidão ou preguiça",
+        "Sua atenção a detalhes pode parecer obsessão ou bloqueio",
+        "Sua preferência por rotina pode parecer falta de criatividade"
+      ],
+      perdaColaboradores: [
+        "Colaboradores dinâmicos podem se frustrar com a lentidão de processos",
+        "A resistência a mudanças pode fazer equipe perder oportunidades",
+        "Pessoas extrovertidas podem se sentir isoladas no ambiente",
+        "A falta de feedback positivo pode desmotivar a equipe",
+        "Funcionários criativos podem sair por falta de espaço para inovação"
+      ],
+      medosTravas: [
+        "O medo de mudança te faz resistir mesmo a melhorias necessárias",
+        "O medo de errar te paralisa diante de decisões importantes",
+        "O medo de conflito te faz engolir insatisfações que crescem",
+        "O medo de julgamento te impede de compartilhar boas ideias",
+        "O medo de incerteza te mantém preso em zonas de conforto limitantes"
+      ]
+    }
   }
 };
 

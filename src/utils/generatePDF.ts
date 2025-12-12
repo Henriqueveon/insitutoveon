@@ -59,6 +59,11 @@ interface ProfileData {
   };
   planoAcao: string[];
   cargosIdeais: string[];
+  alertasCriticos: {
+    malInterpretado: string[];
+    perdaColaboradores: string[];
+    medosTravas: string[];
+  };
 }
 
 // VEON Brand Colors
@@ -436,7 +441,119 @@ export async function generatePDF(
   pdf.text(relLines, margin, yPos);
 
   // ========================================
-  // PÁGINA 4 - RECOMENDAÇÕES
+  // PÁGINA 4 - ALERTAS CRÍTICOS
+  // ========================================
+  pdf.addPage();
+
+  // Header
+  pdf.setFillColor(...VEON_COLORS.azulEscuro);
+  pdf.rect(0, 0, pageWidth, 35, 'F');
+  pdf.setFillColor(...VEON_COLORS.vermelho);
+  pdf.rect(0, 35, pageWidth, 3, 'F');
+
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(18);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('ALERTAS CRÍTICOS', margin, 18);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('Pontos de atenção no ambiente de trabalho', margin, 28);
+
+  yPos = 55;
+
+  // BLOCO 1 - Como você pode ser mal interpretado
+  pdf.setFillColor(...VEON_COLORS.vermelho);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('COMO VOCÊ PODE SER MAL INTERPRETADO', margin + 5, yPos + 3);
+
+  yPos += 15;
+
+  pdf.setFillColor(255, 245, 245);
+  const bloco1Height = Math.min(profile.alertasCriticos.malInterpretado.length * 8 + 10, 60);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, bloco1Height, 3, 3, 'F');
+  pdf.setDrawColor(...VEON_COLORS.vermelho);
+  pdf.setLineWidth(0.5);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, bloco1Height, 3, 3, 'S');
+
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'normal');
+
+  profile.alertasCriticos.malInterpretado.slice(0, 5).forEach((item) => {
+    pdf.setFillColor(...VEON_COLORS.vermelho);
+    pdf.circle(margin + 6, yPos, 1.5, 'F');
+    const itemLines = pdf.splitTextToSize(item, contentWidth - 15);
+    pdf.text(itemLines, margin + 12, yPos + 1);
+    yPos += itemLines.length * 4 + 4;
+  });
+
+  yPos += 10;
+
+  // BLOCO 2 - Riscos de perder colaboradores
+  pdf.setFillColor(245, 158, 11);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('RISCOS DE PERDER COLABORADORES', margin + 5, yPos + 3);
+
+  yPos += 15;
+
+  pdf.setFillColor(255, 251, 235);
+  const bloco2Height = Math.min(profile.alertasCriticos.perdaColaboradores.length * 8 + 10, 60);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, bloco2Height, 3, 3, 'F');
+  pdf.setDrawColor(245, 158, 11);
+  pdf.setLineWidth(0.5);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, bloco2Height, 3, 3, 'S');
+
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'normal');
+
+  profile.alertasCriticos.perdaColaboradores.slice(0, 5).forEach((item) => {
+    pdf.setFillColor(245, 158, 11);
+    pdf.circle(margin + 6, yPos, 1.5, 'F');
+    const itemLines = pdf.splitTextToSize(item, contentWidth - 15);
+    pdf.text(itemLines, margin + 12, yPos + 1);
+    yPos += itemLines.length * 4 + 4;
+  });
+
+  yPos += 10;
+
+  // BLOCO 3 - Como seus medos te travam
+  pdf.setFillColor(...VEON_COLORS.roxo);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
+  pdf.setTextColor(...VEON_COLORS.branco);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('COMO SEUS MEDOS TE TRAVAM', margin + 5, yPos + 3);
+
+  yPos += 15;
+
+  pdf.setFillColor(245, 243, 255);
+  const bloco3Height = Math.min(profile.alertasCriticos.medosTravas.length * 8 + 10, 60);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, bloco3Height, 3, 3, 'F');
+  pdf.setDrawColor(...VEON_COLORS.roxo);
+  pdf.setLineWidth(0.5);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, bloco3Height, 3, 3, 'S');
+
+  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'normal');
+
+  profile.alertasCriticos.medosTravas.slice(0, 5).forEach((item) => {
+    pdf.setFillColor(...VEON_COLORS.roxo);
+    pdf.circle(margin + 6, yPos, 1.5, 'F');
+    const itemLines = pdf.splitTextToSize(item, contentWidth - 15);
+    pdf.text(itemLines, margin + 12, yPos + 1);
+    yPos += itemLines.length * 4 + 4;
+  });
+
+  // ========================================
+  // PÁGINA 5 - RECOMENDAÇÕES
   // ========================================
   pdf.addPage();
   
@@ -563,7 +680,7 @@ export async function generatePDF(
   pdf.text('"A bússola que aponta para o sucesso"', margin + 10, pageHeight - 24);
 
   // ========================================
-  // PÁGINA 5 - DICAS DE COMUNICAÇÃO
+  // PÁGINA 6 - DICAS DE COMUNICAÇÃO
   // ========================================
   pdf.addPage();
   

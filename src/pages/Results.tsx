@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
 import { useAssessment } from '@/context/AssessmentContext';
 import { getProfileDescription } from '@/data/discProfiles';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,8 +33,6 @@ import {
   Star,
   TrendingUp,
   BookOpen,
-  Lightbulb,
-  Save,
   Download,
   Loader2
 } from 'lucide-react';
@@ -47,7 +44,6 @@ export default function Results() {
   const chartRef = useRef<HTMLDivElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const [notionSynced, setNotionSynced] = useState(false);
-  const [actionPlan, setActionPlan] = useState('');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
@@ -116,11 +112,6 @@ export default function Results() {
     resetAssessment();
     localStorage.removeItem('candidato_notion_id');
     navigate('/');
-  };
-
-  const handleSaveActionPlan = () => {
-    localStorage.setItem('disc_action_plan', actionPlan);
-    toast.success('Plano de ação salvo com sucesso!');
   };
 
   const handleDownloadPDF = async () => {
@@ -497,33 +488,6 @@ export default function Results() {
             </CardContent>
           </Card>
 
-          {/* Editable Action Plan */}
-          <Card className="bg-[#00CED1]/5 border-[#00CED1]/30">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Lightbulb className="w-5 h-5 text-[#FFB84D]" />
-                Seu Plano de Ação Personalizado
-              </CardTitle>
-              <CardDescription>
-                Com base no seu relatório, quais ações você pode tomar para seu desenvolvimento?
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                value={actionPlan}
-                onChange={(e) => setActionPlan(e.target.value)}
-                placeholder="Escreva aqui suas metas pessoais, ações de desenvolvimento e compromissos baseados nos insights do seu perfil DISC..."
-                className="min-h-[150px] bg-card border-[#00CED1]/30 focus:border-[#00CED1]"
-              />
-              <Button
-                onClick={handleSaveActionPlan}
-                className="bg-gradient-to-r from-[#00CED1] to-[#0099CC] hover:opacity-90 gap-2"
-              >
-                <Save className="w-4 h-4" />
-                Salvar Plano
-              </Button>
-            </CardContent>
-          </Card>
         </section>
 
         {/* Footer */}
