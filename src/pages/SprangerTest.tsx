@@ -49,6 +49,7 @@ export default function SprangerTest() {
     calculateSprangerProfile,
     setSprangerStartTime,
     setCandidate,
+    analistaId,
   } = useAssessment();
 
   const [phase, setPhase] = useState<Phase>('instructions');
@@ -191,11 +192,26 @@ export default function SprangerTest() {
           } : null,
           perfil_tipo: perfilTipo,
           status: 'completo',
+          // Link to analyst if test was accessed via analyst link
+          analista_id: analistaId || null,
         })
         .select('id')
         .single();
 
       if (error) throw error;
+
+      // If test was from an analyst, decrement their available licenses
+      if (analistaId) {
+        const { error: licenseError } = await supabase.rpc('incrementar_licencas_usadas', {
+          p_analista_id: analistaId,
+        });
+
+        if (licenseError) {
+          console.warn('Erro ao decrementar licenças (não crítico):', licenseError);
+        } else {
+          console.log('✅ Licença do analista decrementada');
+        }
+      }
 
       console.log('✅ Candidato e perfil DISC salvos no banco de dados');
 

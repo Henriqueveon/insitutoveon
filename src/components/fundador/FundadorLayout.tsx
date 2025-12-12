@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthAnalista, UsuarioFundador } from '@/context/AuthAnalistaContext';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -15,32 +15,33 @@ import {
 import {
   LayoutDashboard,
   Users,
-  UserPlus,
-  ClipboardList,
+  CreditCard,
   Settings,
   LogOut,
   Menu,
   X,
   ChevronDown,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navigation = [
-  { name: 'Dashboard', href: '/painel/dashboard', icon: LayoutDashboard },
-  { name: 'Meus Analistas', href: '/painel/analistas', icon: Users },
-  { name: 'Todos os Candidatos', href: '/painel/candidatos', icon: ClipboardList },
-  { name: 'Novo Analista', href: '/painel/novo-analista', icon: UserPlus },
-  { name: 'Configurações', href: '/painel/configuracoes', icon: Settings },
+  { name: 'Dashboard', href: '/fundador/dashboard', icon: LayoutDashboard },
+  { name: 'Analistas', href: '/fundador/analistas', icon: Users },
+  { name: 'Licenças', href: '/fundador/licencas', icon: CreditCard },
+  { name: 'Configurações', href: '/fundador/configuracoes', icon: Settings },
 ];
 
-export default function PainelLayout() {
+export default function FundadorLayout() {
   const navigate = useNavigate();
-  const { profile, user, signOut } = useAuth();
+  const { usuario, logout } = useAuthAnalista();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/painel/login');
+  const fundador = usuario as UsuarioFundador;
+
+  const handleSignOut = () => {
+    logout();
+    navigate('/login');
   };
 
   const getInitials = (name: string) => {
@@ -52,7 +53,7 @@ export default function PainelLayout() {
       .toUpperCase();
   };
 
-  const displayName = profile?.nome_completo || user?.email || 'Usuário';
+  const displayName = fundador?.nome || 'Fundador';
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -82,6 +83,14 @@ export default function PainelLayout() {
           </button>
         </div>
 
+        {/* Badge de Fundador */}
+        <div className="px-4 py-3 border-b border-slate-700">
+          <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 rounded-lg border border-amber-500/30">
+            <Shield className="w-4 h-4 text-amber-500" />
+            <span className="text-sm font-medium text-amber-500">Painel do Fundador</span>
+          </div>
+        </div>
+
         {/* Navigation */}
         <nav className="p-4 space-y-1">
           {navigation.map((item) => (
@@ -93,7 +102,7 @@ export default function PainelLayout() {
                 cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-gradient-to-r from-[#00D9FF]/20 to-[#0099CC]/20 text-[#00D9FF] border border-[#00D9FF]/30'
+                    ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-500 border border-amber-500/30'
                     : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
                 )
               }
@@ -108,13 +117,13 @@ export default function PainelLayout() {
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
           <div className="flex items-center gap-3 p-2">
             <Avatar className="h-9 w-9">
-              <AvatarFallback className="bg-slate-700 text-white text-xs">
+              <AvatarFallback className="bg-amber-500/20 text-amber-500 text-xs">
                 {getInitials(displayName)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">{displayName}</p>
-              <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+              <p className="text-xs text-slate-400 truncate">{fundador?.email}</p>
             </div>
           </div>
         </div>
@@ -134,8 +143,9 @@ export default function PainelLayout() {
             </button>
 
             {/* Desktop breadcrumb placeholder */}
-            <div className="hidden lg:block">
-              <h1 className="text-lg font-semibold text-white">Painel do Gestor</h1>
+            <div className="hidden lg:flex items-center gap-2">
+              <Shield className="w-5 h-5 text-amber-500" />
+              <h1 className="text-lg font-semibold text-white">Painel do Fundador</h1>
             </div>
 
             {/* Right side actions */}
@@ -147,7 +157,7 @@ export default function PainelLayout() {
                     className="flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700"
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-slate-700 text-white text-xs">
+                      <AvatarFallback className="bg-amber-500/20 text-amber-500 text-xs">
                         {getInitials(displayName)}
                       </AvatarFallback>
                     </Avatar>
@@ -159,12 +169,12 @@ export default function PainelLayout() {
                   <DropdownMenuLabel className="text-white">
                     <div className="flex flex-col">
                       <span>{displayName}</span>
-                      <span className="text-xs font-normal text-slate-400">{user?.email}</span>
+                      <span className="text-xs font-normal text-slate-400">{fundador?.email}</span>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-slate-700" />
                   <DropdownMenuItem
-                    onClick={() => navigate('/painel/configuracoes')}
+                    onClick={() => navigate('/fundador/configuracoes')}
                     className="text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer"
                   >
                     <Settings className="w-4 h-4 mr-2" />

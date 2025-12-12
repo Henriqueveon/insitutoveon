@@ -85,6 +85,9 @@ interface AssessmentContextType {
   // Consistency validation
   consistencyResult: ConsistencyResult | null;
   calculateConsistency: () => ConsistencyResult;
+  // Analyst tracking
+  analistaId: string | null;
+  setAnalistaId: (id: string | null) => void;
 }
 
 const AssessmentContext = createContext<AssessmentContextType | undefined>(undefined);
@@ -102,6 +105,9 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
   const [sprangerAnswers, setSprangerAnswers] = useState<SprangerAnswer[]>([]);
   const [sprangerProfile, setSprangerProfile] = useState<SprangerProfile | null>(null);
   const [sprangerStartTime, setSprangerStartTime] = useState<number | null>(null);
+
+  // Analyst tracking
+  const [analistaId, setAnalistaId] = useState<string | null>(null);
 
   const addAnswer = (answer: Answer) => {
     setAnswers((prev) => {
@@ -429,6 +435,7 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
     setSprangerAnswers([]);
     setSprangerProfile(null);
     setSprangerStartTime(null);
+    setAnalistaId(null);
   };
 
   return (
@@ -461,6 +468,9 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
         // Consistency
         consistencyResult,
         calculateConsistency,
+        // Analyst tracking
+        analistaId,
+        setAnalistaId,
       }}
     >
       {children}
