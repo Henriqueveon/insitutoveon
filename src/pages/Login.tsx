@@ -95,7 +95,7 @@ export default function Login() {
           <div className="inline-block">
             <Logo />
           </div>
-          <h1 className="mt-4 text-2xl font-bold text-white">Sistema de Analistas</h1>
+          <h1 className="mt-4 text-2xl font-bold text-white">Painel do Analista</h1>
           <p className="text-slate-400 mt-2">Acesse sua conta para gerenciar avaliações</p>
         </div>
 

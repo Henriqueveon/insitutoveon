@@ -1,17 +1,25 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthAnalista, UsuarioAnalista } from '@/context/AuthAnalistaContext';
+import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   LayoutDashboard,
   Users,
-  Link2,
   Settings,
   LogOut,
   Menu,
   X,
-  Building2,
+  ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -43,10 +51,10 @@ export default function AnalistaLayout() {
   };
 
   const displayName = analista?.nome || 'Analista';
-  const empresaName = analista?.empresa || null;
+  const userEmail = analista?.email || '';
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-slate-900">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -58,46 +66,19 @@ export default function AnalistaLayout() {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-full w-64 bg-[#003DA5] transform transition-transform lg:translate-x-0',
+          'fixed top-0 left-0 z-50 h-full w-64 bg-slate-800 border-r border-slate-700 transform transition-transform lg:translate-x-0',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        {/* Sidebar header - Logo */}
-        <div className="h-20 flex items-center justify-between px-4 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-[#003DA5] font-bold text-lg">V</span>
-            </div>
-            <div>
-              <span className="text-white font-bold text-lg">Instituto VEON</span>
-            </div>
-          </div>
+        {/* Sidebar header */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-700">
+          <Logo />
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-white/70 hover:text-white"
+            className="lg:hidden text-slate-400 hover:text-white"
           >
             <X className="w-5 h-5" />
           </button>
-        </div>
-
-        {/* User info */}
-        <div className="px-4 py-4 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12 border-2 border-white/20">
-              <AvatarFallback className="bg-white text-[#003DA5] font-bold">
-                {getInitials(displayName)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold truncate">{displayName}</p>
-              {empresaName && (
-                <div className="flex items-center gap-1 text-white/70 text-sm">
-                  <Building2 className="w-3 h-3" />
-                  <span className="truncate">{empresaName}</span>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Navigation */}
@@ -109,10 +90,10 @@ export default function AnalistaLayout() {
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-white text-[#003DA5]'
-                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                    ? 'bg-gradient-to-r from-[#00D9FF]/20 to-[#0099CC]/20 text-[#00D9FF] border border-[#00D9FF]/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
                 )
               }
             >
@@ -122,69 +103,88 @@ export default function AnalistaLayout() {
           ))}
         </nav>
 
-        {/* Sidebar footer - Logout */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
-          <Button
-            onClick={handleSignOut}
-            variant="ghost"
-            className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10"
-          >
-            <LogOut className="w-5 h-5 mr-3" />
-            Sair
-          </Button>
+        {/* Sidebar footer */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
+          <div className="flex items-center gap-3 p-2">
+            <Avatar className="h-9 w-9">
+              <AvatarFallback className="bg-slate-700 text-white text-xs">
+                {getInitials(displayName)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white truncate">{displayName}</p>
+              <p className="text-xs text-slate-400 truncate">{userEmail}</p>
+            </div>
+          </div>
         </div>
       </aside>
 
       {/* Main content area */}
       <div className="lg:pl-64">
-        {/* Top header */}
-        <header className="h-16 bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+        {/* Top navbar */}
+        <header className="h-16 bg-slate-800/50 border-b border-slate-700 backdrop-blur-sm sticky top-0 z-30">
           <div className="h-full px-4 flex items-center justify-between">
             {/* Mobile menu button */}
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-gray-600 hover:text-[#003DA5]"
+              className="lg:hidden text-slate-400 hover:text-white"
             >
               <Menu className="w-6 h-6" />
             </button>
 
-            {/* Welcome message */}
-            <div className="hidden lg:flex items-center gap-2">
-              <span className="text-gray-600">Bem-vindo,</span>
-              <span className="text-[#003DA5] font-semibold">{displayName}</span>
-              {empresaName && (
-                <>
-                  <span className="text-gray-400">|</span>
-                  <span className="text-gray-600">{empresaName}</span>
-                </>
-              )}
+            {/* Desktop title */}
+            <div className="hidden lg:block">
+              <h1 className="text-lg font-semibold text-white">Painel do Analista</h1>
             </div>
 
-            {/* Mobile logo */}
-            <div className="lg:hidden flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#003DA5] rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">V</span>
-              </div>
-              <span className="text-[#003DA5] font-bold">VEON</span>
+            {/* Right side actions */}
+            <div className="flex items-center gap-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-slate-700 text-white text-xs">
+                        {getInitials(displayName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="hidden sm:inline-block text-sm">{displayName.split(' ')[0]}</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 bg-slate-800 border-slate-700">
+                  <DropdownMenuLabel className="text-white">
+                    <div className="flex flex-col">
+                      <span>{displayName}</span>
+                      <span className="text-xs font-normal text-slate-400">{userEmail}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-slate-700" />
+                  <DropdownMenuItem
+                    onClick={() => navigate('/analista/configuracoes')}
+                    className="text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Configurações
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-slate-700" />
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="text-red-400 hover:text-red-300 hover:bg-slate-700 cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-
-            {/* Logout button desktop */}
-            <Button
-              onClick={handleSignOut}
-              variant="ghost"
-              className="hidden lg:flex text-gray-600 hover:text-[#E31E24] hover:bg-red-50"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair
-            </Button>
-
-            {/* Mobile placeholder for alignment */}
-            <div className="lg:hidden w-6" />
           </div>
         </header>
 
         {/* Page content */}
-        <main className="p-4 md:p-6 bg-gray-50 min-h-[calc(100vh-4rem)]">
+        <main className="p-6">
           <Outlet />
         </main>
       </div>
