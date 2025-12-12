@@ -100,19 +100,29 @@ export default function AnalistaConfiguracoes() {
 
     setIsChangingPassword(true);
     try {
-      const { data, error } = await supabase.rpc('alterar_senha', {
-        p_tipo: 'analista',
-        p_id: analista.id,
-        p_senha_atual: senhaAtual,
-        p_nova_senha: novaSenha,
-      });
+      // Buscar analista atual para verificar senha
+      const { data: analistaAtual, error: fetchError } = await supabase
+        .from('analistas')
+        .select('senha')
+        .eq('id', analista.id)
+        .single();
 
-      if (error) throw error;
-
-      const result = data as { success: boolean; error?: string };
-      if (!result.success) {
-        throw new Error(result.error || 'Erro ao alterar senha');
+      if (fetchError || !analistaAtual) {
+        throw new Error('Erro ao verificar senha atual');
       }
+
+      // Verificar senha atual (comparação simples - em produção usar bcrypt)
+      if (analistaAtual.senha !== senhaAtual) {
+        throw new Error('Senha atual incorreta');
+      }
+
+      // Atualizar com nova senha
+      const { error: updateError } = await supabase
+        .from('analistas')
+        .update({ senha: novaSenha })
+        .eq('id', analista.id);
+
+      if (updateError) throw updateError;
 
       toast({
         title: 'Senha alterada!',

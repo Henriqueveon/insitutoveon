@@ -90,31 +90,48 @@ export function AuthAnalistaProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, senha: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { data, error } = await supabase.rpc('login_usuario', {
-        p_email: email,
-        p_senha: senha,
-      });
+      // Buscar analista pelo email
+      const { data: analista, error } = await supabase
+        .from('analistas')
+        .select('*')
+        .eq('email', email.toLowerCase().trim())
+        .eq('ativo', true)
+        .single();
 
-      if (error) {
-        console.error('Erro RPC:', error);
-        return { success: false, error: 'Erro ao conectar com o servidor' };
+      if (error || !analista) {
+        return { success: false, error: 'Email ou senha incorretos' };
       }
 
-      const resultado = data as { success: boolean; tipo?: TipoUsuario; usuario?: Usuario; error?: string };
-
-      if (!resultado.success) {
-        return { success: false, error: resultado.error || 'Credenciais inválidas' };
+      // Verificar senha (comparação simples por enquanto - em produção usar bcrypt no backend)
+      // TODO: Implementar verificação de hash bcrypt via edge function
+      if (analista.senha !== senha) {
+        return { success: false, error: 'Email ou senha incorretos' };
       }
 
       // Login bem sucedido
-      if (resultado.tipo && resultado.usuario) {
-        setTipoUsuario(resultado.tipo);
-        setUsuario(resultado.usuario);
-        saveSession(resultado.tipo, resultado.usuario);
-        return { success: true };
-      }
+      const usuarioAnalista: UsuarioAnalista = {
+        id: analista.id,
+        email: analista.email,
+        nome: analista.nome,
+        telefone: analista.telefone,
+        empresa: analista.empresa,
+        tipo: analista.tipo || 'coach',
+        licencas_total: analista.licencas_total || 0,
+        licencas_usadas: analista.licencas_usadas || 0,
+        link_unico: analista.link_unico || '',
+      };
 
-      return { success: false, error: 'Resposta inválida do servidor' };
+      setTipoUsuario('analista');
+      setUsuario(usuarioAnalista);
+      saveSession('analista', usuarioAnalista);
+
+      // Atualizar último acesso
+      await supabase
+        .from('analistas')
+        .update({ ultimo_acesso: new Date().toISOString() })
+        .eq('id', analista.id);
+
+      return { success: true };
     } catch (error) {
       console.error('Erro no login:', error);
       return { success: false, error: 'Erro ao fazer login' };

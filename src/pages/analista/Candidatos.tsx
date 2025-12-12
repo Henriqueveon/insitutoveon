@@ -28,10 +28,10 @@ import { ptBR } from 'date-fns/locale';
 interface Candidato {
   id: string;
   nome_completo: string;
-  email: string;
+  email: string | null;
   cargo_atual: string | null;
   created_at: string;
-  perfil_disc: string | null;
+  perfil_tipo: string | null;
 }
 
 export default function AnalistaCandidatos() {
@@ -53,7 +53,7 @@ export default function AnalistaCandidatos() {
       try {
         const { data, error } = await supabase
           .from('candidatos_disc')
-          .select('id, nome_completo, email, cargo_atual, created_at, perfil_disc')
+          .select('id, nome_completo, email, cargo_atual, created_at, perfil_tipo')
           .eq('analista_id', analista.id)
           .order('created_at', { ascending: false });
 
@@ -89,8 +89,8 @@ export default function AnalistaCandidatos() {
 
     if (perfilFilter !== 'all') {
       filtered = filtered.filter((c) => {
-        if (!c.perfil_disc) return perfilFilter === 'none';
-        return c.perfil_disc.charAt(0).toUpperCase() === perfilFilter;
+        if (!c.perfil_tipo) return perfilFilter === 'none';
+        return c.perfil_tipo.charAt(0).toUpperCase() === perfilFilter;
       });
     }
 
@@ -158,7 +158,7 @@ export default function AnalistaCandidatos() {
         <Card className="bg-white border-gray-200">
           <CardContent className="pt-4 pb-4">
             <p className="text-2xl font-bold text-red-600">
-              {candidatos.filter((c) => c.perfil_disc?.charAt(0) === 'D').length}
+              {candidatos.filter((c) => c.perfil_tipo?.charAt(0) === 'D').length}
             </p>
             <p className="text-sm text-gray-600">Dominância</p>
           </CardContent>
@@ -166,7 +166,7 @@ export default function AnalistaCandidatos() {
         <Card className="bg-white border-gray-200">
           <CardContent className="pt-4 pb-4">
             <p className="text-2xl font-bold text-yellow-600">
-              {candidatos.filter((c) => c.perfil_disc?.charAt(0) === 'I').length}
+              {candidatos.filter((c) => c.perfil_tipo?.charAt(0) === 'I').length}
             </p>
             <p className="text-sm text-gray-600">Influência</p>
           </CardContent>
@@ -174,7 +174,7 @@ export default function AnalistaCandidatos() {
         <Card className="bg-white border-gray-200">
           <CardContent className="pt-4 pb-4">
             <p className="text-2xl font-bold text-green-600">
-              {candidatos.filter((c) => c.perfil_disc?.charAt(0) === 'S').length}
+              {candidatos.filter((c) => c.perfil_tipo?.charAt(0) === 'S').length}
             </p>
             <p className="text-sm text-gray-600">Estabilidade</p>
           </CardContent>
@@ -280,10 +280,10 @@ export default function AnalistaCandidatos() {
                       <TableCell>
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full border ${getPerfilColor(
-                            candidato.perfil_disc
+                            candidato.perfil_tipo
                           )}`}
                         >
-                          {candidato.perfil_disc || 'N/A'}
+                          {candidato.perfil_tipo || 'N/A'}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
