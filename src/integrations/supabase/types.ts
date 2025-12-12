@@ -72,9 +72,12 @@ export type Database = {
         Row: {
           analista_id: string | null
           cargo_atual: string
+          confiabilidade_nivel: string | null
+          confiabilidade_score: number | null
           created_at: string | null
           email: string | null
           empresa_instagram: string
+          flags_detectadas: string[] | null
           id: string
           nome_completo: string
           pdf_url: string | null
@@ -83,14 +86,19 @@ export type Database = {
           perfil_tipo: string | null
           status: string | null
           telefone_whatsapp: string
+          tempo_por_questao: Json | null
+          tempo_total_segundos: number | null
           updated_at: string | null
         }
         Insert: {
           analista_id?: string | null
           cargo_atual: string
+          confiabilidade_nivel?: string | null
+          confiabilidade_score?: number | null
           created_at?: string | null
           email?: string | null
           empresa_instagram: string
+          flags_detectadas?: string[] | null
           id?: string
           nome_completo: string
           pdf_url?: string | null
@@ -99,14 +107,19 @@ export type Database = {
           perfil_tipo?: string | null
           status?: string | null
           telefone_whatsapp: string
+          tempo_por_questao?: Json | null
+          tempo_total_segundos?: number | null
           updated_at?: string | null
         }
         Update: {
           analista_id?: string | null
           cargo_atual?: string
+          confiabilidade_nivel?: string | null
+          confiabilidade_score?: number | null
           created_at?: string | null
           email?: string | null
           empresa_instagram?: string
+          flags_detectadas?: string[] | null
           id?: string
           nome_completo?: string
           pdf_url?: string | null
@@ -115,6 +128,8 @@ export type Database = {
           perfil_tipo?: string | null
           status?: string | null
           telefone_whatsapp?: string
+          tempo_por_questao?: Json | null
+          tempo_total_segundos?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -123,6 +138,110 @@ export type Database = {
             columns: ["analista_id"]
             isOneToOne: false
             referencedRelation: "analistas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      metricas_teste: {
+        Row: {
+          candidato_id: string | null
+          confiabilidade_nivel: string | null
+          confiabilidade_score: number | null
+          created_at: string | null
+          ctrl_atencao_passou: boolean | null
+          ctrl_atencao_resposta: string | null
+          ctrl_consistencia_passou: boolean | null
+          ctrl_consistencia_questao_comparada: number | null
+          ctrl_consistencia_resposta: string | null
+          ctrl_consistencia_resposta_original: string | null
+          ctrl_desejabilidade_passou: boolean | null
+          ctrl_desejabilidade_resposta: string | null
+          ctrl_tempo_passou: boolean | null
+          dispositivo: string | null
+          flags_detectadas: string[] | null
+          id: string
+          ip_hash: string | null
+          navegador: string | null
+          padrao_contraditorio: boolean | null
+          padrao_flat_profile: boolean | null
+          padrao_tempo_lento: boolean | null
+          padrao_tempo_rapido: boolean | null
+          respostas_brutas: Json | null
+          scores_disc_brutos: Json | null
+          scores_spranger_brutos: Json | null
+          tempo_medio_ms: number | null
+          tempo_por_questao: Json | null
+          tempo_total_segundos: number | null
+          versao_teste: string | null
+        }
+        Insert: {
+          candidato_id?: string | null
+          confiabilidade_nivel?: string | null
+          confiabilidade_score?: number | null
+          created_at?: string | null
+          ctrl_atencao_passou?: boolean | null
+          ctrl_atencao_resposta?: string | null
+          ctrl_consistencia_passou?: boolean | null
+          ctrl_consistencia_questao_comparada?: number | null
+          ctrl_consistencia_resposta?: string | null
+          ctrl_consistencia_resposta_original?: string | null
+          ctrl_desejabilidade_passou?: boolean | null
+          ctrl_desejabilidade_resposta?: string | null
+          ctrl_tempo_passou?: boolean | null
+          dispositivo?: string | null
+          flags_detectadas?: string[] | null
+          id?: string
+          ip_hash?: string | null
+          navegador?: string | null
+          padrao_contraditorio?: boolean | null
+          padrao_flat_profile?: boolean | null
+          padrao_tempo_lento?: boolean | null
+          padrao_tempo_rapido?: boolean | null
+          respostas_brutas?: Json | null
+          scores_disc_brutos?: Json | null
+          scores_spranger_brutos?: Json | null
+          tempo_medio_ms?: number | null
+          tempo_por_questao?: Json | null
+          tempo_total_segundos?: number | null
+          versao_teste?: string | null
+        }
+        Update: {
+          candidato_id?: string | null
+          confiabilidade_nivel?: string | null
+          confiabilidade_score?: number | null
+          created_at?: string | null
+          ctrl_atencao_passou?: boolean | null
+          ctrl_atencao_resposta?: string | null
+          ctrl_consistencia_passou?: boolean | null
+          ctrl_consistencia_questao_comparada?: number | null
+          ctrl_consistencia_resposta?: string | null
+          ctrl_consistencia_resposta_original?: string | null
+          ctrl_desejabilidade_passou?: boolean | null
+          ctrl_desejabilidade_resposta?: string | null
+          ctrl_tempo_passou?: boolean | null
+          dispositivo?: string | null
+          flags_detectadas?: string[] | null
+          id?: string
+          ip_hash?: string | null
+          navegador?: string | null
+          padrao_contraditorio?: boolean | null
+          padrao_flat_profile?: boolean | null
+          padrao_tempo_lento?: boolean | null
+          padrao_tempo_rapido?: boolean | null
+          respostas_brutas?: Json | null
+          scores_disc_brutos?: Json | null
+          scores_spranger_brutos?: Json | null
+          tempo_medio_ms?: number | null
+          tempo_por_questao?: Json | null
+          tempo_total_segundos?: number | null
+          versao_teste?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metricas_teste_candidato_id_fkey"
+            columns: ["candidato_id"]
+            isOneToOne: false
+            referencedRelation: "candidatos_disc"
             referencedColumns: ["id"]
           },
         ]
@@ -177,7 +296,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      estatisticas_validacao: {
+        Row: {
+          falhas_atencao: number | null
+          falhas_consistencia: number | null
+          falhas_desejabilidade: number | null
+          falhas_tempo: number | null
+          score_medio: number | null
+          tempo_medio_por_questao_ms: number | null
+          tempo_medio_segundos: number | null
+          testes_alta: number | null
+          testes_baixa: number | null
+          testes_media: number | null
+          testes_suspeita: number | null
+          total_testes: number | null
+          versao_teste: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {

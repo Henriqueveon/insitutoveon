@@ -252,15 +252,15 @@ export default function SprangerTest() {
               C: naturalProfile.C
             } : null,
             // Patterns
-            padrao_flat_profile: reliability.flags.flat_profile,
-            padrao_contraditorio: reliability.flags.contradictory_pattern,
-            padrao_tempo_rapido: reliability.flags.too_fast,
-            padrao_tempo_lento: reliability.flags.too_slow,
+            padrao_flat_profile: reliability.flags.flat_profile || false,
+            padrao_contraditorio: reliability.flags.contradictory_pattern || false,
+            padrao_tempo_rapido: reliability.flags.too_fast || false,
+            padrao_tempo_lento: reliability.flags.too_slow || false,
             // Metadata
             versao_teste: '2.0',
             dispositivo: /Mobile|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
             navegador: navigator.userAgent.substring(0, 100),
-          });
+          } as any);
         console.log('✅ Métricas detalhadas salvas em metricas_teste');
       } catch (metricsError) {
         console.warn('Erro ao salvar métricas (não crítico):', metricsError);

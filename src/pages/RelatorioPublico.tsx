@@ -306,10 +306,10 @@ export default function RelatorioPublico() {
           perfil_adaptado: data.perfil_adaptado as unknown as DISCProfile | null,
           perfil_tipo: data.perfil_tipo,
           created_at: data.created_at || '',
-          // Reliability fields
-          confiabilidade_score: data.confiabilidade_score ?? null,
-          confiabilidade_nivel: data.confiabilidade_nivel ?? null,
-          flags_detectadas: data.flags_detectadas as unknown as string[] | null,
+          // Reliability fields - cast to handle new columns
+          confiabilidade_score: (data as any).confiabilidade_score ?? null,
+          confiabilidade_nivel: (data as any).confiabilidade_nivel ?? null,
+          flags_detectadas: (data as any).flags_detectadas as string[] | null,
         };
         setCandidato(candidatoData);
         setIsLoading(false);
