@@ -262,13 +262,13 @@ export async function generatePDF(
   // PÁGINA 2 - PERFIL NATURAL
   // ========================================
   pdf.addPage();
-  
+
   // Header
   pdf.setFillColor(...VEON_COLORS.azulEscuro);
   pdf.rect(0, 0, pageWidth, 35, 'F');
   pdf.setFillColor(...VEON_COLORS.vermelho);
   pdf.rect(0, 35, pageWidth, 3, 'F');
-  
+
   pdf.setTextColor(...VEON_COLORS.branco);
   pdf.setFontSize(18);
   pdf.setFont('helvetica', 'bold');
@@ -276,72 +276,79 @@ export async function generatePDF(
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
   pdf.text('Como você realmente é em sua essência', margin, 28);
-  
+
   let yPos = 55;
-  
+
+  // Safe access to profile data with fallbacks
+  const profileNome = profile.nome || 'Perfil DISC';
+  const profileDescricao = profile.descricaoCompleta || 'Perfil comportamental identificado.';
+  const potencialidades = profile.potencialidades || [];
+  const pontosDesenvolver = profile.pontosDesenvolver || [];
+
   // Bar chart for natural profile
   yPos = drawBarChart(pdf, naturalProfile, margin, yPos, 'PONTUAÇÃO DISC - NATURAL', 'Seu comportamento em situações naturais');
-  
+
   yPos += 15;
-  
+
   // Profile identified box
   pdf.setFillColor(...VEON_COLORS.vermelho);
   pdf.roundedRect(margin, yPos, contentWidth, 18, 4, 4, 'F');
   pdf.setTextColor(...VEON_COLORS.branco);
   pdf.setFontSize(13);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(`PERFIL IDENTIFICADO: ${profile.nome.toUpperCase()}`, pageWidth / 2, yPos + 12, { align: 'center' });
-  
+  pdf.text(`PERFIL IDENTIFICADO: ${profileNome.toUpperCase()}`, pageWidth / 2, yPos + 12, { align: 'center' });
+
   yPos += 30;
-  
+
   // Características principais
   pdf.setTextColor(...VEON_COLORS.azulEscuro);
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'bold');
   pdf.text('CARACTERÍSTICAS PRINCIPAIS', margin, yPos);
-  
+
   yPos += 8;
   pdf.setTextColor(...VEON_COLORS.cinzaTexto);
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  
-  const descLines = pdf.splitTextToSize(profile.descricaoCompleta, contentWidth);
-  pdf.text(descLines, margin, yPos);
-  yPos += descLines.length * 5 + 10;
-  
+
+  const descLines = pdf.splitTextToSize(profileDescricao, contentWidth);
+  const descLinesToShow = descLines.slice(0, 6); // Limit lines to prevent overflow
+  pdf.text(descLinesToShow, margin, yPos);
+  yPos += descLinesToShow.length * 5 + 10;
+
   // Pontos fortes (potencialidades)
   pdf.setTextColor(...VEON_COLORS.azulEscuro);
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'bold');
   pdf.text('PONTOS FORTES', margin, yPos);
-  
+
   yPos += 7;
   pdf.setTextColor(...VEON_COLORS.cinzaTexto);
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  
-  const pontosFortes = profile.potencialidades.slice(0, 4);
+
+  const pontosFortes = potencialidades.slice(0, 4);
   pontosFortes.forEach((ponto) => {
-    pdf.text(`• ${ponto}`, margin + 3, yPos);
+    pdf.text(`• ${ponto || ''}`, margin + 3, yPos);
     yPos += 6;
   });
-  
+
   yPos += 8;
-  
+
   // Pontos de atenção
   pdf.setTextColor(...VEON_COLORS.vermelho);
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'bold');
   pdf.text('PONTOS DE ATENÇÃO', margin, yPos);
-  
+
   yPos += 7;
   pdf.setTextColor(...VEON_COLORS.cinzaTexto);
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  
-  const pontosAtencao = profile.pontosDesenvolver.slice(0, 3);
+
+  const pontosAtencao = pontosDesenvolver.slice(0, 3);
   pontosAtencao.forEach((ponto) => {
-    pdf.text(`• ${ponto}`, margin + 3, yPos);
+    pdf.text(`• ${ponto || ''}`, margin + 3, yPos);
     yPos += 6;
   });
 
@@ -349,13 +356,13 @@ export async function generatePDF(
   // PÁGINA 3 - PERFIL ADAPTADO
   // ========================================
   pdf.addPage();
-  
+
   // Header
   pdf.setFillColor(...VEON_COLORS.azulEscuro);
   pdf.rect(0, 0, pageWidth, 35, 'F');
   pdf.setFillColor(...VEON_COLORS.vermelho);
   pdf.rect(0, 35, pageWidth, 3, 'F');
-  
+
   pdf.setTextColor(...VEON_COLORS.branco);
   pdf.setFontSize(18);
   pdf.setFont('helvetica', 'bold');
@@ -363,83 +370,87 @@ export async function generatePDF(
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
   pdf.text('Como você age no ambiente de trabalho', margin, 28);
-  
+
   yPos = 55;
-  
+
+  // Safe access to relacoesInterpessoais with fallback
+  const relacoesInterpessoais = profile.relacoesInterpessoais || 'Adapta-se ao ambiente de trabalho.';
+
   // Bar chart for adapted profile
   yPos = drawBarChart(pdf, adaptedProfile, margin, yPos, 'PONTUAÇÃO DISC - ADAPTADO', 'Seu comportamento em situações profissionais');
-  
+
   yPos += 15;
-  
+
   // Comparison box
   pdf.setFillColor(...VEON_COLORS.cinzaClaro);
   pdf.roundedRect(margin, yPos, contentWidth, 50, 4, 4, 'F');
-  
+
   pdf.setTextColor(...VEON_COLORS.azulEscuro);
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'bold');
   pdf.text('ADAPTAÇÃO OBSERVADA', margin + 5, yPos + 12);
-  
+
   pdf.setTextColor(...VEON_COLORS.cinzaTexto);
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  
+
   const adaptText = 'Você adapta seu comportamento no ambiente profissional para atender às demandas do trabalho. Esta diferença entre perfil natural e adaptado indica como você se ajusta às expectativas do cargo.';
   const adaptLines = pdf.splitTextToSize(adaptText, contentWidth - 10);
   pdf.text(adaptLines, margin + 5, yPos + 22);
-  
+
   yPos += 60;
-  
+
   // Diferenças Natural vs Adaptado
   pdf.setTextColor(...VEON_COLORS.azulEscuro);
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'bold');
   pdf.text('DIFERENÇAS NATURAL vs ADAPTADO', margin, yPos);
-  
+
   yPos += 10;
-  
+
   const factors = [
     { key: 'D' as keyof ProfileScores, name: 'Dominância', color: VEON_COLORS.discD },
     { key: 'I' as keyof ProfileScores, name: 'Influência', color: VEON_COLORS.discI },
     { key: 'S' as keyof ProfileScores, name: 'Estabilidade', color: VEON_COLORS.discS },
     { key: 'C' as keyof ProfileScores, name: 'Conformidade', color: VEON_COLORS.discC },
   ];
-  
-  factors.forEach((factor, index) => {
-    const naturalNorm = normalizeScore(naturalProfile[factor.key]);
-    const adaptedNorm = normalizeScore(adaptedProfile[factor.key]);
+
+  factors.forEach((factor) => {
+    const naturalNorm = normalizeScore(naturalProfile[factor.key] || 0);
+    const adaptedNorm = normalizeScore(adaptedProfile[factor.key] || 0);
     const diff = adaptedNorm - naturalNorm;
     const diffText = diff > 0 ? `+${diff}` : `${diff}`;
     const interpretation = diff > 10 ? '(mais no trabalho)' : diff < -10 ? '(menos no trabalho)' : '(similar)';
-    
+
     pdf.setFillColor(...factor.color);
     pdf.circle(margin + 5, yPos + 2, 4, 'F');
-    
+
     pdf.setTextColor(...VEON_COLORS.cinzaTexto);
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'bold');
     pdf.text(factor.name, margin + 12, yPos + 4);
-    
+
     pdf.setFont('helvetica', 'normal');
     pdf.text(`${diffText} pontos ${interpretation}`, margin + 50, yPos + 4);
-    
+
     yPos += 12;
   });
-  
+
   yPos += 15;
-  
+
   // Relações Interpessoais
   pdf.setTextColor(...VEON_COLORS.azulEscuro);
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'bold');
   pdf.text('RELAÇÕES INTERPESSOAIS', margin, yPos);
-  
+
   yPos += 8;
   pdf.setTextColor(...VEON_COLORS.cinzaTexto);
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  const relLines = pdf.splitTextToSize(profile.relacoesInterpessoais, contentWidth);
-  pdf.text(relLines, margin, yPos);
+  const relLines = pdf.splitTextToSize(relacoesInterpessoais, contentWidth);
+  const relLinesToShow = relLines.slice(0, 4); // Limit lines to prevent overflow
+  pdf.text(relLinesToShow, margin, yPos);
 
   // ========================================
   // PÁGINA 4 - ALERTAS CRÍTICOS
@@ -461,6 +472,23 @@ export async function generatePDF(
   pdf.text('Pontos de atenção no ambiente de trabalho', margin, 28);
 
   yPos = 55;
+  const page4MaxY = pageHeight - 25; // Leave space for footer
+
+  // Helper function to calculate real block height
+  const calculateBlockHeight = (items: string[], maxItems: number = 4): number => {
+    let height = 10; // Padding
+    const safeItems = (items || []).slice(0, maxItems);
+    safeItems.forEach((item) => {
+      const itemLines = pdf.splitTextToSize(item || '', contentWidth - 15);
+      height += itemLines.length * 4 + 4;
+    });
+    return height;
+  };
+
+  // Safe access to alertasCriticos with fallbacks
+  const malInterpretado = profile.alertasCriticos?.malInterpretado || [];
+  const perdaColaboradores = profile.alertasCriticos?.perdaColaboradores || [];
+  const medosTravas = profile.alertasCriticos?.medosTravas || [];
 
   // BLOCO 1 - Como você pode ser mal interpretado
   pdf.setFillColor(...VEON_COLORS.vermelho);
@@ -472,8 +500,10 @@ export async function generatePDF(
 
   yPos += 15;
 
+  const bloco1Items = malInterpretado.slice(0, 4);
+  const bloco1Height = calculateBlockHeight(bloco1Items);
+
   pdf.setFillColor(255, 245, 245);
-  const bloco1Height = Math.min(profile.alertasCriticos.malInterpretado.length * 8 + 10, 60);
   pdf.roundedRect(margin, yPos - 5, contentWidth, bloco1Height, 3, 3, 'F');
   pdf.setDrawColor(...VEON_COLORS.vermelho);
   pdf.setLineWidth(0.5);
@@ -483,87 +513,98 @@ export async function generatePDF(
   pdf.setFontSize(9);
   pdf.setFont('helvetica', 'normal');
 
-  profile.alertasCriticos.malInterpretado.slice(0, 5).forEach((item) => {
+  bloco1Items.forEach((item) => {
+    if (yPos > page4MaxY) return; // Prevent overflow
     pdf.setFillColor(...VEON_COLORS.vermelho);
     pdf.circle(margin + 6, yPos, 1.5, 'F');
-    const itemLines = pdf.splitTextToSize(item, contentWidth - 15);
+    const itemLines = pdf.splitTextToSize(item || '', contentWidth - 15);
     pdf.text(itemLines, margin + 12, yPos + 1);
     yPos += itemLines.length * 4 + 4;
   });
 
-  yPos += 10;
+  yPos += 8;
 
   // BLOCO 2 - Riscos de perder colaboradores
-  pdf.setFillColor(245, 158, 11);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
-  pdf.setTextColor(...VEON_COLORS.branco);
-  pdf.setFontSize(11);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('RISCOS DE PERDER COLABORADORES', margin + 5, yPos + 3);
-
-  yPos += 15;
-
-  pdf.setFillColor(255, 251, 235);
-  const bloco2Height = Math.min(profile.alertasCriticos.perdaColaboradores.length * 8 + 10, 60);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, bloco2Height, 3, 3, 'F');
-  pdf.setDrawColor(245, 158, 11);
-  pdf.setLineWidth(0.5);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, bloco2Height, 3, 3, 'S');
-
-  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
-  pdf.setFontSize(9);
-  pdf.setFont('helvetica', 'normal');
-
-  profile.alertasCriticos.perdaColaboradores.slice(0, 5).forEach((item) => {
+  if (yPos < page4MaxY - 40) { // Only render if enough space
     pdf.setFillColor(245, 158, 11);
-    pdf.circle(margin + 6, yPos, 1.5, 'F');
-    const itemLines = pdf.splitTextToSize(item, contentWidth - 15);
-    pdf.text(itemLines, margin + 12, yPos + 1);
-    yPos += itemLines.length * 4 + 4;
-  });
+    pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
+    pdf.setTextColor(...VEON_COLORS.branco);
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('RISCOS DE PERDER COLABORADORES', margin + 5, yPos + 3);
 
-  yPos += 10;
+    yPos += 15;
+
+    const bloco2Items = perdaColaboradores.slice(0, 4);
+    const bloco2Height = calculateBlockHeight(bloco2Items);
+
+    pdf.setFillColor(255, 251, 235);
+    pdf.roundedRect(margin, yPos - 5, contentWidth, bloco2Height, 3, 3, 'F');
+    pdf.setDrawColor(245, 158, 11);
+    pdf.setLineWidth(0.5);
+    pdf.roundedRect(margin, yPos - 5, contentWidth, bloco2Height, 3, 3, 'S');
+
+    pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'normal');
+
+    bloco2Items.forEach((item) => {
+      if (yPos > page4MaxY) return; // Prevent overflow
+      pdf.setFillColor(245, 158, 11);
+      pdf.circle(margin + 6, yPos, 1.5, 'F');
+      const itemLines = pdf.splitTextToSize(item || '', contentWidth - 15);
+      pdf.text(itemLines, margin + 12, yPos + 1);
+      yPos += itemLines.length * 4 + 4;
+    });
+
+    yPos += 8;
+  }
 
   // BLOCO 3 - Como seus medos te travam
-  pdf.setFillColor(...VEON_COLORS.roxo);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
-  pdf.setTextColor(...VEON_COLORS.branco);
-  pdf.setFontSize(11);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('COMO SEUS MEDOS TE TRAVAM', margin + 5, yPos + 3);
-
-  yPos += 15;
-
-  pdf.setFillColor(245, 243, 255);
-  const bloco3Height = Math.min(profile.alertasCriticos.medosTravas.length * 8 + 10, 60);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, bloco3Height, 3, 3, 'F');
-  pdf.setDrawColor(...VEON_COLORS.roxo);
-  pdf.setLineWidth(0.5);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, bloco3Height, 3, 3, 'S');
-
-  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
-  pdf.setFontSize(9);
-  pdf.setFont('helvetica', 'normal');
-
-  profile.alertasCriticos.medosTravas.slice(0, 5).forEach((item) => {
+  if (yPos < page4MaxY - 40) { // Only render if enough space
     pdf.setFillColor(...VEON_COLORS.roxo);
-    pdf.circle(margin + 6, yPos, 1.5, 'F');
-    const itemLines = pdf.splitTextToSize(item, contentWidth - 15);
-    pdf.text(itemLines, margin + 12, yPos + 1);
-    yPos += itemLines.length * 4 + 4;
-  });
+    pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
+    pdf.setTextColor(...VEON_COLORS.branco);
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('COMO SEUS MEDOS TE TRAVAM', margin + 5, yPos + 3);
+
+    yPos += 15;
+
+    const bloco3Items = medosTravas.slice(0, 4);
+    const bloco3Height = calculateBlockHeight(bloco3Items);
+
+    pdf.setFillColor(245, 243, 255);
+    pdf.roundedRect(margin, yPos - 5, contentWidth, bloco3Height, 3, 3, 'F');
+    pdf.setDrawColor(...VEON_COLORS.roxo);
+    pdf.setLineWidth(0.5);
+    pdf.roundedRect(margin, yPos - 5, contentWidth, bloco3Height, 3, 3, 'S');
+
+    pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'normal');
+
+    bloco3Items.forEach((item) => {
+      if (yPos > page4MaxY) return; // Prevent overflow
+      pdf.setFillColor(...VEON_COLORS.roxo);
+      pdf.circle(margin + 6, yPos, 1.5, 'F');
+      const itemLines = pdf.splitTextToSize(item || '', contentWidth - 15);
+      pdf.text(itemLines, margin + 12, yPos + 1);
+      yPos += itemLines.length * 4 + 4;
+    });
+  }
 
   // ========================================
   // PÁGINA 5 - RECOMENDAÇÕES
   // ========================================
   pdf.addPage();
-  
+
   // Header
   pdf.setFillColor(...VEON_COLORS.azulEscuro);
   pdf.rect(0, 0, pageWidth, 35, 'F');
   pdf.setFillColor(...VEON_COLORS.vermelho);
   pdf.rect(0, 35, pageWidth, 3, 'F');
-  
+
   pdf.setTextColor(...VEON_COLORS.branco);
   pdf.setFontSize(18);
   pdf.setFont('helvetica', 'bold');
@@ -571,9 +612,15 @@ export async function generatePDF(
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
   pdf.text('Direcionamento para desenvolvimento e carreira', margin, 28);
-  
+
   yPos = 55;
-  
+  const page5MaxY = pageHeight - 70; // Leave space for footer block + page footer
+
+  // Safe access to arrays with fallbacks
+  const cargosIdeais = profile.cargosIdeais || [];
+  const planoAcao = profile.planoAcao || [];
+  const melhorAdequacao = profile.melhorAdequacao || '';
+
   // Funções Ideais
   pdf.setFillColor(...VEON_COLORS.roxo);
   pdf.roundedRect(margin, yPos - 5, contentWidth, 8, 2, 2, 'F');
@@ -581,94 +628,105 @@ export async function generatePDF(
   pdf.setFontSize(11);
   pdf.setFont('helvetica', 'bold');
   pdf.text('FUNÇÕES IDEAIS', margin + 5, yPos + 1);
-  
+
   yPos += 12;
   pdf.setTextColor(...VEON_COLORS.cinzaTexto);
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  
-  profile.cargosIdeais.slice(0, 6).forEach((cargo) => {
-    pdf.text(`• ${cargo}`, margin + 5, yPos);
+
+  cargosIdeais.slice(0, 5).forEach((cargo) => {
+    if (yPos > page5MaxY) return;
+    pdf.text(`• ${cargo || ''}`, margin + 5, yPos);
     yPos += 6;
   });
-  
-  yPos += 10;
-  
+
+  yPos += 8;
+
   // Trabalho em Equipe
-  pdf.setFillColor(...VEON_COLORS.roxo);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, 8, 2, 2, 'F');
-  pdf.setTextColor(...VEON_COLORS.branco);
-  pdf.setFontSize(11);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('TRABALHO EM EQUIPE', margin + 5, yPos + 1);
-  
-  yPos += 12;
-  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  
-  const teamLines = pdf.splitTextToSize(profile.melhorAdequacao, contentWidth - 10);
-  pdf.text(teamLines, margin + 5, yPos);
-  yPos += teamLines.length * 5 + 10;
-  
-  // Desenvolvimento Sugerido
-  pdf.setFillColor(...VEON_COLORS.roxo);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, 8, 2, 2, 'F');
-  pdf.setTextColor(...VEON_COLORS.branco);
-  pdf.setFontSize(11);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('DESENVOLVIMENTO SUGERIDO', margin + 5, yPos + 1);
-  
-  yPos += 12;
-  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  
-  profile.planoAcao.slice(0, 4).forEach((acao, index) => {
-    pdf.setFillColor(...VEON_COLORS.azulEscuro);
-    pdf.circle(margin + 5, yPos - 1, 3, 'F');
+  if (yPos < page5MaxY - 30) {
+    pdf.setFillColor(...VEON_COLORS.roxo);
+    pdf.roundedRect(margin, yPos - 5, contentWidth, 8, 2, 2, 'F');
     pdf.setTextColor(...VEON_COLORS.branco);
-    pdf.setFontSize(8);
-    pdf.text(`${index + 1}`, margin + 5, yPos, { align: 'center' });
-    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('TRABALHO EM EQUIPE', margin + 5, yPos + 1);
+
+    yPos += 12;
     pdf.setTextColor(...VEON_COLORS.cinzaTexto);
     pdf.setFontSize(10);
-    const acaoLines = pdf.splitTextToSize(acao, contentWidth - 20);
-    pdf.text(acaoLines, margin + 12, yPos);
-    yPos += acaoLines.length * 5 + 5;
-  });
-  
-  yPos += 10;
-  
+    pdf.setFont('helvetica', 'normal');
+
+    const teamLines = pdf.splitTextToSize(melhorAdequacao, contentWidth - 10);
+    const teamLinesToShow = teamLines.slice(0, 3); // Limit to 3 lines max
+    pdf.text(teamLinesToShow, margin + 5, yPos);
+    yPos += teamLinesToShow.length * 5 + 8;
+  }
+
+  // Desenvolvimento Sugerido
+  if (yPos < page5MaxY - 40) {
+    pdf.setFillColor(...VEON_COLORS.roxo);
+    pdf.roundedRect(margin, yPos - 5, contentWidth, 8, 2, 2, 'F');
+    pdf.setTextColor(...VEON_COLORS.branco);
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('DESENVOLVIMENTO SUGERIDO', margin + 5, yPos + 1);
+
+    yPos += 12;
+    pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+
+    planoAcao.slice(0, 3).forEach((acao, index) => {
+      if (yPos > page5MaxY - 10) return;
+      pdf.setFillColor(...VEON_COLORS.azulEscuro);
+      pdf.circle(margin + 5, yPos - 1, 3, 'F');
+      pdf.setTextColor(...VEON_COLORS.branco);
+      pdf.setFontSize(8);
+      pdf.text(`${index + 1}`, margin + 5, yPos, { align: 'center' });
+
+      pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+      pdf.setFontSize(10);
+      const acaoLines = pdf.splitTextToSize(acao || '', contentWidth - 20);
+      const acaoLinesToShow = acaoLines.slice(0, 2); // Limit to 2 lines max per action
+      pdf.text(acaoLinesToShow, margin + 12, yPos);
+      yPos += acaoLinesToShow.length * 5 + 5;
+    });
+
+    yPos += 8;
+  }
+
   // Cursos Recomendados VEON
-  pdf.setFillColor(...VEON_COLORS.vermelho);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, 8, 2, 2, 'F');
-  pdf.setTextColor(...VEON_COLORS.branco);
-  pdf.setFontSize(11);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('CURSOS RECOMENDADOS VEON', margin + 5, yPos + 1);
-  
-  yPos += 12;
-  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  
-  const cursosVeon = [
-    'Liderança em Vendas',
-    'Gestão de Relacionamentos',
-    'High Performance Team',
-    'Comunicação Assertiva'
-  ];
-  
-  cursosVeon.forEach((curso) => {
-    pdf.text(`• ${curso}`, margin + 5, yPos);
-    yPos += 6;
-  });
-  
-  // Footer block with VEON branding
+  if (yPos < page5MaxY - 30) {
+    pdf.setFillColor(...VEON_COLORS.vermelho);
+    pdf.roundedRect(margin, yPos - 5, contentWidth, 8, 2, 2, 'F');
+    pdf.setTextColor(...VEON_COLORS.branco);
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('CURSOS RECOMENDADOS VEON', margin + 5, yPos + 1);
+
+    yPos += 12;
+    pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+
+    const cursosVeon = [
+      'Liderança em Vendas',
+      'Gestão de Relacionamentos',
+      'High Performance Team',
+      'Comunicação Assertiva'
+    ];
+
+    cursosVeon.forEach((curso) => {
+      if (yPos > page5MaxY) return;
+      pdf.text(`• ${curso}`, margin + 5, yPos);
+      yPos += 6;
+    });
+  }
+
+  // Footer block with VEON branding - fixed position at bottom
   pdf.setFillColor(...VEON_COLORS.azulEscuro);
   pdf.roundedRect(margin, pageHeight - 55, contentWidth, 35, 4, 4, 'F');
-  
+
   pdf.setTextColor(...VEON_COLORS.branco);
   pdf.setFontSize(14);
   pdf.setFont('helvetica', 'bold');
@@ -684,13 +742,13 @@ export async function generatePDF(
   // PÁGINA 6 - DICAS DE COMUNICAÇÃO
   // ========================================
   pdf.addPage();
-  
+
   // Header
   pdf.setFillColor(...VEON_COLORS.azulEscuro);
   pdf.rect(0, 0, pageWidth, 35, 'F');
   pdf.setFillColor(...VEON_COLORS.vermelho);
   pdf.rect(0, 35, pageWidth, 3, 'F');
-  
+
   pdf.setTextColor(...VEON_COLORS.branco);
   pdf.setFontSize(18);
   pdf.setFont('helvetica', 'bold');
@@ -698,9 +756,14 @@ export async function generatePDF(
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
   pdf.text('Como se comunicar efetivamente com este perfil', margin, 28);
-  
+
   yPos = 55;
-  
+  const page6MaxY = pageHeight - 70; // Leave space for disclaimer + footer
+
+  // Safe access to comunicacao with fallbacks
+  const comoComunicar = profile.comunicacao?.comoComunicar || 'Comunique-se de forma clara e objetiva.';
+  const comoReceber = profile.comunicacao?.comoReceber || 'Prefere receber informações de forma direta.';
+
   // Como Comunicar com este Perfil
   pdf.setFillColor(...VEON_COLORS.roxo);
   pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
@@ -708,131 +771,136 @@ export async function generatePDF(
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'bold');
   pdf.text('COMO COMUNICAR COM ESTE PERFIL', margin + 5, yPos + 3);
-  
+
   yPos += 18;
-  
-  // Icon and description box
+
+  // Icon and description box - reduced height
   pdf.setFillColor(...VEON_COLORS.cinzaClaro);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, 60, 4, 4, 'F');
-  
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 50, 4, 4, 'F');
+
   // Speech bubble icon simulation
   pdf.setFillColor(...VEON_COLORS.roxo);
-  pdf.circle(margin + 15, yPos + 20, 10, 'F');
+  pdf.circle(margin + 15, yPos + 15, 10, 'F');
   pdf.setTextColor(...VEON_COLORS.branco);
   pdf.setFontSize(16);
-  pdf.text('💬', margin + 10, yPos + 24);
-  
+  pdf.text('💬', margin + 10, yPos + 19);
+
   pdf.setTextColor(...VEON_COLORS.azulEscuro);
   pdf.setFontSize(11);
   pdf.setFont('helvetica', 'bold');
   pdf.text('Ao falar com esta pessoa:', margin + 35, yPos + 5);
-  
+
   pdf.setTextColor(...VEON_COLORS.cinzaTexto);
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  const comoComunicarLines = pdf.splitTextToSize(profile.comunicacao.comoComunicar, contentWidth - 45);
-  pdf.text(comoComunicarLines, margin + 35, yPos + 15);
-  
-  yPos += 70;
-  
+  const comoComunicarLines = pdf.splitTextToSize(comoComunicar, contentWidth - 45);
+  const comoComunicarLinesToShow = comoComunicarLines.slice(0, 4); // Limit lines
+  pdf.text(comoComunicarLinesToShow, margin + 35, yPos + 15);
+
+  yPos += 60;
+
   // Como este Perfil Recebe Informações
-  pdf.setFillColor(...VEON_COLORS.azulMedio);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
-  pdf.setTextColor(...VEON_COLORS.branco);
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('COMO ESTE PERFIL RECEBE INFORMAÇÕES', margin + 5, yPos + 3);
-  
-  yPos += 18;
-  
-  // Icon and description box
-  pdf.setFillColor(...VEON_COLORS.cinzaClaro);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, 60, 4, 4, 'F');
-  
-  // Ear/listening icon simulation
-  pdf.setFillColor(...VEON_COLORS.azulMedio);
-  pdf.circle(margin + 15, yPos + 20, 10, 'F');
-  pdf.setTextColor(...VEON_COLORS.branco);
-  pdf.setFontSize(16);
-  pdf.text('👂', margin + 10, yPos + 24);
-  
-  pdf.setTextColor(...VEON_COLORS.azulEscuro);
-  pdf.setFontSize(11);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Ao receber feedback ou informações:', margin + 35, yPos + 5);
-  
-  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  const comoReceberLines = pdf.splitTextToSize(profile.comunicacao.comoReceber, contentWidth - 45);
-  pdf.text(comoReceberLines, margin + 35, yPos + 15);
-  
-  yPos += 75;
-  
-  // Dicas Práticas section
-  pdf.setFillColor(...VEON_COLORS.vermelho);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
-  pdf.setTextColor(...VEON_COLORS.branco);
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('DICAS PRÁTICAS PARA O DIA A DIA', margin + 5, yPos + 3);
-  
-  yPos += 18;
-  
-  pdf.setTextColor(...VEON_COLORS.cinzaTexto);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  
-  // Generate practical tips based on profile
-  const dicasPraticas = [
-    'Adapte seu estilo de comunicação ao interlocutor',
-    'Observe as reações e ajuste sua abordagem',
-    'Pratique a escuta ativa antes de responder',
-    'Use perguntas abertas para entender melhor',
-    'Confirme entendimento ao final de conversas importantes'
-  ];
-  
-  dicasPraticas.forEach((dica, index) => {
-    pdf.setFillColor(...VEON_COLORS.azulEscuro);
-    pdf.circle(margin + 8, yPos + 1, 4, 'F');
+  if (yPos < page6MaxY - 60) {
+    pdf.setFillColor(...VEON_COLORS.azulMedio);
+    pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
     pdf.setTextColor(...VEON_COLORS.branco);
-    pdf.setFontSize(9);
+    pdf.setFontSize(12);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(`${index + 1}`, margin + 8, yPos + 3, { align: 'center' });
+    pdf.text('COMO ESTE PERFIL RECEBE INFORMAÇÕES', margin + 5, yPos + 3);
+
+    yPos += 18;
+
+    // Icon and description box - reduced height
+    pdf.setFillColor(...VEON_COLORS.cinzaClaro);
+    pdf.roundedRect(margin, yPos - 5, contentWidth, 50, 4, 4, 'F');
+
+    // Ear/listening icon simulation
+    pdf.setFillColor(...VEON_COLORS.azulMedio);
+    pdf.circle(margin + 15, yPos + 15, 10, 'F');
+    pdf.setTextColor(...VEON_COLORS.branco);
+    pdf.setFontSize(16);
+    pdf.text('👂', margin + 10, yPos + 19);
+
+    pdf.setTextColor(...VEON_COLORS.azulEscuro);
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Ao receber feedback ou informações:', margin + 35, yPos + 5);
 
     pdf.setTextColor(...VEON_COLORS.cinzaTexto);
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(dica, margin + 18, yPos + 3);
-    yPos += 10;
-  });
+    const comoReceberLines = pdf.splitTextToSize(comoReceber, contentWidth - 45);
+    const comoReceberLinesToShow = comoReceberLines.slice(0, 4); // Limit lines
+    pdf.text(comoReceberLinesToShow, margin + 35, yPos + 15);
 
-  yPos += 15;
+    yPos += 60;
+  }
 
-  // Disclaimer section
+  // Dicas Práticas section
+  if (yPos < page6MaxY - 50) {
+    pdf.setFillColor(...VEON_COLORS.vermelho);
+    pdf.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
+    pdf.setTextColor(...VEON_COLORS.branco);
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('DICAS PRÁTICAS PARA O DIA A DIA', margin + 5, yPos + 3);
+
+    yPos += 18;
+
+    pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+
+    // Generate practical tips based on profile
+    const dicasPraticas = [
+      'Adapte seu estilo de comunicação ao interlocutor',
+      'Observe as reações e ajuste sua abordagem',
+      'Pratique a escuta ativa antes de responder',
+      'Use perguntas abertas para entender melhor'
+    ];
+
+    dicasPraticas.forEach((dica, index) => {
+      if (yPos > page6MaxY - 5) return;
+      pdf.setFillColor(...VEON_COLORS.azulEscuro);
+      pdf.circle(margin + 8, yPos + 1, 4, 'F');
+      pdf.setTextColor(...VEON_COLORS.branco);
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`${index + 1}`, margin + 8, yPos + 3, { align: 'center' });
+
+      pdf.setTextColor(...VEON_COLORS.cinzaTexto);
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(dica, margin + 18, yPos + 3);
+      yPos += 10;
+    });
+  }
+
+  // Disclaimer section - fixed position at bottom
+  const disclaimerY = pageHeight - 60;
   pdf.setFillColor(250, 250, 250);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, 45, 3, 3, 'F');
+  pdf.roundedRect(margin, disclaimerY - 5, contentWidth, 42, 3, 3, 'F');
   pdf.setDrawColor(200, 200, 200);
   pdf.setLineWidth(0.3);
-  pdf.roundedRect(margin, yPos - 5, contentWidth, 45, 3, 3, 'S');
+  pdf.roundedRect(margin, disclaimerY - 5, contentWidth, 42, 3, 3, 'S');
 
   pdf.setTextColor(100, 100, 100);
   pdf.setFontSize(8);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('AVISO IMPORTANTE', margin + 5, yPos + 3);
+  pdf.text('AVISO IMPORTANTE', margin + 5, disclaimerY + 3);
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(7);
   const disclaimerText = [
     'Este relatório é uma ferramenta de autoconhecimento baseada na metodologia DISC e valores de Spranger.',
     'Os resultados refletem suas respostas no momento da avaliação e podem variar conforme o contexto.',
-    'O perfil adaptado é uma estimativa baseada em teoria comportamental, não em respostas diretas.',
+    'Os perfis natural e adaptado foram medidos através de suas respostas às 46 questões do teste.',
     'Este documento não substitui avaliações psicológicas profissionais para fins clínicos ou de seleção.',
     'Recomendamos usar este relatório como ponto de partida para reflexão e desenvolvimento pessoal.',
   ];
 
   disclaimerText.forEach((line, index) => {
-    pdf.text(`• ${line}`, margin + 5, yPos + 10 + (index * 6));
+    pdf.text(`• ${line}`, margin + 5, disclaimerY + 10 + (index * 6));
   });
 
   // ========================================
