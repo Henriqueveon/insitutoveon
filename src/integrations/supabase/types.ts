@@ -23,6 +23,15 @@ export type Database = {
           nome_completo: string
           telefone_whatsapp: string
           updated_at: string | null
+          empresa_id: string | null
+          link_id: string | null
+          email: string | null
+          perfil_natural: Json | null
+          perfil_adaptado: Json | null
+          perfil_tipo: string | null
+          pdf_url: string | null
+          notion_page_id: string | null
+          status: string
         }
         Insert: {
           cargo_atual: string
@@ -32,6 +41,15 @@ export type Database = {
           nome_completo: string
           telefone_whatsapp: string
           updated_at?: string | null
+          empresa_id?: string | null
+          link_id?: string | null
+          email?: string | null
+          perfil_natural?: Json | null
+          perfil_adaptado?: Json | null
+          perfil_tipo?: string | null
+          pdf_url?: string | null
+          notion_page_id?: string | null
+          status?: string
         }
         Update: {
           cargo_atual?: string
@@ -40,6 +58,64 @@ export type Database = {
           id?: string
           nome_completo?: string
           telefone_whatsapp?: string
+          updated_at?: string | null
+          empresa_id?: string | null
+          link_id?: string | null
+          email?: string | null
+          perfil_natural?: Json | null
+          perfil_adaptado?: Json | null
+          perfil_tipo?: string | null
+          pdf_url?: string | null
+          notion_page_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidatos_disc_empresa_id_fkey"
+            columns: ["empresa_id"]
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidatos_disc_link_id_fkey"
+            columns: ["link_id"]
+            referencedRelation: "links_avaliacao"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      empresas: {
+        Row: {
+          id: string
+          nome: string
+          cnpj: string | null
+          logo_url: string | null
+          cor_primaria: string
+          cor_secundaria: string
+          ativo: boolean
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          nome: string
+          cnpj?: string | null
+          logo_url?: string | null
+          cor_primaria?: string
+          cor_secundaria?: string
+          ativo?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          nome?: string
+          cnpj?: string | null
+          logo_url?: string | null
+          cor_primaria?: string
+          cor_secundaria?: string
+          ativo?: boolean
+          created_at?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -91,6 +167,116 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      gestores: {
+        Row: {
+          id: string
+          user_id: string | null
+          empresa_id: string | null
+          nome: string
+          email: string
+          cargo: string | null
+          is_admin: boolean
+          ativo: boolean
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          empresa_id?: string | null
+          nome: string
+          email: string
+          cargo?: string | null
+          is_admin?: boolean
+          ativo?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          empresa_id?: string | null
+          nome?: string
+          email?: string
+          cargo?: string | null
+          is_admin?: boolean
+          ativo?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gestores_empresa_id_fkey"
+            columns: ["empresa_id"]
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      links_avaliacao: {
+        Row: {
+          id: string
+          empresa_id: string
+          gestor_id: string | null
+          codigo: string
+          nome: string
+          descricao: string | null
+          cargo_vaga: string | null
+          limite_candidatos: number | null
+          data_expiracao: string | null
+          ativo: boolean
+          total_acessos: number
+          total_completados: number
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          empresa_id: string
+          gestor_id?: string | null
+          codigo: string
+          nome: string
+          descricao?: string | null
+          cargo_vaga?: string | null
+          limite_candidatos?: number | null
+          data_expiracao?: string | null
+          ativo?: boolean
+          total_acessos?: number
+          total_completados?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          empresa_id?: string
+          gestor_id?: string | null
+          codigo?: string
+          nome?: string
+          descricao?: string | null
+          cargo_vaga?: string | null
+          limite_candidatos?: number | null
+          data_expiracao?: string | null
+          ativo?: boolean
+          total_acessos?: number
+          total_completados?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "links_avaliacao_empresa_id_fkey"
+            columns: ["empresa_id"]
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "links_avaliacao_gestor_id_fkey"
+            columns: ["gestor_id"]
+            referencedRelation: "gestores"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {
