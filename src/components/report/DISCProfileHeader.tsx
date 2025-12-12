@@ -85,34 +85,36 @@ export function DISCProfileHeader({ naturalProfile, profile }: DISCProfileHeader
     <div className="rounded-xl overflow-hidden shadow-lg">
       {/* Barra de cores DISC */}
       <div
-        className="relative p-6 text-white min-h-[120px] flex items-center"
+        className="relative p-6 pb-10 text-white min-h-[120px] flex flex-col justify-center"
         style={{ background: generateGradient() }}
       >
-        {/* Indicadores de porcentagem */}
-        <div className="absolute inset-0 flex">
+        {/* Conteudo do perfil - centralizado */}
+        <div className="relative z-10 flex items-center gap-3 w-full">
+          <Star className="w-8 h-8 drop-shadow-lg flex-shrink-0" />
+          <div>
+            <h2 className="font-display text-2xl font-bold drop-shadow-lg">{profile.nome}</h2>
+            <p className="opacity-95 drop-shadow-md">{profile.descricaoCurta}</p>
+          </div>
+        </div>
+
+        {/* Indicadores de porcentagem - no rodape do quadro */}
+        <div className="absolute bottom-0 left-0 right-0 flex">
           {percentages.map((item, index) => (
             <div
               key={item.factor}
-              className="flex items-center justify-center"
+              className={`flex items-center py-2 px-3 ${
+                index === 0 ? 'justify-start' : 'justify-end'
+              }`}
               style={{ width: `${item.percentage}%` }}
             >
               <span
-                className="text-white font-bold text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
-                style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
+                className="text-white/90 font-semibold text-xs tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
+                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
               >
                 {item.factor} {item.percentage}%
               </span>
             </div>
           ))}
-        </div>
-
-        {/* Conteudo do perfil */}
-        <div className="relative z-10 flex items-center gap-3 w-full">
-          <Star className="w-8 h-8 drop-shadow-lg" />
-          <div>
-            <h2 className="font-display text-2xl font-bold drop-shadow-lg">{profile.nome}</h2>
-            <p className="opacity-95 drop-shadow-md">{profile.descricaoCurta}</p>
-          </div>
         </div>
       </div>
 

@@ -13,13 +13,13 @@ export function ReportCover({ candidate }: ReportCoverProps) {
         <div className="absolute bottom-10 right-10 w-80 h-80 border border-white rounded-full" />
       </div>
 
-      <div className="text-center text-white px-8 py-12 relative z-10 max-w-4xl">
+      <div className="text-center text-white px-8 py-12 relative z-10 max-w-4xl w-full">
         {/* Top decorative line */}
         <div className="w-80 h-1 bg-white mx-auto mb-12 opacity-80 rounded-full" />
 
         {/* Main title */}
         <h1 className="text-5xl md:text-7xl font-display font-bold mb-4 leading-tight tracking-tight drop-shadow-lg">
-          RELATÓRIO DE PERFIL
+          RELATORIO DE PERFIL
         </h1>
         <h2 className="text-4xl md:text-6xl font-display font-bold mb-8 leading-tight tracking-tight drop-shadow-lg">
           COMPORTAMENTAL DISC
@@ -30,7 +30,7 @@ export function ReportCover({ candidate }: ReportCoverProps) {
 
         {/* Motivational phrase */}
         <p className="text-2xl md:text-3xl italic mb-16 font-light tracking-wide opacity-95">
-          "A bússola que aponta para o sucesso"
+          "A bussola que aponta para o sucesso"
         </p>
 
         {/* Candidate info */}
@@ -46,9 +46,10 @@ export function ReportCover({ candidate }: ReportCoverProps) {
           )}
         </div>
 
-        {/* Date */}
-        <div className="mt-16 space-y-1">
-          <p className="text-xl md:text-2xl font-light opacity-90">
+        {/* Footer section - Date and Institutional info */}
+        <div className="absolute bottom-6 left-0 right-0 text-center space-y-5">
+          {/* Date */}
+          <p className="text-lg font-light opacity-90">
             Realizado em:{' '}
             <span className="font-medium">
               {new Date().toLocaleDateString('pt-BR', {
@@ -58,12 +59,15 @@ export function ReportCover({ candidate }: ReportCoverProps) {
               })}
             </span>
           </p>
-        </div>
 
-        {/* Institutional footer - centered */}
-        <div className="absolute bottom-8 left-0 right-0 text-center opacity-80">
-          <p className="font-semibold text-lg">Instituto VEON</p>
-          <p className="text-sm font-light mt-1">A Escola do Varejo</p>
+          {/* Divider line */}
+          <div className="w-40 h-px bg-white/30 mx-auto" />
+
+          {/* Institutional info */}
+          <div className="opacity-80">
+            <p className="font-semibold text-xl">Instituto VEON</p>
+            <p className="text-sm font-light mt-1">A Escola do Varejo</p>
+          </div>
         </div>
       </div>
     </div>
