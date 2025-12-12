@@ -50,6 +50,9 @@ export default function SprangerTest() {
     setSprangerStartTime,
     setCandidate,
     analistaId,
+    calculateReliabilityScore,
+    questionTimes,
+    startTime,
   } = useAssessment();
 
   const [phase, setPhase] = useState<Phase>('instructions');
@@ -168,6 +171,19 @@ export default function SprangerTest() {
         ? getProfileType(naturalProfile.D, naturalProfile.I, naturalProfile.S, naturalProfile.C)
         : null;
 
+      // Calculate reliability score
+      const reliability = calculateReliabilityScore();
+
+      // Calculate total time
+      const endTime = Date.now();
+      const totalTimeSeconds = startTime ? Math.round((endTime - startTime) / 1000) : null;
+
+      // Build time per question object
+      const tempoQuestoes: Record<string, number> = {};
+      questionTimes.forEach((qt) => {
+        tempoQuestoes[`${qt.questionType}_${qt.questionId}`] = qt.timeSpentMs;
+      });
+
       // Save to Supabase with DISC profile data
       const { data, error } = await supabase
         .from('candidatos_disc')
@@ -194,6 +210,12 @@ export default function SprangerTest() {
           status: 'completo',
           // Link to analyst if test was accessed via analyst link
           analista_id: analistaId || null,
+          // Reliability data
+          confiabilidade_score: reliability.score,
+          confiabilidade_nivel: reliability.nivel,
+          flags_detectadas: reliability.warnings,
+          tempo_total_segundos: totalTimeSeconds,
+          tempo_por_questao: tempoQuestoes,
         })
         .select('id')
         .single();

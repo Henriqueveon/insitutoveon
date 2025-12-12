@@ -32,7 +32,11 @@ import {
   BookOpen,
   Loader2,
   Copy,
-  Check
+  Check,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
+  Info
 } from 'lucide-react';
 
 interface DISCProfile {
@@ -53,6 +57,10 @@ interface CandidatoData {
   perfil_adaptado: DISCProfile | null;
   perfil_tipo: string | null;
   created_at: string;
+  // Reliability fields
+  confiabilidade_score: number | null;
+  confiabilidade_nivel: string | null;
+  flags_detectadas: string[] | null;
 }
 
 // Loading fallback component
@@ -112,6 +120,138 @@ const AlertCopyLink = () => {
   );
 };
 
+// Reliability Card Component
+interface ReliabilityCardProps {
+  score: number | null;
+  nivel: string | null;
+  flags: string[] | null;
+}
+
+const ReliabilityCard = ({ score, nivel, flags }: ReliabilityCardProps) => {
+  // If no reliability data, don't show the card
+  if (score === null || nivel === null) return null;
+
+  // Get visual styling based on level
+  const getReliabilityStyle = () => {
+    switch (nivel) {
+      case 'ALTA':
+        return {
+          bgColor: 'bg-gradient-to-r from-green-50 to-emerald-50',
+          borderColor: 'border-green-400',
+          textColor: 'text-green-700',
+          iconBg: 'bg-green-500',
+          icon: ShieldCheck,
+          label: 'Alta Confiabilidade',
+          description: 'As respostas deste teste apresentam alto grau de consistência e autenticidade.',
+        };
+      case 'MEDIA':
+        return {
+          bgColor: 'bg-gradient-to-r from-yellow-50 to-amber-50',
+          borderColor: 'border-yellow-400',
+          textColor: 'text-yellow-700',
+          iconBg: 'bg-yellow-500',
+          icon: ShieldAlert,
+          label: 'Confiabilidade Moderada',
+          description: 'Algumas respostas apresentam variações que merecem atenção na interpretação.',
+        };
+      case 'BAIXA':
+        return {
+          bgColor: 'bg-gradient-to-r from-orange-50 to-amber-50',
+          borderColor: 'border-orange-400',
+          textColor: 'text-orange-700',
+          iconBg: 'bg-orange-500',
+          icon: ShieldAlert,
+          label: 'Confiabilidade Reduzida',
+          description: 'Recomenda-se cautela na interpretação dos resultados.',
+        };
+      case 'SUSPEITA':
+        return {
+          bgColor: 'bg-gradient-to-r from-red-50 to-rose-50',
+          borderColor: 'border-red-400',
+          textColor: 'text-red-700',
+          iconBg: 'bg-red-500',
+          icon: ShieldX,
+          label: 'Confiabilidade Comprometida',
+          description: 'Os resultados podem nao refletir o perfil real. Considere reaplicar o teste.',
+        };
+      default:
+        return {
+          bgColor: 'bg-gradient-to-r from-gray-50 to-slate-50',
+          borderColor: 'border-gray-400',
+          textColor: 'text-gray-700',
+          iconBg: 'bg-gray-500',
+          icon: Info,
+          label: 'Confiabilidade',
+          description: 'Informacoes de confiabilidade do teste.',
+        };
+    }
+  };
+
+  const style = getReliabilityStyle();
+  const IconComponent = style.icon;
+
+  // Map flag keys to readable Portuguese descriptions
+  const flagDescriptions: Record<string, string> = {
+    'Detectadas respostas socialmente desejáveis': 'Algumas respostas parecem socialmente desejáveis',
+    'Item de atenção respondido incorretamente': 'Falha no item de verificação de atenção',
+    'Padrão de respostas inconsistente detectado': 'Padrão de respostas inconsistente',
+    'Tempo de resposta muito rápido - possível aleatoriedade': 'Tempo de resposta muito rápido',
+    'Tempo de resposta acima do esperado': 'Tempo de resposta acima do esperado',
+    'Perfil muito homogêneo - pode indicar respostas aleatórias': 'Perfil muito homogêneo',
+    'Padrão contraditório nas escolhas': 'Padrão contraditório nas escolhas',
+  };
+
+  return (
+    <Card className={`${style.bgColor} border-2 ${style.borderColor} animate-slide-up`}>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-3 text-lg">
+          <div className={`${style.iconBg} p-2 rounded-full`}>
+            <IconComponent className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex flex-col">
+            <span className={style.textColor}>{style.label}</span>
+            <span className="text-2xl font-bold">{score}/100</span>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className={`${style.textColor} text-sm`}>
+          {style.description}
+        </p>
+
+        {/* Progress bar */}
+        <div className="w-full bg-white/50 rounded-full h-3 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${
+              score >= 85 ? 'bg-green-500' :
+              score >= 70 ? 'bg-yellow-500' :
+              score >= 50 ? 'bg-orange-500' : 'bg-red-500'
+            }`}
+            style={{ width: `${score}%` }}
+          />
+        </div>
+
+        {/* Flags/Warnings */}
+        {flags && flags.length > 0 && (
+          <div className="mt-4 pt-3 border-t border-current/10">
+            <p className={`${style.textColor} text-xs font-semibold mb-2 uppercase tracking-wide`}>
+              Observacoes Detectadas:
+            </p>
+            <ul className="space-y-1">
+              {flags.map((flag, index) => (
+                <li key={index} className={`${style.textColor} text-xs flex items-start gap-2`}>
+                  <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                  <span>{flagDescriptions[flag] || flag}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 export default function RelatorioPublico() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -166,6 +306,10 @@ export default function RelatorioPublico() {
           perfil_adaptado: data.perfil_adaptado as unknown as DISCProfile | null,
           perfil_tipo: data.perfil_tipo,
           created_at: data.created_at || '',
+          // Reliability fields
+          confiabilidade_score: data.confiabilidade_score ?? null,
+          confiabilidade_nivel: data.confiabilidade_nivel ?? null,
+          flags_detectadas: data.flags_detectadas as unknown as string[] | null,
         };
         setCandidato(candidatoData);
         setIsLoading(false);
@@ -295,6 +439,15 @@ export default function RelatorioPublico() {
             <DISCProfileHeader naturalProfile={naturalProfile} profile={profile} />
           </Suspense>
         </div>
+
+        {/* Reliability Score */}
+        <section id="confiabilidade" className="animate-slide-up" style={{ animationDelay: '175ms' }}>
+          <ReliabilityCard
+            score={candidato.confiabilidade_score}
+            nivel={candidato.confiabilidade_nivel}
+            flags={candidato.flags_detectadas}
+          />
+        </section>
 
         {/* DISC Charts Section */}
         <section id="disc-chart" className="space-y-6">

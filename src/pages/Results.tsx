@@ -36,7 +36,11 @@ import {
   BookOpen,
   Loader2,
   Copy,
-  Check
+  Check,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
+  Info
 } from 'lucide-react';
 
 // Loading fallback component
@@ -101,9 +105,130 @@ const AlertCopyLink = ({ candidateId }: { candidateId: string }) => {
   );
 };
 
+// Reliability Card Component
+interface ReliabilityCardProps {
+  score: number | null;
+  nivel: string | null;
+  warnings: string[] | null;
+}
+
+const ReliabilityCard = ({ score, nivel, warnings }: ReliabilityCardProps) => {
+  // If no reliability data, don't show the card
+  if (score === null || nivel === null) return null;
+
+  // Get visual styling based on level
+  const getReliabilityStyle = () => {
+    switch (nivel) {
+      case 'ALTA':
+        return {
+          bgColor: 'bg-gradient-to-r from-green-50 to-emerald-50',
+          borderColor: 'border-green-400',
+          textColor: 'text-green-700',
+          iconBg: 'bg-green-500',
+          icon: ShieldCheck,
+          label: 'Alta Confiabilidade',
+          description: 'As respostas deste teste apresentam alto grau de consistência e autenticidade.',
+        };
+      case 'MEDIA':
+        return {
+          bgColor: 'bg-gradient-to-r from-yellow-50 to-amber-50',
+          borderColor: 'border-yellow-400',
+          textColor: 'text-yellow-700',
+          iconBg: 'bg-yellow-500',
+          icon: ShieldAlert,
+          label: 'Confiabilidade Moderada',
+          description: 'Algumas respostas apresentam variacoes que merecem atencao na interpretacao.',
+        };
+      case 'BAIXA':
+        return {
+          bgColor: 'bg-gradient-to-r from-orange-50 to-amber-50',
+          borderColor: 'border-orange-400',
+          textColor: 'text-orange-700',
+          iconBg: 'bg-orange-500',
+          icon: ShieldAlert,
+          label: 'Confiabilidade Reduzida',
+          description: 'Recomenda-se cautela na interpretacao dos resultados.',
+        };
+      case 'SUSPEITA':
+        return {
+          bgColor: 'bg-gradient-to-r from-red-50 to-rose-50',
+          borderColor: 'border-red-400',
+          textColor: 'text-red-700',
+          iconBg: 'bg-red-500',
+          icon: ShieldX,
+          label: 'Confiabilidade Comprometida',
+          description: 'Os resultados podem nao refletir o perfil real. Considere reaplicar o teste.',
+        };
+      default:
+        return {
+          bgColor: 'bg-gradient-to-r from-gray-50 to-slate-50',
+          borderColor: 'border-gray-400',
+          textColor: 'text-gray-700',
+          iconBg: 'bg-gray-500',
+          icon: Info,
+          label: 'Confiabilidade',
+          description: 'Informacoes de confiabilidade do teste.',
+        };
+    }
+  };
+
+  const style = getReliabilityStyle();
+  const IconComponent = style.icon;
+
+  return (
+    <Card className={`${style.bgColor} border-2 ${style.borderColor} animate-slide-up`}>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-3 text-lg">
+          <div className={`${style.iconBg} p-2 rounded-full`}>
+            <IconComponent className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex flex-col">
+            <span className={style.textColor}>{style.label}</span>
+            <span className="text-2xl font-bold">{score}/100</span>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className={`${style.textColor} text-sm`}>
+          {style.description}
+        </p>
+
+        {/* Progress bar */}
+        <div className="w-full bg-white/50 rounded-full h-3 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${
+              score >= 85 ? 'bg-green-500' :
+              score >= 70 ? 'bg-yellow-500' :
+              score >= 50 ? 'bg-orange-500' : 'bg-red-500'
+            }`}
+            style={{ width: `${score}%` }}
+          />
+        </div>
+
+        {/* Warnings */}
+        {warnings && warnings.length > 0 && (
+          <div className="mt-4 pt-3 border-t border-current/10">
+            <p className={`${style.textColor} text-xs font-semibold mb-2 uppercase tracking-wide`}>
+              Observacoes Detectadas:
+            </p>
+            <ul className="space-y-1">
+              {warnings.map((warning, index) => (
+                <li key={index} className={`${style.textColor} text-xs flex items-start gap-2`}>
+                  <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                  <span>{warning}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 export default function Results() {
   const navigate = useNavigate();
-  const { candidate, naturalProfile, adaptedProfile, sprangerProfile, resetAssessment } = useAssessment();
+  const { candidate, naturalProfile, adaptedProfile, sprangerProfile, resetAssessment, reliabilityResult } = useAssessment();
   const chartRef = useRef<HTMLDivElement>(null);
   const [notionSynced, setNotionSynced] = useState(false);
   const [dbSynced, setDbSynced] = useState(false);
@@ -313,6 +438,17 @@ export default function Results() {
             <DISCProfileHeader naturalProfile={naturalProfile} profile={profile} />
           </Suspense>
         </div>
+
+        {/* Reliability Score */}
+        {reliabilityResult && (
+          <section id="confiabilidade" className="animate-slide-up" style={{ animationDelay: '175ms' }}>
+            <ReliabilityCard
+              score={reliabilityResult.score}
+              nivel={reliabilityResult.nivel}
+              warnings={reliabilityResult.warnings}
+            />
+          </section>
+        )}
 
         {/* DISC Charts Section */}
         <section id="disc-chart" className="space-y-6">

@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { discSprangerCorrelation, sprangerQuestions } from '@/data/sprangerQuestions';
+import {
+  ReliabilityFlags,
+  ReliabilityResult,
+  calculateReliability as calcReliability,
+  isFlatProfile,
+  hasContradictoryPattern,
+  checkConsistency,
+  controlItems,
+} from '@/data/discQuestions';
 
 export interface CandidateData {
   id?: string;
@@ -56,6 +65,20 @@ export interface ConsistencyResult {
   warnings: string[];
 }
 
+// Control item answer (for reliability checking)
+export interface ControlAnswer {
+  controlId: number;
+  selectedFlag: string;
+  timestamp: number;
+}
+
+// Time tracking per question
+export interface QuestionTime {
+  questionId: number;
+  questionType: 'disc' | 'situational' | 'control' | 'spranger';
+  timeSpentMs: number;
+}
+
 interface AssessmentContextType {
   candidate: CandidateData | null;
   setCandidate: (data: CandidateData) => void;
@@ -88,6 +111,14 @@ interface AssessmentContextType {
   // Analyst tracking
   analistaId: string | null;
   setAnalistaId: (id: string | null) => void;
+  // Control items and reliability
+  controlAnswers: ControlAnswer[];
+  addControlAnswer: (answer: ControlAnswer) => void;
+  clearControlAnswers: () => void;
+  questionTimes: QuestionTime[];
+  addQuestionTime: (time: QuestionTime) => void;
+  reliabilityResult: ReliabilityResult | null;
+  calculateReliabilityScore: () => ReliabilityResult;
 }
 
 const AssessmentContext = createContext<AssessmentContextType | undefined>(undefined);
@@ -108,6 +139,31 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
 
   // Analyst tracking
   const [analistaId, setAnalistaId] = useState<string | null>(null);
+
+  // Control items and reliability
+  const [controlAnswers, setControlAnswers] = useState<ControlAnswer[]>([]);
+  const [questionTimes, setQuestionTimes] = useState<QuestionTime[]>([]);
+  const [reliabilityResult, setReliabilityResult] = useState<ReliabilityResult | null>(null);
+
+  const addControlAnswer = (answer: ControlAnswer) => {
+    setControlAnswers((prev) => {
+      const filtered = prev.filter((a) => a.controlId !== answer.controlId);
+      return [...filtered, answer];
+    });
+  };
+
+  const clearControlAnswers = () => {
+    setControlAnswers([]);
+  };
+
+  const addQuestionTime = (time: QuestionTime) => {
+    setQuestionTimes((prev) => {
+      const filtered = prev.filter(
+        (t) => !(t.questionId === time.questionId && t.questionType === time.questionType)
+      );
+      return [...filtered, time];
+    });
+  };
 
   const addAnswer = (answer: Answer) => {
     setAnswers((prev) => {
@@ -424,6 +480,98 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
     return result;
   };
 
+  // Calculate comprehensive reliability score using control items and behavioral patterns
+  const calculateReliabilityScore = (): ReliabilityResult => {
+    const flags: ReliabilityFlags = {
+      fake_responses: false,
+      attention_failed: false,
+      inconsistent: false,
+      too_fast: false,
+      too_slow: false,
+      flat_profile: false,
+      contradictory_pattern: false,
+    };
+
+    // 1. Check control answers for social desirability and attention
+    controlAnswers.forEach((answer) => {
+      const controlItem = controlItems.find((c) => c.id === answer.controlId);
+      if (!controlItem) return;
+
+      if (controlItem.tipo === 'desejabilidade') {
+        if (answer.selectedFlag === 'FAKE') {
+          flags.fake_responses = true;
+        }
+      } else if (controlItem.tipo === 'atencao') {
+        if (answer.selectedFlag !== 'CHECK_OK') {
+          flags.attention_failed = true;
+        }
+      } else if (controlItem.tipo === 'consistencia' && controlItem.comparar_com) {
+        // Check consistency with related situational question
+        const relatedAnswer = situationalAnswers.find(
+          (a) => a.questionId === controlItem.comparar_com
+        );
+        if (relatedAnswer) {
+          const controlFactorAnswer = answer.selectedFlag as 'D' | 'I' | 'S' | 'C';
+          if (!checkConsistency(controlFactorAnswer, relatedAnswer.selected)) {
+            flags.inconsistent = true;
+          }
+        }
+      }
+    });
+
+    // 2. Calculate average time per question
+    let avgTimePerQuestion = 15000; // Default 15s
+    if (questionTimes.length > 0) {
+      const totalTime = questionTimes.reduce((sum, qt) => sum + qt.timeSpentMs, 0);
+      avgTimePerQuestion = totalTime / questionTimes.length;
+
+      // Too fast: < 3 seconds average
+      if (avgTimePerQuestion < 3000) {
+        flags.too_fast = true;
+      }
+      // Too slow: > 2 minutes average
+      if (avgTimePerQuestion > 120000) {
+        flags.too_slow = true;
+      }
+    }
+
+    // 3. Check for flat profile
+    if (naturalProfile) {
+      if (isFlatProfile(naturalProfile.D, naturalProfile.I, naturalProfile.S, naturalProfile.C)) {
+        flags.flat_profile = true;
+      }
+    }
+
+    // 4. Check for contradictory patterns
+    const factorChoices: Record<string, { mais: number; menos: number }> = {
+      D: { mais: 0, menos: 0 },
+      I: { mais: 0, menos: 0 },
+      S: { mais: 0, menos: 0 },
+      C: { mais: 0, menos: 0 },
+    };
+
+    answers.forEach((answer) => {
+      factorChoices[answer.mais].mais++;
+      factorChoices[answer.menos].menos++;
+    });
+
+    if (hasContradictoryPattern(factorChoices)) {
+      flags.contradictory_pattern = true;
+    }
+
+    // Calculate profile spread for reference
+    let profileSpread = 50; // Default
+    if (naturalProfile) {
+      const values = [naturalProfile.D, naturalProfile.I, naturalProfile.S, naturalProfile.C];
+      profileSpread = Math.max(...values) - Math.min(...values);
+    }
+
+    // Use the reliability calculation function from discQuestions
+    const result = calcReliability(flags, avgTimePerQuestion, profileSpread);
+    setReliabilityResult(result);
+    return result;
+  };
+
   const resetAssessment = () => {
     setCandidate(null);
     setAnswers([]);
@@ -436,6 +584,9 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
     setSprangerProfile(null);
     setSprangerStartTime(null);
     setAnalistaId(null);
+    setControlAnswers([]);
+    setQuestionTimes([]);
+    setReliabilityResult(null);
   };
 
   return (
@@ -471,6 +622,14 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
         // Analyst tracking
         analistaId,
         setAnalistaId,
+        // Control items and reliability
+        controlAnswers,
+        addControlAnswer,
+        clearControlAnswers,
+        questionTimes,
+        addQuestionTime,
+        reliabilityResult,
+        calculateReliabilityScore,
       }}
     >
       {children}
