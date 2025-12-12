@@ -16,60 +16,61 @@ export type Database = {
     Tables: {
       analistas: {
         Row: {
-          id: string
-          nome: string
+          ativo: boolean | null
+          cpf_cnpj: string | null
+          data_cadastro: string | null
           email: string
+          empresa: string | null
+          id: string
+          licencas_total: number | null
+          licencas_usadas: number | null
+          link_unico: string | null
+          nome: string
           senha: string
           telefone: string | null
-          empresa: string | null
-          tipo: Database["public"]["Enums"]["tipo_analista"]
-          licencas_total: number
-          licencas_usadas: number
-          link_unico: string
-          ativo: boolean
-          data_cadastro: string
+          tipo: string | null
           ultimo_acesso: string | null
-          created_at: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          id?: string
-          nome: string
+          ativo?: boolean | null
+          cpf_cnpj?: string | null
+          data_cadastro?: string | null
           email: string
+          empresa?: string | null
+          id?: string
+          licencas_total?: number | null
+          licencas_usadas?: number | null
+          link_unico?: string | null
+          nome: string
           senha: string
           telefone?: string | null
-          empresa?: string | null
-          tipo?: Database["public"]["Enums"]["tipo_analista"]
-          licencas_total?: number
-          licencas_usadas?: number
-          link_unico?: string
-          ativo?: boolean
-          data_cadastro?: string
+          tipo?: string | null
           ultimo_acesso?: string | null
-          created_at?: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
-          id?: string
-          nome?: string
+          ativo?: boolean | null
+          cpf_cnpj?: string | null
+          data_cadastro?: string | null
           email?: string
+          empresa?: string | null
+          id?: string
+          licencas_total?: number | null
+          licencas_usadas?: number | null
+          link_unico?: string | null
+          nome?: string
           senha?: string
           telefone?: string | null
-          empresa?: string | null
-          tipo?: Database["public"]["Enums"]["tipo_analista"]
-          licencas_total?: number
-          licencas_usadas?: number
-          link_unico?: string
-          ativo?: boolean
-          data_cadastro?: string
+          tipo?: string | null
           ultimo_acesso?: string | null
-          created_at?: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
       candidatos_disc: {
         Row: {
+          analista_id: string | null
           cargo_atual: string
           created_at: string | null
           email: string | null
@@ -83,9 +84,9 @@ export type Database = {
           status: string | null
           telefone_whatsapp: string
           updated_at: string | null
-          analista_id: string | null
         }
         Insert: {
+          analista_id?: string | null
           cargo_atual: string
           created_at?: string | null
           email?: string | null
@@ -99,9 +100,9 @@ export type Database = {
           status?: string | null
           telefone_whatsapp: string
           updated_at?: string | null
-          analista_id?: string | null
         }
         Update: {
+          analista_id?: string | null
           cargo_atual?: string
           created_at?: string | null
           email?: string | null
@@ -115,7 +116,6 @@ export type Database = {
           status?: string | null
           telefone_whatsapp?: string
           updated_at?: string | null
-          analista_id?: string | null
         }
         Relationships: [
           {
@@ -124,35 +124,8 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "analistas"
             referencedColumns: ["id"]
-          }
+          },
         ]
-      }
-      fundador: {
-        Row: {
-          id: string
-          email: string
-          senha: string
-          nome: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          email: string
-          senha: string
-          nome: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          email?: string
-          senha?: string
-          nome?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
       }
       profiles: {
         Row: {
@@ -214,50 +187,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      analista_tem_licenca: {
-        Args: {
-          p_analista_id: string
-        }
-        Returns: boolean
-      }
-      consumir_licenca: {
-        Args: {
-          p_analista_id: string
-        }
-        Returns: boolean
-      }
-      atualizar_ultimo_acesso_analista: {
-        Args: {
-          p_analista_id: string
-        }
-        Returns: undefined
-      }
-      login_usuario: {
-        Args: {
-          p_email: string
-          p_senha: string
-        }
-        Returns: Json
-      }
-      alterar_senha: {
-        Args: {
-          p_tipo: string
-          p_id: string
-          p_senha_atual: string
-          p_nova_senha: string
-        }
-        Returns: Json
-      }
-      criar_hash_senha: {
-        Args: {
-          p_senha: string
-        }
-        Returns: string
-      }
     }
     Enums: {
       app_role: "admin" | "user"
-      tipo_analista: "coach" | "psicologo" | "empresa" | "rh" | "escola" | "outro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -386,7 +318,6 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
-      tipo_analista: ["coach", "psicologo", "empresa", "rh", "escola", "outro"],
     },
   },
 } as const

@@ -154,7 +154,20 @@ export default function RelatorioPublico() {
           return;
         }
 
-        setCandidato(data as CandidatoData);
+        // Cast with proper type handling for JSON fields
+        const candidatoData: CandidatoData = {
+          id: data.id,
+          nome_completo: data.nome_completo,
+          email: data.email,
+          telefone_whatsapp: data.telefone_whatsapp,
+          cargo_atual: data.cargo_atual,
+          empresa_instagram: data.empresa_instagram,
+          perfil_natural: data.perfil_natural as unknown as DISCProfile | null,
+          perfil_adaptado: data.perfil_adaptado as unknown as DISCProfile | null,
+          perfil_tipo: data.perfil_tipo,
+          created_at: data.created_at || '',
+        };
+        setCandidato(candidatoData);
         setIsLoading(false);
       } catch (err) {
         console.error('Erro:', err);

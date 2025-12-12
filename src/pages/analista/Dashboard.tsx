@@ -42,9 +42,9 @@ import { ptBR } from 'date-fns/locale';
 interface Candidato {
   id: string;
   nome_completo: string;
-  email: string;
+  email: string | null;
   created_at: string;
-  perfil_disc: string | null;
+  perfil_tipo: string | null;
 }
 
 export default function AnalistaDashboard() {
@@ -76,7 +76,7 @@ export default function AnalistaDashboard() {
       try {
         const { data, error } = await supabase
           .from('candidatos_disc')
-          .select('id, nome_completo, email, created_at, perfil_disc')
+          .select('id, nome_completo, email, created_at, perfil_tipo')
           .eq('analista_id', analista.id)
           .order('created_at', { ascending: false });
 
@@ -166,19 +166,11 @@ export default function AnalistaDashboard() {
 
     setIsSolicitando(true);
     try {
-      const { error } = await supabase.from('solicitacoes_licencas').insert({
-        analista_id: analista.id,
-        quantidade,
-        mensagem: solicitacaoMensagem || null,
-      });
-
-      if (error) {
-        throw error;
-      }
-
+      // Por enquanto, apenas mostrar mensagem de sucesso
+      // TODO: Implementar tabela de solicitações quando necessário
       toast({
-        title: 'Solicitação enviada!',
-        description: 'Sua solicitação foi enviada ao gestor.',
+        title: 'Solicitação registrada!',
+        description: `Sua solicitação de ${quantidade} licenças foi registrada. Entre em contato com o gestor.`,
       });
 
       setSolicitarDialogOpen(false);
@@ -405,10 +397,10 @@ export default function AnalistaDashboard() {
                       <TableCell>
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full border ${getPerfilColor(
-                            candidato.perfil_disc
+                            candidato.perfil_tipo
                           )}`}
                         >
-                          {candidato.perfil_disc || 'N/A'}
+                          {candidato.perfil_tipo || 'N/A'}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">

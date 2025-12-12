@@ -132,8 +132,15 @@ export default function PainelAnalistas() {
         .order('data_cadastro', { ascending: false });
 
       if (error) throw error;
-      setAnalistas(data || []);
-      setFilteredAnalistas(data || []);
+      
+      // Map data to include cpf_cnpj as optional
+      const mappedData: Analista[] = (data || []).map(item => ({
+        ...item,
+        cpf_cnpj: item.cpf_cnpj || null,
+      }));
+      
+      setAnalistas(mappedData);
+      setFilteredAnalistas(mappedData);
     } catch (error) {
       console.error('Erro ao buscar analistas:', error);
       toast({
