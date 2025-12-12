@@ -265,11 +265,11 @@ export default function SprangerTest() {
       <div
         className="min-h-screen"
         style={{
-          background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
+          backgroundColor: '#FFFFFF',
         }}
       >
         {/* Header */}
-        <header className="w-full py-4 px-4 sm:px-8 border-b border-white/10 bg-black/30 backdrop-blur-md sticky top-0 z-10">
+        <header className="w-full py-4 px-4 sm:px-8 border-b border-slate-200 bg-white sticky top-0 z-10">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
             <Logo showText={false} />
           </div>
@@ -278,15 +278,15 @@ export default function SprangerTest() {
         {/* Main Content */}
         <main className="py-8 px-4">
           <div className="max-w-lg mx-auto">
-            <Card className="shadow-xl border border-white/10 bg-white/5 backdrop-blur-sm">
+            <Card className="shadow-lg border border-slate-200 bg-white">
               <CardHeader className="text-center pb-4">
-                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 className="w-8 h-8 text-green-500" />
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-8 h-8 text-green-600" />
                 </div>
-                <CardTitle className="text-2xl font-display text-white">
+                <CardTitle className="text-2xl font-display text-slate-800">
                   Parabéns! Teste Concluído
                 </CardTitle>
-                <CardDescription className="text-base text-white/60">
+                <CardDescription className="text-base text-slate-500">
                   Você respondeu todas as 35 perguntas! Agora preencha seus dados para ver seu resultado completo.
                 </CardDescription>
               </CardHeader>
@@ -295,8 +295,8 @@ export default function SprangerTest() {
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 {/* Nome Completo */}
                 <div className="space-y-2">
-                  <Label htmlFor="nome_completo" className="flex items-center gap-2 text-white/80">
-                    <User className="w-4 h-4 text-white/60" />
+                  <Label htmlFor="nome_completo" className="flex items-center gap-2 text-slate-700">
+                    <User className="w-4 h-4 text-slate-500" />
                     Nome Completo
                   </Label>
                   <Input
@@ -305,18 +305,18 @@ export default function SprangerTest() {
                     placeholder="Digite seu nome completo"
                     value={formData.nome_completo}
                     onChange={handleFormChange}
-                    className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-primary ${getInputClass('nome_completo')}`}
+                    className={`bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-primary ${getInputClass('nome_completo')}`}
                     disabled={isLoading}
                   />
                   {errors.nome_completo && (
-                    <p className="text-sm text-red-400">{errors.nome_completo}</p>
+                    <p className="text-sm text-red-600">{errors.nome_completo}</p>
                   )}
                 </div>
 
                 {/* E-mail */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center gap-2 text-white/80">
-                    <Mail className="w-4 h-4 text-white/60" />
+                  <Label htmlFor="email" className="flex items-center gap-2 text-slate-700">
+                    <Mail className="w-4 h-4 text-slate-500" />
                     E-mail
                   </Label>
                   <Input
@@ -326,18 +326,18 @@ export default function SprangerTest() {
                     placeholder="seuemail@exemplo.com"
                     value={formData.email}
                     onChange={handleFormChange}
-                    className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-primary ${getInputClass('email')}`}
+                    className={`bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-primary ${getInputClass('email')}`}
                     disabled={isLoading}
                   />
                   {errors.email && (
-                    <p className="text-sm text-red-400">{errors.email}</p>
+                    <p className="text-sm text-red-600">{errors.email}</p>
                   )}
                 </div>
 
                 {/* Telefone/WhatsApp */}
                 <div className="space-y-2">
-                  <Label htmlFor="telefone_whatsapp" className="flex items-center gap-2 text-white/80">
-                    <Phone className="w-4 h-4 text-white/60" />
+                  <Label htmlFor="telefone_whatsapp" className="flex items-center gap-2 text-slate-700">
+                    <Phone className="w-4 h-4 text-slate-500" />
                     Telefone / WhatsApp
                   </Label>
                   <Input
@@ -347,18 +347,18 @@ export default function SprangerTest() {
                     placeholder="(00) 00000-0000"
                     value={formData.telefone_whatsapp}
                     onChange={handleFormChange}
-                    className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-primary ${getInputClass('telefone_whatsapp')}`}
+                    className={`bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-primary ${getInputClass('telefone_whatsapp')}`}
                     disabled={isLoading}
                   />
                   {errors.telefone_whatsapp && (
-                    <p className="text-sm text-red-400">{errors.telefone_whatsapp}</p>
+                    <p className="text-sm text-red-600">{errors.telefone_whatsapp}</p>
                   )}
                 </div>
 
                 {/* Cargo Atual - Select com 15 opções */}
                 <div className="space-y-2">
-                  <Label htmlFor="cargo_atual" className="flex items-center gap-2 text-white/80">
-                    <Briefcase className="w-4 h-4 text-white/60" />
+                  <Label htmlFor="cargo_atual" className="flex items-center gap-2 text-slate-700">
+                    <Briefcase className="w-4 h-4 text-slate-500" />
                     Cargo Atual
                   </Label>
                   <Select
@@ -366,26 +366,26 @@ export default function SprangerTest() {
                     onValueChange={handleCargoChange}
                     disabled={isLoading}
                   >
-                    <SelectTrigger className={`bg-white/10 border-white/20 text-white ${getInputClass('cargo_atual')}`}>
+                    <SelectTrigger className={`bg-white border-slate-300 text-slate-800 ${getInputClass('cargo_atual')}`}>
                       <SelectValue placeholder="Selecione seu cargo" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#1a1a2e] border-white/20">
+                    <SelectContent className="bg-white border-slate-200">
                       {CARGO_OPTIONS.map((cargo) => (
-                        <SelectItem key={cargo} value={cargo} className="text-white hover:bg-white/10">
+                        <SelectItem key={cargo} value={cargo} className="text-slate-800 hover:bg-slate-100">
                           {cargo}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {errors.cargo_atual && (
-                    <p className="text-sm text-red-400">{errors.cargo_atual}</p>
+                    <p className="text-sm text-red-600">{errors.cargo_atual}</p>
                   )}
                 </div>
 
                 {/* Instagram da Empresa */}
                 <div className="space-y-2">
-                  <Label htmlFor="empresa_instagram" className="flex items-center gap-2 text-white/80">
-                    <Instagram className="w-4 h-4 text-white/60" />
+                  <Label htmlFor="empresa_instagram" className="flex items-center gap-2 text-slate-700">
+                    <Instagram className="w-4 h-4 text-slate-500" />
                     Instagram da Empresa
                   </Label>
                   <Input
@@ -394,11 +394,11 @@ export default function SprangerTest() {
                     placeholder="@suaempresa"
                     value={formData.empresa_instagram}
                     onChange={handleFormChange}
-                    className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-primary ${getInputClass('empresa_instagram')}`}
+                    className={`bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-primary ${getInputClass('empresa_instagram')}`}
                     disabled={isLoading}
                   />
                   {errors.empresa_instagram && (
-                    <p className="text-sm text-red-400">{errors.empresa_instagram}</p>
+                    <p className="text-sm text-red-600">{errors.empresa_instagram}</p>
                   )}
                 </div>
 

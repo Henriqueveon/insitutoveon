@@ -17,14 +17,14 @@ interface SprangerQuestionProps {
   globalQuestionNumber?: number;
 }
 
-// Cores para cada posição do ranking (6 posições)
+// Cores para cada posição do ranking (6 posições) - mais fortes
 const RANKING_COLORS = {
-  1: { bg: '#22C55E', label: '1º - Mais combina', short: '1º', points: '+5' },
-  2: { bg: '#4ADE80', label: '2º lugar', short: '2º', points: '+4' },
-  3: { bg: '#84CC16', label: '3º lugar', short: '3º', points: '+3' },
-  4: { bg: '#EAB308', label: '4º lugar', short: '4º', points: '+2' },
-  5: { bg: '#F97316', label: '5º lugar', short: '5º', points: '+1' },
-  6: { bg: '#EF4444', label: '6º - Menos combina', short: '6º', points: '0' },
+  1: { bg: '#16A34A', label: '1º - Mais combina', short: '1º', points: '+5' },
+  2: { bg: '#22C55E', label: '2º lugar', short: '2º', points: '+4' },
+  3: { bg: '#CA8A04', label: '3º lugar', short: '3º', points: '+3' },
+  4: { bg: '#FACC15', label: '4º lugar', short: '4º', points: '+2' },
+  5: { bg: '#EA580C', label: '5º lugar', short: '5º', points: '+1' },
+  6: { bg: '#DC2626', label: '6º - Menos combina', short: '6º', points: '0' },
 };
 
 export function SprangerQuestion({
@@ -113,11 +113,14 @@ export function SprangerQuestion({
 
     if (position) {
       const color = RANKING_COLORS[position as keyof typeof RANKING_COLORS];
+      // Position 4 has lighter color, need dark text
+      const needsDarkText = position === 4;
       return {
         borderColor: color.bg,
-        backgroundColor: `${color.bg}20`,
+        backgroundColor: color.bg,
         selected: true,
         color: color.bg,
+        textColor: needsDarkText ? '#1E293B' : '#FFFFFF',
         position,
       };
     }
@@ -125,19 +128,21 @@ export function SprangerQuestion({
     // Not selected - show current stage color
     if (ranking.length >= 6) {
       return {
-        borderColor: '#475569',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        borderColor: '#CBD5E1',
+        backgroundColor: '#F1F5F9',
         selected: false,
         color: '#9ca3af',
+        textColor: '#1E293B',
         position: null,
       };
     }
 
     return {
       borderColor: stageInfo.color,
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      backgroundColor: '#F8FAFC',
       selected: false,
       color: stageInfo.color,
+      textColor: '#1E293B',
       position: null,
     };
   };
@@ -160,11 +165,11 @@ export function SprangerQuestion({
         isTransitioning ? "opacity-50" : "opacity-100"
       )}
       style={{
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
+        backgroundColor: '#FFFFFF',
       }}
     >
       {/* Header */}
-      <header className="w-full py-4 px-4 sm:px-8 border-b border-white/10 bg-black/30 backdrop-blur-md sticky top-0 z-10">
+      <header className="w-full py-4 px-4 sm:px-8 border-b border-slate-200 bg-white sticky top-0 z-10">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Logo showText={false} />
         </div>
@@ -175,7 +180,7 @@ export function SprangerQuestion({
         {/* Progress */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-400">
+            <span className="text-sm text-slate-500">
               Pergunta {actualGlobalQuestion} de {totalGlobalQuestions}
             </span>
             <span className="text-sm font-medium text-primary">
@@ -183,7 +188,7 @@ export function SprangerQuestion({
             </span>
           </div>
           <Progress value={globalProgress} className="h-2" />
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             Teste de Valores • Pergunta {questionNumber} de {totalQuestions}
           </p>
         </div>
@@ -192,7 +197,7 @@ export function SprangerQuestion({
         <div
           className="rounded-xl p-4 mb-6 text-center transition-all duration-300"
           style={{
-            backgroundColor: `${stageInfo.color}15`,
+            backgroundColor: `${stageInfo.color}10`,
             borderLeft: `4px solid ${stageInfo.color}`,
           }}
         >
@@ -202,14 +207,14 @@ export function SprangerQuestion({
           >
             {stageInfo.title}
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-slate-500">
             {ranking.length}/6 selecionados
           </p>
         </div>
 
         {/* Question */}
-        <div className="bg-white/10 rounded-xl p-6 shadow-lg mb-6 backdrop-blur-sm border border-white/10">
-          <h3 className="text-xl font-display font-bold text-white">
+        <div className="bg-slate-50 rounded-xl p-6 shadow-sm mb-6 border border-slate-200">
+          <h3 className="text-xl font-display font-bold text-slate-800">
             {question.pergunta}
           </h3>
         </div>
@@ -228,17 +233,17 @@ export function SprangerQuestion({
                 className={cn(
                   "relative p-4 rounded-xl text-left transition-all duration-300 ease-out",
                   "focus:outline-none focus:ring-2 focus:ring-offset-2",
-                  isSelectable && "hover:scale-[1.02] hover:shadow-lg cursor-pointer",
+                  isSelectable && "hover:scale-[1.02] hover:shadow-md cursor-pointer",
                   !isSelectable && "cursor-default",
-                  style.selected && "shadow-md"
+                  style.selected && "shadow-lg"
                 )}
                 style={{
                   borderColor: style.borderColor,
                   backgroundColor: style.backgroundColor,
                   borderWidth: style.selected ? '3px' : '2px',
                   borderStyle: 'solid',
-                  color: '#0F172A',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
+                  color: style.textColor,
+                  boxShadow: style.selected ? '0 4px 12px rgba(0, 0, 0, 0.15)' : '0 2px 4px rgba(0, 0, 0, 0.05)',
                 }}
               >
                 <span className="text-sm font-medium leading-tight block">
@@ -248,8 +253,11 @@ export function SprangerQuestion({
                 {/* Selection indicator with position */}
                 {style.selected && style.position && (
                   <div
-                    className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md animate-in zoom-in duration-200"
-                    style={{ backgroundColor: style.color }}
+                    className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-md animate-in zoom-in duration-200"
+                    style={{
+                      backgroundColor: style.position === 4 ? '#A16207' : style.color,
+                      color: '#FFFFFF'
+                    }}
                   >
                     {style.position}º
                   </div>
@@ -260,7 +268,7 @@ export function SprangerQuestion({
         </div>
 
         {/* Selection summary - ranking legend */}
-        <div className="bg-white/10 rounded-xl p-4 shadow-lg mb-6 backdrop-blur-sm border border-white/10">
+        <div className="bg-slate-50 rounded-xl p-4 shadow-sm mb-6 border border-slate-200">
           <div className="grid grid-cols-6 gap-1">
             {[1, 2, 3, 4, 5, 6].map((pos) => {
               const color = RANKING_COLORS[pos as keyof typeof RANKING_COLORS];
@@ -268,12 +276,15 @@ export function SprangerQuestion({
               return (
                 <div key={pos} className="flex flex-col items-center gap-1">
                   <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                    style={{ backgroundColor: isSelected ? color.bg : 'rgba(255,255,255,0.2)' }}
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                    style={{
+                      backgroundColor: isSelected ? color.bg : '#E2E8F0',
+                      color: isSelected ? (pos === 4 ? '#1E293B' : '#FFFFFF') : '#64748B'
+                    }}
                   >
                     {pos}º
                   </div>
-                  <span className="text-xs text-white/60 text-center">
+                  <span className="text-xs text-slate-500 text-center">
                     {color.points}
                   </span>
                 </div>
@@ -289,7 +300,7 @@ export function SprangerQuestion({
             <Button
               variant="outline"
               onClick={onBack}
-              className="gap-2 border-white/20 text-white/80 hover:bg-white/10 hover:text-white bg-transparent"
+              className="gap-2 border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-800"
             >
               <ArrowLeft className="w-4 h-4" />
               Voltar
@@ -303,7 +314,7 @@ export function SprangerQuestion({
             <Button
               variant="ghost"
               onClick={handleClearAnswers}
-              className="gap-2 text-white/60 hover:text-red-400 hover:bg-red-500/10"
+              className="gap-2 text-slate-500 hover:text-red-600 hover:bg-red-50"
             >
               <RotateCcw className="w-4 h-4" />
               Limpar Respostas

@@ -8,10 +8,10 @@ import { discQuestions } from '@/data/discQuestions';
 import { ArrowLeft, Check, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Cores definidas
+// Cores definidas (mais fortes)
 const COLORS = {
-  green: '#22C55E',
-  red: '#EF4444',
+  green: '#16A34A',
+  red: '#DC2626',
 };
 
 type SelectionStage = 'mais' | 'menos' | 'complete';
@@ -154,11 +154,11 @@ export default function Assessment() {
         isTransitioning ? "opacity-50" : "opacity-100"
       )}
       style={{
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
+        backgroundColor: '#FFFFFF',
       }}
     >
       {/* Header */}
-      <header className="w-full py-4 px-4 sm:px-8 border-b border-white/10 bg-black/30 backdrop-blur-md sticky top-0 z-10">
+      <header className="w-full py-4 px-4 sm:px-8 border-b border-slate-200 bg-white sticky top-0 z-10">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Logo showText={false} />
         </div>
@@ -169,7 +169,7 @@ export default function Assessment() {
         {/* Progress */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-400">
+            <span className="text-sm text-slate-500">
               Pergunta {currentQuestion + 1} de {totalGlobalQuestions}
             </span>
             <span className="text-sm font-medium text-primary">
@@ -177,7 +177,7 @@ export default function Assessment() {
             </span>
           </div>
           <Progress value={globalProgress} className="h-2" />
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             Teste DISC • Pergunta {currentQuestion + 1} de {discQuestions.length}
           </p>
         </div>
@@ -186,7 +186,7 @@ export default function Assessment() {
         <div
           className="rounded-xl p-4 mb-6 text-center transition-all duration-300"
           style={{
-            backgroundColor: `${stageInfo.color}15`,
+            backgroundColor: `${stageInfo.color}10`,
             borderLeft: `4px solid ${stageInfo.color}`,
           }}
         >
@@ -207,18 +207,24 @@ export default function Assessment() {
             const isDisabled = (currentStage === 'menos' && isMais) || currentStage === 'complete';
 
             // Determine border color
-            let borderColor = stageInfo.color;
-            let backgroundColor = 'rgba(255, 255, 255, 0.95)';
+            let borderColor = '#E2E8F0';
+            let backgroundColor = '#F8FAFC';
+            let textColor = '#1E293B';
 
             if (isMais) {
               borderColor = COLORS.green;
-              backgroundColor = `${COLORS.green}20`;
+              backgroundColor = COLORS.green;
+              textColor = '#FFFFFF';
             } else if (isMenos) {
               borderColor = COLORS.red;
-              backgroundColor = `${COLORS.red}20`;
+              backgroundColor = COLORS.red;
+              textColor = '#FFFFFF';
             } else if (currentStage === 'complete') {
-              borderColor = '#475569';
-              backgroundColor = 'rgba(255, 255, 255, 0.9)';
+              borderColor = '#CBD5E1';
+              backgroundColor = '#F1F5F9';
+            } else {
+              // Hover state color hint
+              borderColor = stageInfo.color;
             }
 
             return (
@@ -229,17 +235,17 @@ export default function Assessment() {
                 className={cn(
                   'relative p-5 rounded-xl text-center transition-all duration-200',
                   'focus:outline-none focus:ring-2 focus:ring-offset-2',
-                  !isDisabled && !isSelected && 'hover:scale-[1.02] hover:shadow-lg cursor-pointer',
-                  isDisabled && 'cursor-default opacity-50',
-                  isSelected && 'shadow-md transform scale-[1.02]'
+                  !isDisabled && !isSelected && 'hover:scale-[1.02] hover:shadow-md cursor-pointer',
+                  isDisabled && 'cursor-default opacity-60',
+                  isSelected && 'shadow-lg transform scale-[1.02]'
                 )}
                 style={{
                   borderColor,
                   backgroundColor,
                   borderWidth: isSelected ? '3px' : '2px',
                   borderStyle: 'solid',
-                  color: '#0F172A',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
+                  color: textColor,
+                  boxShadow: isSelected ? '0 4px 12px rgba(0, 0, 0, 0.15)' : '0 2px 4px rgba(0, 0, 0, 0.05)',
                 }}
               >
                 <span className="font-semibold text-lg">
@@ -250,7 +256,7 @@ export default function Assessment() {
                 {isSelected && (
                   <div
                     className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center text-white shadow-md animate-in zoom-in duration-200"
-                    style={{ backgroundColor: isMais ? COLORS.green : COLORS.red }}
+                    style={{ backgroundColor: isMais ? '#15803D' : '#B91C1C' }}
                   >
                     <Check className="w-4 h-4" />
                   </div>
@@ -261,25 +267,25 @@ export default function Assessment() {
         </div>
 
         {/* Selection summary */}
-        <div className="bg-white/10 rounded-xl p-4 shadow-lg mb-6 backdrop-blur-sm border border-white/10">
+        <div className="bg-slate-50 rounded-xl p-4 shadow-sm mb-6 border border-slate-200">
           <div className="flex items-center justify-center gap-8">
             <div className="flex items-center gap-2">
               <div
                 className="w-5 h-5 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: selectedMais ? COLORS.green : 'rgba(255,255,255,0.2)' }}
+                style={{ backgroundColor: selectedMais ? COLORS.green : '#E2E8F0' }}
               >
                 {selectedMais && <Check className="w-3 h-3 text-white" />}
               </div>
-              <span className="text-sm text-white/80">Mais combina</span>
+              <span className="text-sm text-slate-600">Mais combina</span>
             </div>
             <div className="flex items-center gap-2">
               <div
                 className="w-5 h-5 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: selectedMenos ? COLORS.red : 'rgba(255,255,255,0.2)' }}
+                style={{ backgroundColor: selectedMenos ? COLORS.red : '#E2E8F0' }}
               >
                 {selectedMenos && <Check className="w-3 h-3 text-white" />}
               </div>
-              <span className="text-sm text-white/80">Menos combina</span>
+              <span className="text-sm text-slate-600">Menos combina</span>
             </div>
           </div>
         </div>
@@ -291,7 +297,7 @@ export default function Assessment() {
             <Button
               variant="outline"
               onClick={handlePrevious}
-              className="gap-2 border-white/20 text-white/80 hover:bg-white/10 hover:text-white bg-transparent"
+              className="gap-2 border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-800"
             >
               <ArrowLeft className="w-4 h-4" />
               Voltar
@@ -305,7 +311,7 @@ export default function Assessment() {
             <Button
               variant="ghost"
               onClick={handleClearAnswers}
-              className="gap-2 text-white/60 hover:text-red-400 hover:bg-red-500/10"
+              className="gap-2 text-slate-500 hover:text-red-600 hover:bg-red-50"
             >
               <RotateCcw className="w-4 h-4" />
               Limpar Respostas
