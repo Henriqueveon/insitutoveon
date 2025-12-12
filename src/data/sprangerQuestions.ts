@@ -1,5 +1,6 @@
-// Teste de Valores de Spranger - 14 perguntas com 6 opções cada
+// Teste de Valores de Spranger - 10 perguntas com 4 opções cada
 // Cada opção representa um dos 6 valores de Spranger
+// Pontuação: 1º lugar = 3pts, 2º = 2pts, 3º = 1pt, 4º = 0pts
 
 export interface SprangerOption {
   id: string;
@@ -18,176 +19,108 @@ export interface SprangerQuestion {
 // ECO = Econômico (Utilidade/Resultados)
 // EST = Estético (Harmonia/Beleza)
 // SOC = Social (Ajudar pessoas)
-// IND = Individualista (Poder/Influência)
-// TRA = Tradicional (Princípios/Regras)
+// IND = Individualista/Político (Poder/Influência)
+// TRA = Tradicional/Religioso (Princípios/Regras)
 
 export const sprangerQuestions: SprangerQuestion[] = [
   {
     id: 1,
-    pergunta: "Quando você precisa tomar uma decisão importante na vida, o que mais pesa para você?",
+    pergunta: "O que mais te motiva no dia a dia?",
     opcoes: [
-      { id: "1a", texto: "Analisar todos os dados e informações disponíveis", valor: "TEO" },
-      { id: "1b", texto: "Pensar no retorno prático e financeiro", valor: "ECO" },
-      { id: "1c", texto: "Considerar se vai trazer harmonia e beleza para minha vida", valor: "EST" },
-      { id: "1d", texto: "Avaliar como isso vai impactar as pessoas ao meu redor", valor: "SOC" },
-      { id: "1e", texto: "Ver se vai aumentar minha influência e reconhecimento", valor: "IND" },
-      { id: "1f", texto: "Verificar se está de acordo com meus princípios e valores", valor: "TRA" },
+      { id: "1a", texto: "Buscar conhecimento e entender como as coisas funcionam", valor: "TEO" },
+      { id: "1b", texto: "Alcançar resultados financeiros e retorno sobre investimento", valor: "ECO" },
+      { id: "1c", texto: "Ajudar pessoas e contribuir para causas sociais", valor: "SOC" },
+      { id: "1d", texto: "Conquistar posições de liderança e influência", valor: "IND" },
     ],
   },
   {
     id: 2,
-    pergunta: "O que te dá mais satisfação no trabalho?",
+    pergunta: "Como você prefere ocupar seu tempo?",
     opcoes: [
-      { id: "2a", texto: "Aprender coisas novas e resolver problemas complexos", valor: "TEO" },
-      { id: "2b", texto: "Ver resultados concretos e retorno financeiro", valor: "ECO" },
-      { id: "2c", texto: "Trabalhar em um ambiente agradável e bem organizado", valor: "EST" },
-      { id: "2d", texto: "Ajudar colegas e contribuir para o bem-estar da equipe", valor: "SOC" },
-      { id: "2e", texto: "Liderar projetos e ter reconhecimento pelo meu trabalho", valor: "IND" },
-      { id: "2f", texto: "Seguir processos bem definidos e fazer o que é certo", valor: "TRA" },
+      { id: "2a", texto: "Viver de acordo com princípios e tradições bem definidas", valor: "TRA" },
+      { id: "2b", texto: "Apreciar beleza, arte e harmonia no ambiente", valor: "EST" },
+      { id: "2c", texto: "Estudar, pesquisar e descobrir a verdade", valor: "TEO" },
+      { id: "2d", texto: "Maximizar lucros e otimizar recursos", valor: "ECO" },
     ],
   },
   {
     id: 3,
-    pergunta: "Como você prefere passar seu tempo livre?",
+    pergunta: "O que você considera mais importante?",
     opcoes: [
-      { id: "3a", texto: "Lendo, estudando ou assistindo documentários", valor: "TEO" },
-      { id: "3b", texto: "Trabalhando em projetos que podem gerar renda extra", valor: "ECO" },
-      { id: "3c", texto: "Apreciando arte, música, natureza ou decorando ambientes", valor: "EST" },
-      { id: "3d", texto: "Passando tempo com família e amigos ou fazendo voluntariado", valor: "SOC" },
-      { id: "3e", texto: "Fazendo networking ou atividades que aumentem minha visibilidade", valor: "IND" },
-      { id: "3f", texto: "Participando de atividades religiosas ou comunitárias tradicionais", valor: "TRA" },
+      { id: "3a", texto: "Ter poder de decisão e controle sobre situações", valor: "IND" },
+      { id: "3b", texto: "Dedicar tempo para ajudar o próximo", valor: "SOC" },
+      { id: "3c", texto: "Seguir crenças e valores morais sólidos", valor: "TRA" },
+      { id: "3d", texto: "Criar ambientes bonitos e agradáveis", valor: "EST" },
     ],
   },
   {
     id: 4,
-    pergunta: "O que você mais admira em uma pessoa?",
+    pergunta: "O que te dá mais satisfação?",
     opcoes: [
-      { id: "4a", texto: "Inteligência e conhecimento profundo sobre diversos assuntos", valor: "TEO" },
-      { id: "4b", texto: "Capacidade de gerar riqueza e ser bem-sucedido financeiramente", valor: "ECO" },
-      { id: "4c", texto: "Bom gosto, criatividade e sensibilidade artística", valor: "EST" },
-      { id: "4d", texto: "Generosidade e dedicação em ajudar os outros", valor: "SOC" },
-      { id: "4e", texto: "Liderança, carisma e capacidade de influenciar pessoas", valor: "IND" },
-      { id: "4f", texto: "Integridade, lealdade e respeito às tradições", valor: "TRA" },
+      { id: "4a", texto: "Aprender coisas novas constantemente", valor: "TEO" },
+      { id: "4b", texto: "Gerar riqueza e prosperidade material", valor: "ECO" },
+      { id: "4c", texto: "Liderar equipes e projetos importantes", valor: "IND" },
+      { id: "4d", texto: "Fazer a diferença na vida das pessoas", valor: "SOC" },
     ],
   },
   {
     id: 5,
-    pergunta: "Se você ganhasse na loteria, qual seria sua prioridade?",
+    pergunta: "Como você toma decisões importantes?",
     opcoes: [
-      { id: "5a", texto: "Investir em educação e cursos para mim e minha família", valor: "TEO" },
-      { id: "5b", texto: "Fazer investimentos para multiplicar o dinheiro", valor: "ECO" },
-      { id: "5c", texto: "Viajar para lugares bonitos e decorar minha casa dos sonhos", valor: "EST" },
-      { id: "5d", texto: "Ajudar pessoas necessitadas e apoiar causas sociais", valor: "SOC" },
-      { id: "5e", texto: "Abrir um negócio próprio e construir um império", valor: "IND" },
-      { id: "5f", texto: "Garantir segurança para minha família e apoiar minha comunidade religiosa", valor: "TRA" },
+      { id: "5a", texto: "Manter tradições e princípios familiares", valor: "TRA" },
+      { id: "5b", texto: "Valorizar a estética e o design das coisas", valor: "EST" },
+      { id: "5c", texto: "Analisar dados e buscar explicações lógicas", valor: "TEO" },
+      { id: "5d", texto: "Investir tempo onde há retorno garantido", valor: "ECO" },
     ],
   },
   {
     id: 6,
-    pergunta: "Em uma discussão ou debate, o que é mais importante para você?",
+    pergunta: "O que você mais valoriza em sua carreira?",
     opcoes: [
-      { id: "6a", texto: "Descobrir a verdade, mesmo que seja desconfortável", valor: "TEO" },
-      { id: "6b", texto: "Chegar em uma solução prática que funcione", valor: "ECO" },
-      { id: "6c", texto: "Manter a harmonia e evitar conflitos desnecessários", valor: "EST" },
-      { id: "6d", texto: "Garantir que todos se sintam ouvidos e respeitados", valor: "SOC" },
-      { id: "6e", texto: "Convencer os outros do meu ponto de vista", valor: "IND" },
-      { id: "6f", texto: "Defender o que é moralmente correto", valor: "TRA" },
+      { id: "6a", texto: "Ser reconhecido como autoridade no assunto", valor: "IND" },
+      { id: "6b", texto: "Contribuir para um mundo melhor e mais justo", valor: "SOC" },
+      { id: "6c", texto: "Viver segundo uma filosofia de vida clara", valor: "TRA" },
+      { id: "6d", texto: "Buscar equilíbrio e harmonia em tudo", valor: "EST" },
     ],
   },
   {
     id: 7,
-    pergunta: "O que te motiva a acordar cedo pela manhã?",
+    pergunta: "Como você prefere passar seu tempo livre?",
     opcoes: [
-      { id: "7a", texto: "A oportunidade de aprender algo novo", valor: "TEO" },
-      { id: "7b", texto: "A chance de produzir e gerar resultados", valor: "ECO" },
-      { id: "7c", texto: "Desfrutar de um dia bonito e bem planejado", valor: "EST" },
-      { id: "7d", texto: "Encontrar e ajudar pessoas que precisam de mim", valor: "SOC" },
-      { id: "7e", texto: "Avançar nos meus objetivos de carreira e reconhecimento", valor: "IND" },
-      { id: "7f", texto: "Cumprir minhas responsabilidades e compromissos", valor: "TRA" },
+      { id: "7a", texto: "Expandir conhecimentos intelectuais", valor: "TEO" },
+      { id: "7b", texto: "Focar em atividades rentáveis e práticas", valor: "ECO" },
+      { id: "7c", texto: "Assumir o comando das situações", valor: "IND" },
+      { id: "7d", texto: "Doar tempo e energia para ajudar outros", valor: "SOC" },
     ],
   },
   {
     id: 8,
-    pergunta: "Qual tipo de presente você mais gostaria de receber?",
+    pergunta: "O que te inspira no dia a dia?",
     opcoes: [
-      { id: "8a", texto: "Um livro raro ou curso exclusivo", valor: "TEO" },
-      { id: "8b", texto: "Dinheiro ou algo de alto valor comercial", valor: "ECO" },
-      { id: "8c", texto: "Uma obra de arte ou experiência cultural", valor: "EST" },
-      { id: "8d", texto: "Uma doação feita em meu nome para uma causa social", valor: "SOC" },
-      { id: "8e", texto: "Algo que demonstre meu status ou conquistas", valor: "IND" },
-      { id: "8f", texto: "Algo com valor sentimental ou tradicional da família", valor: "TRA" },
+      { id: "8a", texto: "Preservar valores e crenças tradicionais", valor: "TRA" },
+      { id: "8b", texto: "Cultivar sensibilidade artística e cultural", valor: "EST" },
+      { id: "8c", texto: "Questionar e investigar até encontrar respostas", valor: "TEO" },
+      { id: "8d", texto: "Priorizar eficiência e resultados mensuráveis", valor: "ECO" },
     ],
   },
   {
     id: 9,
-    pergunta: "Como você prefere resolver um problema no trabalho?",
+    pergunta: "O que te realiza profissionalmente?",
     opcoes: [
-      { id: "9a", texto: "Pesquisando profundamente e entendendo as causas", valor: "TEO" },
-      { id: "9b", texto: "Buscando a solução mais rápida e custo-efetiva", valor: "ECO" },
-      { id: "9c", texto: "Encontrando uma solução elegante e bem elaborada", valor: "EST" },
-      { id: "9d", texto: "Consultando a equipe e chegando em um consenso", valor: "SOC" },
-      { id: "9e", texto: "Tomando a liderança e decidindo o caminho a seguir", valor: "IND" },
-      { id: "9f", texto: "Seguindo os procedimentos estabelecidos pela empresa", valor: "TRA" },
+      { id: "9a", texto: "Ocupar posições de destaque e prestígio", valor: "IND" },
+      { id: "9b", texto: "Servir e apoiar quem precisa de ajuda", valor: "SOC" },
+      { id: "9c", texto: "Seguir convicções morais e espirituais", valor: "TRA" },
+      { id: "9d", texto: "Apreciar experiências estéticas e sensoriais", valor: "EST" },
     ],
   },
   {
     id: 10,
-    pergunta: "O que você considera um dia perfeito?",
+    pergunta: "O que você gostaria que dissessem sobre você no futuro?",
     opcoes: [
-      { id: "10a", texto: "Um dia em que aprendi algo que mudou minha perspectiva", valor: "TEO" },
-      { id: "10b", texto: "Um dia produtivo com resultados tangíveis", valor: "ECO" },
-      { id: "10c", texto: "Um dia em harmonia, cercado de beleza e tranquilidade", valor: "EST" },
-      { id: "10d", texto: "Um dia em que fiz diferença na vida de alguém", valor: "SOC" },
-      { id: "10e", texto: "Um dia em que alcancei uma conquista importante", valor: "IND" },
-      { id: "10f", texto: "Um dia em que cumpri todos os meus deveres", valor: "TRA" },
-    ],
-  },
-  {
-    id: 11,
-    pergunta: "O que te deixa mais frustrado?",
-    opcoes: [
-      { id: "11a", texto: "Não conseguir entender algo ou ter informações incompletas", valor: "TEO" },
-      { id: "11b", texto: "Desperdiçar tempo ou dinheiro com coisas inúteis", valor: "ECO" },
-      { id: "11c", texto: "Ambientes desorganizados, feios ou desarmoniosos", valor: "EST" },
-      { id: "11d", texto: "Ver pessoas sendo tratadas injustamente", valor: "SOC" },
-      { id: "11e", texto: "Não ser reconhecido pelo meu trabalho", valor: "IND" },
-      { id: "11f", texto: "Pessoas que não respeitam regras e compromissos", valor: "TRA" },
-    ],
-  },
-  {
-    id: 12,
-    pergunta: "Qual tipo de líder você mais respeita?",
-    opcoes: [
-      { id: "12a", texto: "O especialista que sabe tudo sobre o assunto", valor: "TEO" },
-      { id: "12b", texto: "O empreendedor que gera resultados impressionantes", valor: "ECO" },
-      { id: "12c", texto: "O visionário que cria ambientes inspiradores", valor: "EST" },
-      { id: "12d", texto: "O líder servidor que cuida da sua equipe", valor: "SOC" },
-      { id: "12e", texto: "O líder carismático que inspira e motiva", valor: "IND" },
-      { id: "12f", texto: "O líder íntegro que lidera pelo exemplo", valor: "TRA" },
-    ],
-  },
-  {
-    id: 13,
-    pergunta: "Em um projeto de grupo, qual papel você naturalmente assume?",
-    opcoes: [
-      { id: "13a", texto: "O pesquisador que traz dados e informações", valor: "TEO" },
-      { id: "13b", texto: "O pragmático que foca no que precisa ser feito", valor: "ECO" },
-      { id: "13c", texto: "O criativo que traz ideias originais e cuida da apresentação", valor: "EST" },
-      { id: "13d", texto: "O mediador que mantém o grupo unido e motivado", valor: "SOC" },
-      { id: "13e", texto: "O líder que organiza e delega as tarefas", valor: "IND" },
-      { id: "13f", texto: "O responsável que garante que prazos sejam cumpridos", valor: "TRA" },
-    ],
-  },
-  {
-    id: 14,
-    pergunta: "O que você gostaria que as pessoas dissessem sobre você no futuro?",
-    opcoes: [
-      { id: "14a", texto: "Que era uma pessoa extremamente inteligente e sábia", valor: "TEO" },
-      { id: "14b", texto: "Que foi bem-sucedido e deixou um patrimônio sólido", valor: "ECO" },
-      { id: "14c", texto: "Que tinha bom gosto e deixou o mundo mais bonito", valor: "EST" },
-      { id: "14d", texto: "Que era bondoso e ajudou muitas pessoas", valor: "SOC" },
-      { id: "14e", texto: "Que foi um líder influente e deixou sua marca", valor: "IND" },
-      { id: "14f", texto: "Que era íntegro e fiel aos seus princípios", valor: "TRA" },
+      { id: "10a", texto: "Dominar teorias e conceitos complexos", valor: "TEO" },
+      { id: "10b", texto: "Construir patrimônio e segurança financeira", valor: "ECO" },
+      { id: "10c", texto: "Influenciar decisões e direcionar pessoas", valor: "IND" },
+      { id: "10d", texto: "Promover o bem-estar coletivo acima do individual", valor: "SOC" },
     ],
   },
 ];
@@ -247,7 +180,7 @@ export const sprangerValuesInfo: SprangerValueInfo[] = [
   },
   {
     codigo: 'IND',
-    nome: 'Individualista',
+    nome: 'Político',
     nomeCompleto: 'Influência',
     cor: '#E53935', // Vermelho
     icone: '👑',
@@ -257,7 +190,7 @@ export const sprangerValuesInfo: SprangerValueInfo[] = [
   },
   {
     codigo: 'TRA',
-    nome: 'Tradicional',
+    nome: 'Religioso',
     nomeCompleto: 'Tradição',
     cor: '#78716C', // Marrom/Cinza
     icone: '🏛️',
@@ -274,6 +207,6 @@ export const discSprangerCorrelation: Record<string, Record<string, number>> = {
   ECO: { D: 0.7, I: 0.3, S: 0.2, C: 0.5 }, // Econômico correlaciona forte com D
   EST: { D: 0.1, I: 0.5, S: 0.6, C: 0.4 }, // Estético correlaciona com S e I
   SOC: { D: 0.1, I: 0.6, S: 0.7, C: 0.2 }, // Social correlaciona forte com S e I
-  IND: { D: 0.9, I: 0.5, S: 0.1, C: 0.2 }, // Individualista correlaciona forte com D
-  TRA: { D: 0.2, I: 0.2, S: 0.6, C: 0.6 }, // Tradicional correlaciona com S e C
+  IND: { D: 0.9, I: 0.5, S: 0.1, C: 0.2 }, // Político correlaciona forte com D
+  TRA: { D: 0.2, I: 0.2, S: 0.6, C: 0.6 }, // Religioso correlaciona com S e C
 };

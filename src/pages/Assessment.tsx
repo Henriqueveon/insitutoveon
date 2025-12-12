@@ -25,7 +25,7 @@ export default function Assessment() {
   const [currentStage, setCurrentStage] = useState<SelectionStage>('mais');
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const totalGlobalQuestions = 39; // 25 DISC + 14 Valores
+  const totalGlobalQuestions = 35; // 25 DISC + 10 Valores
   const globalProgress = (currentQuestion / totalGlobalQuestions) * 100;
 
   // Initialize start time when component mounts

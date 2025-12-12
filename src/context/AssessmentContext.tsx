@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { discSprangerCorrelation } from '@/data/sprangerQuestions';
+import { discSprangerCorrelation, sprangerQuestions } from '@/data/sprangerQuestions';
 
 export interface CandidateData {
   id?: string;
@@ -29,9 +29,7 @@ export type SprangerValue = 'TEO' | 'ECO' | 'EST' | 'SOC' | 'IND' | 'TRA';
 
 export interface SprangerAnswer {
   questionId: number;
-  muitoEu: string[]; // IDs das opções em "MUITO EU" (3 pontos cada)
-  maisOuMenos: string[]; // IDs das opções em "MAIS OU MENOS" (1 ponto cada)
-  poucoEu: string[]; // IDs das opções em "POUCO EU" (0 pontos)
+  ranking: string[]; // Array ordenado: [1º lugar +3pts, 2º +2pts, 3º +1pt, 4º 0pts]
   timestamp: number;
 }
 
@@ -159,43 +157,25 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
       TRA: 0,
     };
 
-    // Import questions to map option IDs to values
-    // We need to map each option ID to its Spranger value
+    // Build mapping from option ID to Spranger value
     const optionToValue: Record<string, SprangerValue> = {};
+    sprangerQuestions.forEach((question) => {
+      question.opcoes.forEach((opcao) => {
+        optionToValue[opcao.id] = opcao.valor;
+      });
+    });
 
-    // Build the mapping from sprangerQuestions data
-    // Option IDs follow pattern: "1a", "1b", etc.
-    // The last letter indicates the value: a=TEO, b=ECO, c=EST, d=SOC, e=IND, f=TRA
-    const letterToValue: Record<string, SprangerValue> = {
-      'a': 'TEO',
-      'b': 'ECO',
-      'c': 'EST',
-      'd': 'SOC',
-      'e': 'IND',
-      'f': 'TRA',
-    };
+    // Pontuação: 1º lugar = 3pts, 2º = 2pts, 3º = 1pt, 4º = 0pts
+    const points = [3, 2, 1, 0];
 
     // Process each answer
     sprangerAnswers.forEach((answer) => {
-      // MUITO EU = 3 pontos
-      answer.muitoEu.forEach((optionId) => {
-        const letter = optionId.slice(-1);
-        const value = letterToValue[letter];
-        if (value) {
-          profile[value] += 3;
+      answer.ranking.forEach((optionId, index) => {
+        const value = optionToValue[optionId];
+        if (value && points[index] !== undefined) {
+          profile[value] += points[index];
         }
       });
-
-      // MAIS OU MENOS = 1 ponto
-      answer.maisOuMenos.forEach((optionId) => {
-        const letter = optionId.slice(-1);
-        const value = letterToValue[letter];
-        if (value) {
-          profile[value] += 1;
-        }
-      });
-
-      // POUCO EU = 0 pontos (já é zero, não precisa fazer nada)
     });
 
     setSprangerProfile(profile);

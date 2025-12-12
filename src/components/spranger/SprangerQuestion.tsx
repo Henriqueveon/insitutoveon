@@ -9,30 +9,20 @@ interface SprangerQuestionProps {
   question: SprangerQuestionType;
   questionNumber: number;
   totalQuestions: number;
-  onAnswer: (muitoEu: string[], maisOuMenos: string[], poucoEu: string[]) => void;
+  onAnswer: (ranking: string[]) => void; // Array ordenado do 1º ao 4º lugar
   onBack?: () => void;
-  initialAnswer?: {
-    muitoEu: string[];
-    maisOuMenos: string[];
-    poucoEu: string[];
-  };
+  initialAnswer?: string[]; // Array ordenado do 1º ao 4º lugar
   totalGlobalQuestions?: number;
   globalQuestionNumber?: number;
 }
 
-// Cores definidas
-const COLORS = {
-  green: '#22C55E',
-  yellow: '#EAB308',
-  red: '#EF4444',
+// Cores para cada posição do ranking
+const RANKING_COLORS = {
+  1: { bg: '#22C55E', label: '1º - Mais combina', short: '1º' },
+  2: { bg: '#84CC16', label: '2º lugar', short: '2º' },
+  3: { bg: '#EAB308', label: '3º lugar', short: '3º' },
+  4: { bg: '#EF4444', label: '4º - Menos combina', short: '4º' },
 };
-
-type SelectionStage = 'green' | 'yellow' | 'red' | 'complete';
-
-interface Selection {
-  id: string;
-  stage: 'green' | 'yellow' | 'red';
-}
 
 export function SprangerQuestion({
   question,
@@ -41,11 +31,10 @@ export function SprangerQuestion({
   onAnswer,
   onBack,
   initialAnswer,
-  totalGlobalQuestions = 39,
+  totalGlobalQuestions = 35,
   globalQuestionNumber,
 }: SprangerQuestionProps) {
-  const [selections, setSelections] = useState<Selection[]>([]);
-  const [currentStage, setCurrentStage] = useState<SelectionStage>('green');
+  const [ranking, setRanking] = useState<string[]>([]);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Calculate global progress (DISC + Spranger)
@@ -54,138 +43,77 @@ export function SprangerQuestion({
 
   // Initialize or reset when question changes
   useEffect(() => {
-    if (initialAnswer) {
-      const newSelections: Selection[] = [];
-      initialAnswer.muitoEu.forEach(id => newSelections.push({ id, stage: 'green' }));
-      initialAnswer.maisOuMenos.forEach(id => newSelections.push({ id, stage: 'yellow' }));
-      initialAnswer.poucoEu.forEach(id => newSelections.push({ id, stage: 'red' }));
-      setSelections(newSelections);
-
-      // Determine current stage based on selections
-      if (newSelections.length >= 6) {
-        setCurrentStage('complete');
-      } else if (newSelections.filter(s => s.stage === 'green').length >= 2) {
-        if (newSelections.filter(s => s.stage === 'yellow').length >= 2) {
-          setCurrentStage('red');
-        } else {
-          setCurrentStage('yellow');
-        }
-      } else {
-        setCurrentStage('green');
-      }
+    if (initialAnswer && initialAnswer.length === 4) {
+      setRanking(initialAnswer);
     } else {
-      setSelections([]);
-      setCurrentStage('green');
+      setRanking([]);
     }
     setIsTransitioning(false);
   }, [question.id, initialAnswer]);
 
-  // Get stage info
-  const getStageInfo = () => {
-    switch (currentStage) {
-      case 'green':
-        return {
-          title: 'SELECIONE O QUE MAIS COMBINA COM VOCÊ',
-          subtitle: 'Escolha 2 opções',
-          color: COLORS.green,
-          needed: 2,
-          current: selections.filter(s => s.stage === 'green').length,
-        };
-      case 'yellow':
-        return {
-          title: 'O QUE MAIS OU MENOS COMBINA COM VOCÊ',
-          subtitle: 'Escolha 2 opções',
-          color: COLORS.yellow,
-          needed: 2,
-          current: selections.filter(s => s.stage === 'yellow').length,
-        };
-      case 'red':
-        return {
-          title: 'O QUE MENOS COMBINA COM VOCÊ',
-          subtitle: 'Escolha as 2 últimas opções',
-          color: COLORS.red,
-          needed: 2,
-          current: selections.filter(s => s.stage === 'red').length,
-        };
-      default:
-        return {
-          title: 'COMPLETO',
-          subtitle: '',
-          color: COLORS.green,
-          needed: 0,
-          current: 0,
-        };
+  // Get current stage info
+  const getCurrentStageInfo = () => {
+    const position = ranking.length + 1;
+    if (position > 4) {
+      return { title: 'COMPLETO', color: '#22C55E', position: 0 };
     }
+    const info = RANKING_COLORS[position as keyof typeof RANKING_COLORS];
+    return {
+      title: `SELECIONE O ${info.label.toUpperCase()}`,
+      color: info.bg,
+      position,
+    };
   };
 
-  const stageInfo = getStageInfo();
+  const stageInfo = getCurrentStageInfo();
 
-  // Check if option is selected and get its stage
-  const getOptionSelection = (optionId: string): Selection | undefined => {
-    return selections.find(s => s.id === optionId);
+  // Check if option is already selected
+  const getOptionRanking = (optionId: string): number | null => {
+    const index = ranking.indexOf(optionId);
+    return index >= 0 ? index + 1 : null;
   };
 
   // Handle option click
   const handleOptionClick = (option: SprangerOption) => {
-    if (currentStage === 'complete' || isTransitioning) return;
+    if (ranking.length >= 4 || isTransitioning) return;
+    if (ranking.includes(option.id)) return;
 
-    const existingSelection = getOptionSelection(option.id);
+    const newRanking = [...ranking, option.id];
+    setRanking(newRanking);
 
-    // If already selected, ignore (can't unselect in this flow)
-    if (existingSelection) return;
-
-    const newSelection: Selection = { id: option.id, stage: currentStage as 'green' | 'yellow' | 'red' };
-    const newSelections = [...selections, newSelection];
-    setSelections(newSelections);
-
-    // Check if we need to advance to next stage
-    const currentStageCount = newSelections.filter(s => s.stage === currentStage).length;
-
-    if (currentStageCount >= 2) {
-      if (currentStage === 'green') {
-        setCurrentStage('yellow');
-      } else if (currentStage === 'yellow') {
-        setCurrentStage('red');
-      } else if (currentStage === 'red') {
-        // All selections complete - auto advance
-        setCurrentStage('complete');
-        setIsTransitioning(true);
-
-        const greenIds = newSelections.filter(s => s.stage === 'green').map(s => s.id);
-        const yellowIds = newSelections.filter(s => s.stage === 'yellow').map(s => s.id);
-        const redIds = newSelections.filter(s => s.stage === 'red').map(s => s.id);
-
-        // Auto advance after short delay for visual feedback
-        setTimeout(() => {
-          onAnswer(greenIds, yellowIds, redIds);
-        }, 400);
-      }
+    // Check if complete (4 selections)
+    if (newRanking.length === 4) {
+      setIsTransitioning(true);
+      // Auto advance after short delay for visual feedback
+      setTimeout(() => {
+        onAnswer(newRanking);
+      }, 400);
     }
   };
 
-  // Get border/background style for option
+  // Get style for option
   const getOptionStyle = (option: SprangerOption) => {
-    const selection = getOptionSelection(option.id);
+    const position = getOptionRanking(option.id);
 
-    if (selection) {
-      // Already selected - show with its color
-      const color = selection.stage === 'green' ? COLORS.green :
-                    selection.stage === 'yellow' ? COLORS.yellow : COLORS.red;
+    if (position) {
+      const color = RANKING_COLORS[position as keyof typeof RANKING_COLORS];
       return {
-        borderColor: color,
-        backgroundColor: `${color}20`,
+        borderColor: color.bg,
+        backgroundColor: `${color.bg}20`,
         selected: true,
-        color,
+        color: color.bg,
+        position,
       };
     }
 
-    // Not selected - show current stage color as border
-    if (currentStage === 'complete') {
+    // Not selected - show current stage color
+    if (ranking.length >= 4) {
       return {
         borderColor: '#e5e7eb',
         backgroundColor: 'transparent',
         selected: false,
         color: '#9ca3af',
+        position: null,
       };
     }
 
@@ -194,6 +122,7 @@ export function SprangerQuestion({
       backgroundColor: 'transparent',
       selected: false,
       color: stageInfo.color,
+      position: null,
     };
   };
 
@@ -235,7 +164,7 @@ export function SprangerQuestion({
             {stageInfo.title}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {stageInfo.subtitle} ({stageInfo.current}/{stageInfo.needed})
+            {ranking.length}/4 selecionados
           </p>
         </div>
 
@@ -246,11 +175,11 @@ export function SprangerQuestion({
           </h3>
         </div>
 
-        {/* Options grid */}
+        {/* Options - 2x2 grid for 4 options */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
           {question.opcoes.map((option) => {
             const style = getOptionStyle(option);
-            const isSelectable = !style.selected && currentStage !== 'complete';
+            const isSelectable = !style.selected && ranking.length < 4;
 
             return (
               <button
@@ -258,7 +187,7 @@ export function SprangerQuestion({
                 onClick={() => handleOptionClick(option)}
                 disabled={!isSelectable || isTransitioning}
                 className={cn(
-                  "relative p-4 rounded-xl border-3 text-left transition-all duration-200",
+                  "relative p-4 rounded-xl border-2 text-left transition-all duration-200",
                   "focus:outline-none focus:ring-2 focus:ring-offset-2",
                   isSelectable && "hover:scale-[1.02] hover:shadow-lg cursor-pointer",
                   !isSelectable && "cursor-default",
@@ -272,18 +201,18 @@ export function SprangerQuestion({
               >
                 <span className={cn(
                   "text-sm font-medium leading-tight block",
-                  style.selected ? "text-foreground" : "text-foreground"
+                  "text-foreground"
                 )}>
                   {option.texto}
                 </span>
 
-                {/* Selection indicator */}
-                {style.selected && (
+                {/* Selection indicator with position */}
+                {style.selected && style.position && (
                   <div
-                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md animate-in zoom-in duration-200"
+                    className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md animate-in zoom-in duration-200"
                     style={{ backgroundColor: style.color }}
                   >
-                    {selections.findIndex(s => s.id === option.id) + 1}
+                    {style.position}º
                   </div>
                 )}
               </button>
@@ -291,30 +220,26 @@ export function SprangerQuestion({
           })}
         </div>
 
-        {/* Selection summary */}
+        {/* Selection summary - ranking legend */}
         <div className="bg-card rounded-xl p-4 shadow-lg mb-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: selections.filter(s => s.stage === 'green').length >= 2 ? COLORS.green : '#e5e7eb' }}
-              />
-              <span className="text-xs text-muted-foreground">Mais combina</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: selections.filter(s => s.stage === 'yellow').length >= 2 ? COLORS.yellow : '#e5e7eb' }}
-              />
-              <span className="text-xs text-muted-foreground">Neutro</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: selections.filter(s => s.stage === 'red').length >= 2 ? COLORS.red : '#e5e7eb' }}
-              />
-              <span className="text-xs text-muted-foreground">Menos combina</span>
-            </div>
+          <div className="grid grid-cols-4 gap-2">
+            {[1, 2, 3, 4].map((pos) => {
+              const color = RANKING_COLORS[pos as keyof typeof RANKING_COLORS];
+              const isSelected = ranking.length >= pos;
+              return (
+                <div key={pos} className="flex flex-col items-center gap-1">
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                    style={{ backgroundColor: isSelected ? color.bg : '#e5e7eb' }}
+                  >
+                    {pos}º
+                  </div>
+                  <span className="text-xs text-muted-foreground text-center">
+                    {pos === 1 ? '+3' : pos === 2 ? '+2' : pos === 3 ? '+1' : '0'}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 

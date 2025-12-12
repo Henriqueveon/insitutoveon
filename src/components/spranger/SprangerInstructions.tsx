@@ -36,7 +36,7 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground flex items-center gap-2">
                 <Info className="w-5 h-5 text-primary" />
-                Como funciona? É simples!
+                Como funciona? Organize as 4 opções!
               </h3>
 
               <div className="space-y-4">
@@ -46,50 +46,68 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
                     className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
                     style={{ backgroundColor: '#22C55E' }}
                   >
-                    1
+                    1º
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-foreground" style={{ color: '#22C55E' }}>
-                      Clique nas 2 que MAIS combinam com você
+                      Clique na que MAIS combina com você (+3 pts)
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Opções com borda verde - escolha as 2 que mais têm a ver com você
+                      Esta é a sua prioridade máxima
                     </p>
                   </div>
                 </div>
 
-                {/* Etapa 2 - Amarelo */}
+                {/* Etapa 2 - Verde claro */}
+                <div className="flex gap-3 items-start">
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                    style={{ backgroundColor: '#84CC16' }}
+                  >
+                    2º
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium" style={{ color: '#84CC16' }}>
+                      Clique na segunda que mais combina (+2 pts)
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Também é importante para você
+                    </p>
+                  </div>
+                </div>
+
+                {/* Etapa 3 - Amarelo */}
                 <div className="flex gap-3 items-start">
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
                     style={{ backgroundColor: '#EAB308' }}
                   >
-                    2
+                    3º
                   </div>
                   <div className="flex-1">
                     <p className="font-medium" style={{ color: '#EAB308' }}>
-                      Clique nas 2 que são MAIS OU MENOS você
+                      Clique na terceira opção (+1 pt)
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Opções restantes ficam amarelas - escolha 2 neutras
+                      Menos prioritária, mas ainda relevante
                     </p>
                   </div>
                 </div>
 
-                {/* Etapa 3 - Vermelho */}
+                {/* Etapa 4 - Vermelho */}
                 <div className="flex gap-3 items-start">
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
                     style={{ backgroundColor: '#EF4444' }}
                   >
-                    3
+                    4º
                   </div>
                   <div className="flex-1">
                     <p className="font-medium" style={{ color: '#EF4444' }}>
-                      As 2 últimas são as que MENOS combinam
+                      A última é a que MENOS combina (0 pts)
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Clique nas últimas opções e avança automaticamente!
+                      Avança automaticamente após selecionar!
                     </p>
                   </div>
                 </div>
@@ -99,17 +117,20 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
               <div className="bg-muted/30 rounded-xl p-4 mt-4">
                 <div className="flex items-center gap-2 mb-3">
                   <MousePointer className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">Só clicar nas opções!</span>
+                  <span className="text-sm font-medium text-foreground">Só clicar nas opções em ordem!</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   <div className="p-2 rounded-lg text-center text-xs" style={{ backgroundColor: '#22C55E20', border: '2px solid #22C55E' }}>
-                    <span style={{ color: '#22C55E' }}>Mais combina</span>
+                    <span style={{ color: '#22C55E' }}>1º +3</span>
+                  </div>
+                  <div className="p-2 rounded-lg text-center text-xs" style={{ backgroundColor: '#84CC1620', border: '2px solid #84CC16' }}>
+                    <span style={{ color: '#84CC16' }}>2º +2</span>
                   </div>
                   <div className="p-2 rounded-lg text-center text-xs" style={{ backgroundColor: '#EAB30820', border: '2px solid #EAB308' }}>
-                    <span style={{ color: '#EAB308' }}>Neutro</span>
+                    <span style={{ color: '#EAB308' }}>3º +1</span>
                   </div>
                   <div className="p-2 rounded-lg text-center text-xs" style={{ backgroundColor: '#EF444420', border: '2px solid #EF4444' }}>
-                    <span style={{ color: '#EF4444' }}>Menos combina</span>
+                    <span style={{ color: '#EF4444' }}>4º 0</span>
                   </div>
                 </div>
               </div>
@@ -123,7 +144,7 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Responda de forma <strong className="text-foreground">sincera e espontânea</strong></li>
                 <li>• Vá com sua primeira impressão - não pense demais!</li>
-                <li>• <strong className="text-foreground">14 perguntas</strong> • Avança automático ao completar</li>
+                <li>• <strong className="text-foreground">10 perguntas</strong> • Avança automático ao completar</li>
               </ul>
             </div>
 

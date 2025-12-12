@@ -220,14 +220,14 @@ export default function SprangerTest() {
     setPhase('test');
   };
 
-  const handleAnswer = (muitoEu: string[], maisOuMenos: string[], poucoEu: string[]) => {
+  const handleAnswer = (ranking: string[]) => {
     const currentQuestion = sprangerQuestions[currentQuestionIndex];
 
+    // Convert ranking array to the format expected by context
+    // ranking[0] = 1st place (+3 pts), ranking[1] = 2nd (+2 pts), ranking[2] = 3rd (+1 pt), ranking[3] = 4th (0 pts)
     addSprangerAnswer({
       questionId: currentQuestion.id,
-      muitoEu,
-      maisOuMenos,
-      poucoEu,
+      ranking,
       timestamp: Date.now(),
     });
 
@@ -252,13 +252,7 @@ export default function SprangerTest() {
     const existingAnswer = sprangerAnswers.find(
       (a) => a.questionId === currentQuestion.id
     );
-    return existingAnswer
-      ? {
-          muitoEu: existingAnswer.muitoEu,
-          maisOuMenos: existingAnswer.maisOuMenos,
-          poucoEu: existingAnswer.poucoEu,
-        }
-      : undefined;
+    return existingAnswer?.ranking;
   };
 
   if (phase === 'instructions') {
@@ -278,7 +272,7 @@ export default function SprangerTest() {
                 Parabéns! Teste Concluído
               </CardTitle>
               <CardDescription className="text-base">
-                Você respondeu todas as 39 perguntas! Agora preencha seus dados para ver seu resultado completo.
+                Você respondeu todas as 35 perguntas! Agora preencha seus dados para ver seu resultado completo.
               </CardDescription>
             </CardHeader>
 
