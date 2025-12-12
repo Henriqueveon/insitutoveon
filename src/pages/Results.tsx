@@ -150,11 +150,61 @@ export default function Results() {
       const elementosOcultar = element.querySelectorAll('.no-print');
       elementosOcultar.forEach(el => (el as HTMLElement).style.display = 'none');
 
-      // Generate and download PDF
-      await html2pdf().set(options).from(element).save();
+      // Generate PDF as blob
+      const pdfBlob = await html2pdf().set(options).from(element).outputPdf('blob');
 
       // Restore hidden elements
       elementosOcultar.forEach(el => (el as HTMLElement).style.display = '');
+
+      // Upload to Supabase Storage and update Notion
+      try {
+        const { error: uploadError } = await supabase.storage
+          .from('teste')
+          .upload(`pdfs/${fileName}`, pdfBlob, {
+            contentType: 'application/pdf',
+            upsert: true,
+          });
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from('teste')
+            .getPublicUrl(`pdfs/${fileName}`);
+
+          const pdfUrl = urlData.publicUrl;
+          console.log('📤 PDF uploaded to:', pdfUrl);
+
+          // Update Notion with PDF URL
+          const notionPageId = localStorage.getItem('candidato_notion_id');
+          if (notionPageId && pdfUrl) {
+            const notionResponse = await supabase.functions.invoke('notion-sync', {
+              body: {
+                action: 'update_pdf',
+                data: { notionPageId, pdfUrl },
+              },
+            });
+
+            if (notionResponse.data?.success) {
+              console.log('✅ PDF URL enviado ao Notion com sucesso');
+            } else {
+              console.warn('Notion PDF sync failed:', notionResponse.error || notionResponse.data?.error);
+            }
+          }
+        } else {
+          console.warn('Upload error:', uploadError);
+        }
+      } catch (uploadErr) {
+        console.warn('Upload error (non-blocking):', uploadErr);
+      }
+
+      // Trigger download
+      const downloadUrl = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
 
       toast.success('PDF baixado com sucesso!');
     } catch (error) {
