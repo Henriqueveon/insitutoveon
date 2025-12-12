@@ -4,7 +4,7 @@ import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAssessment } from '@/context/AssessmentContext';
-import { getProfileDescription } from '@/data/discProfiles';
+import { getProfileDescription, getProfileType } from '@/data/discProfiles';
 import { supabase } from '@/integrations/supabase/client';
 import '@/styles/pdf-styles.css';
 import { toast } from 'sonner';
@@ -51,6 +51,7 @@ export default function Results() {
   const chartRef = useRef<HTMLDivElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const [notionSynced, setNotionSynced] = useState(false);
+  const [dbSynced, setDbSynced] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
@@ -59,10 +60,53 @@ export default function Results() {
     }
   }, [candidate, naturalProfile, adaptedProfile, sprangerProfile, navigate]);
 
-  // Sync DISC profile result to Notion AND update candidatos_disc table
+  // Sync DISC profile to Supabase database
   useEffect(() => {
-    const syncProfile = async () => {
-      if (notionSynced || !naturalProfile || !adaptedProfile || !candidate) return;
+    const syncToDatabase = async () => {
+      if (dbSynced || !naturalProfile || !adaptedProfile || !candidate?.id) return;
+
+      const perfilTipo = getProfileType(
+        naturalProfile.D,
+        naturalProfile.I,
+        naturalProfile.S,
+        naturalProfile.C
+      );
+
+      try {
+        const { error } = await supabase
+          .from('candidatos_disc')
+          .update({
+            perfil_natural: { D: naturalProfile.D, I: naturalProfile.I, S: naturalProfile.S, C: naturalProfile.C },
+            perfil_adaptado: { D: adaptedProfile.D, I: adaptedProfile.I, S: adaptedProfile.S, C: adaptedProfile.C },
+            perfil_tipo: perfilTipo,
+            status: 'completo',
+          })
+          .eq('id', candidate.id);
+
+        if (error) {
+          console.warn('Erro ao atualizar perfil no banco:', error);
+        } else {
+          console.log('✅ Perfil DISC salvo no banco de dados');
+          setDbSynced(true);
+        }
+      } catch (error) {
+        console.warn('Database sync error:', error);
+      }
+    };
+
+    syncToDatabase();
+  }, [naturalProfile, adaptedProfile, candidate?.id, dbSynced]);
+
+  // Sync DISC profile result to Notion
+  useEffect(() => {
+    const syncToNotion = async () => {
+      if (notionSynced || !naturalProfile || !adaptedProfile) return;
+
+      const notionPageId = localStorage.getItem('candidato_notion_id');
+      if (!notionPageId) {
+        console.log('No Notion page ID found, skipping sync');
+        return;
+      }
 
       const profile = getProfileDescription(
         naturalProfile.D,
@@ -71,85 +115,32 @@ export default function Results() {
         naturalProfile.C
       );
 
-      // Calcular o perfil_tipo (ex: "DI", "SC", "D")
-      const factors = [
-        { letter: 'D', value: naturalProfile.D },
-        { letter: 'I', value: naturalProfile.I },
-        { letter: 'S', value: naturalProfile.S },
-        { letter: 'C', value: naturalProfile.C },
-      ];
-      const sortedFactors = factors.sort((a, b) => b.value - a.value);
-      const threshold = 10; // Diferença mínima para considerar fator significativo
-      let perfilTipo = sortedFactors[0].letter;
-      if (sortedFactors[0].value - sortedFactors[1].value < threshold) {
-        perfilTipo += sortedFactors[1].letter;
-      }
+      const perfilResultado = `Perfil: ${profile.nome} | Natural: D${naturalProfile.D} I${naturalProfile.I} S${naturalProfile.S} C${naturalProfile.C} | Adaptado: D${adaptedProfile.D} I${adaptedProfile.I} S${adaptedProfile.S} C${adaptedProfile.C} | Teste: ${new Date().toLocaleString('pt-BR')}`;
 
-      // Update candidatos_disc table with profile data
-      const candidatoId = localStorage.getItem('candidato_id');
-      if (candidatoId) {
-        try {
-          const { error: updateError } = await supabase
-            .from('candidatos_disc')
-            .update({
-              perfil_tipo: perfilTipo,
-              perfil_natural: {
-                D: naturalProfile.D,
-                I: naturalProfile.I,
-                S: naturalProfile.S,
-                C: naturalProfile.C,
-              },
-              perfil_adaptado: {
-                D: adaptedProfile.D,
-                I: adaptedProfile.I,
-                S: adaptedProfile.S,
-                C: adaptedProfile.C,
-              },
-              status: 'completo',
-            })
-            .eq('id', candidatoId);
-
-          if (updateError) {
-            console.warn('Erro ao atualizar perfil no banco:', updateError);
-          } else {
-            console.log('✅ Perfil DISC salvo na tabela candidatos_disc');
-          }
-        } catch (err) {
-          console.warn('Erro ao atualizar perfil:', err);
-        }
-      }
-
-      // Sync to Notion
-      const notionPageId = localStorage.getItem('candidato_notion_id');
-      if (notionPageId) {
-        const perfilResultado = `Perfil: ${profile.nome} | Natural: D${naturalProfile.D} I${naturalProfile.I} S${naturalProfile.S} C${naturalProfile.C} | Adaptado: D${adaptedProfile.D} I${adaptedProfile.I} S${adaptedProfile.S} C${adaptedProfile.C} | Teste: ${new Date().toLocaleString('pt-BR')}`;
-
-        try {
-          const response = await supabase.functions.invoke('notion-sync', {
-            body: {
-              action: 'update_profile',
-              data: {
-                notionPageId,
-                perfilResultado,
-              },
+      try {
+        const response = await supabase.functions.invoke('notion-sync', {
+          body: {
+            action: 'update_profile',
+            data: {
+              notionPageId,
+              perfilResultado,
             },
-          });
+          },
+        });
 
-          if (response.data?.success) {
-            console.log('✅ Perfil DISC enviado ao Notion com sucesso');
-          } else {
-            console.warn('Notion profile sync failed:', response.error || response.data?.error);
-          }
-        } catch (error) {
-          console.warn('Notion profile sync error:', error);
+        if (response.data?.success) {
+          console.log('✅ Perfil DISC enviado ao Notion com sucesso');
+          setNotionSynced(true);
+        } else {
+          console.warn('Notion profile sync failed:', response.error || response.data?.error);
         }
+      } catch (error) {
+        console.warn('Notion profile sync error:', error);
       }
-
-      setNotionSynced(true);
     };
 
-    syncProfile();
-  }, [naturalProfile, adaptedProfile, candidate, notionSynced]);
+    syncToNotion();
+  }, [naturalProfile, adaptedProfile, notionSynced]);
 
   // Memoize profile description to avoid recalculation on every render
   const profile = useMemo(() => {
@@ -232,19 +223,13 @@ export default function Results() {
           const pdfUrl = urlData.publicUrl;
           console.log('📤 PDF uploaded to:', pdfUrl);
 
-          // Update candidatos_disc table with PDF URL
-          const candidatoId = localStorage.getItem('candidato_id');
-          if (candidatoId && pdfUrl) {
-            const { error: pdfUpdateError } = await supabase
+          // Update pdf_url in database
+          if (candidate?.id && pdfUrl) {
+            await supabase
               .from('candidatos_disc')
               .update({ pdf_url: pdfUrl })
-              .eq('id', candidatoId);
-
-            if (pdfUpdateError) {
-              console.warn('Erro ao salvar PDF URL no banco:', pdfUpdateError);
-            } else {
-              console.log('✅ PDF URL salvo na tabela candidatos_disc');
-            }
+              .eq('id', candidate.id);
+            console.log('✅ PDF URL salvo no banco de dados');
           }
 
           // Update Notion with PDF URL
