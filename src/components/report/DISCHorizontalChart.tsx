@@ -1,29 +1,36 @@
+import { memo, useMemo } from 'react';
 import { Profile } from '@/context/AssessmentContext';
+import { normalizeScore } from '@/lib/utils';
 
 interface DISCHorizontalChartProps {
   naturalProfile: Profile;
   adaptedProfile: Profile;
 }
 
-// Cores oficiais DISC
+// Cores oficiais DISC - definido fora do componente para evitar recriação
 const DISC_COLORS = {
   D: '#E53935', // Vermelho - Dominância
   I: '#FBC02D', // Amarelo - Influência
   S: '#43A047', // Verde - Estabilidade
   C: '#1E88E5', // Azul - Conformidade
-};
+} as const;
 
-const normalizeScore = (score: number): number => {
-  return Math.round(((score + 25) / 50) * 100);
-};
+// Fatores definidos fora do componente para evitar recriação a cada render
+const FACTORS = [
+  { key: 'D' as const, label: 'D - Dominância', color: DISC_COLORS.D, description: 'Como você enfrenta desafios e toma decisões' },
+  { key: 'I' as const, label: 'I - Influência', color: DISC_COLORS.I, description: 'Como você se comunica e influencia pessoas' },
+  { key: 'S' as const, label: 'S - Estabilidade', color: DISC_COLORS.S, description: 'Como você lida com mudanças e ritmo de trabalho' },
+  { key: 'C' as const, label: 'C - Conformidade', color: DISC_COLORS.C, description: 'Como você segue regras e analisa informações' },
+] as const;
 
-export function DISCHorizontalChart({ naturalProfile, adaptedProfile }: DISCHorizontalChartProps) {
-  const factors = [
-    { key: 'D' as const, label: 'D - Dominância', color: DISC_COLORS.D, description: 'Como você enfrenta desafios e toma decisões' },
-    { key: 'I' as const, label: 'I - Influência', color: DISC_COLORS.I, description: 'Como você se comunica e influencia pessoas' },
-    { key: 'S' as const, label: 'S - Estabilidade', color: DISC_COLORS.S, description: 'Como você lida com mudanças e ritmo de trabalho' },
-    { key: 'C' as const, label: 'C - Conformidade', color: DISC_COLORS.C, description: 'Como você segue regras e analisa informações' },
-  ];
+export const DISCHorizontalChart = memo(function DISCHorizontalChart({ naturalProfile, adaptedProfile }: DISCHorizontalChartProps) {
+  // Memoizar valores normalizados para evitar recálculo desnecessário
+  const normalizedValues = useMemo(() => ({
+    D: { natural: normalizeScore(naturalProfile.D), adapted: normalizeScore(adaptedProfile.D) },
+    I: { natural: normalizeScore(naturalProfile.I), adapted: normalizeScore(adaptedProfile.I) },
+    S: { natural: normalizeScore(naturalProfile.S), adapted: normalizeScore(adaptedProfile.S) },
+    C: { natural: normalizeScore(naturalProfile.C), adapted: normalizeScore(adaptedProfile.C) },
+  }), [naturalProfile.D, naturalProfile.I, naturalProfile.S, naturalProfile.C, adaptedProfile.D, adaptedProfile.I, adaptedProfile.S, adaptedProfile.C]);
 
   return (
     <div className="bg-card rounded-xl p-6 shadow-lg">
@@ -43,9 +50,8 @@ export function DISCHorizontalChart({ naturalProfile, adaptedProfile }: DISCHori
       </div>
 
       <div className="space-y-6">
-        {factors.map((factor) => {
-          const naturalValue = normalizeScore(naturalProfile[factor.key]);
-          const adaptedValue = normalizeScore(adaptedProfile[factor.key]);
+        {FACTORS.map((factor) => {
+          const { natural: naturalValue, adapted: adaptedValue } = normalizedValues[factor.key];
 
           return (
             <div key={factor.key} className="space-y-2">
@@ -67,7 +73,7 @@ export function DISCHorizontalChart({ naturalProfile, adaptedProfile }: DISCHori
                     <span className="text-xs text-muted-foreground w-16">Natural</span>
                     <div className="flex-1 h-6 bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full rounded-full flex items-center justify-end pr-2 transition-all duration-500"
+                        className="h-full rounded-full flex items-center justify-end pr-2 transition-[width] duration-500"
                         style={{ width: `${naturalValue}%`, backgroundColor: factor.color }}
                       >
                         <span className="text-xs font-bold text-white drop-shadow">{naturalValue}%</span>
@@ -79,7 +85,7 @@ export function DISCHorizontalChart({ naturalProfile, adaptedProfile }: DISCHori
                     <span className="text-xs text-muted-foreground w-16">Adaptado</span>
                     <div className="flex-1 h-6 bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full rounded-full flex items-center justify-end pr-2 transition-all duration-500 opacity-70"
+                        className="h-full rounded-full flex items-center justify-end pr-2 transition-[width] duration-500 opacity-70"
                         style={{ width: `${adaptedValue}%`, backgroundColor: factor.color }}
                       >
                         <span className="text-xs font-bold text-white drop-shadow">{adaptedValue}%</span>
@@ -113,4 +119,4 @@ export function DISCHorizontalChart({ naturalProfile, adaptedProfile }: DISCHori
       </div>
     </div>
   );
-}
+});

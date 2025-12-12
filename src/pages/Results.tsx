@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
@@ -9,16 +9,16 @@ import { supabase } from '@/integrations/supabase/client';
 import '@/styles/pdf-styles.css';
 import { toast } from 'sonner';
 
-// Report Components
-import { ReportCover } from '@/components/report/ReportCover';
-import { ReportNavigation } from '@/components/report/ReportNavigation';
-import { DISCHorizontalChart } from '@/components/report/DISCHorizontalChart';
-import { AmplitudeAnalysis } from '@/components/report/AmplitudeAnalysis';
-import { ProgressComparison } from '@/components/report/ProgressComparison';
-import { CompetenciesRadar } from '@/components/report/CompetenciesRadar';
-import { SprangerValuesChart } from '@/components/report/SprangerValuesChart';
-import { SprangerValuesReport } from '@/components/report/SprangerValuesReport';
-import { LeadershipPieChart } from '@/components/report/LeadershipPieChart';
+// Lazy load heavy report components for better initial load
+const ReportCover = lazy(() => import('@/components/report/ReportCover').then(m => ({ default: m.ReportCover })));
+const ReportNavigation = lazy(() => import('@/components/report/ReportNavigation').then(m => ({ default: m.ReportNavigation })));
+const DISCHorizontalChart = lazy(() => import('@/components/report/DISCHorizontalChart').then(m => ({ default: m.DISCHorizontalChart })));
+const AmplitudeAnalysis = lazy(() => import('@/components/report/AmplitudeAnalysis').then(m => ({ default: m.AmplitudeAnalysis })));
+const ProgressComparison = lazy(() => import('@/components/report/ProgressComparison').then(m => ({ default: m.ProgressComparison })));
+const CompetenciesRadar = lazy(() => import('@/components/report/CompetenciesRadar').then(m => ({ default: m.CompetenciesRadar })));
+const SprangerValuesChart = lazy(() => import('@/components/report/SprangerValuesChart').then(m => ({ default: m.SprangerValuesChart })));
+const SprangerValuesReport = lazy(() => import('@/components/report/SprangerValuesReport').then(m => ({ default: m.SprangerValuesReport })));
+const LeadershipPieChart = lazy(() => import('@/components/report/LeadershipPieChart').then(m => ({ default: m.LeadershipPieChart })));
 
 import {
   Target,
@@ -37,6 +37,13 @@ import {
   Loader2
 } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
+
+// Loading fallback component
+const ChartLoader = () => (
+  <div className="flex items-center justify-center p-8">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  </div>
+);
 
 export default function Results() {
   const navigate = useNavigate();
@@ -97,22 +104,27 @@ export default function Results() {
     syncToNotion();
   }, [naturalProfile, adaptedProfile, notionSynced]);
 
-  if (!candidate || !naturalProfile || !adaptedProfile || !sprangerProfile) {
-    return null;
-  }
+  // Memoize profile description to avoid recalculation on every render
+  const profile = useMemo(() => {
+    if (!naturalProfile) return null;
+    return getProfileDescription(
+      naturalProfile.D,
+      naturalProfile.I,
+      naturalProfile.S,
+      naturalProfile.C
+    );
+  }, [naturalProfile?.D, naturalProfile?.I, naturalProfile?.S, naturalProfile?.C]);
 
-  const profile = getProfileDescription(
-    naturalProfile.D,
-    naturalProfile.I,
-    naturalProfile.S,
-    naturalProfile.C
-  );
-
-  const handleNewAssessment = () => {
+  // Memoize handlers to prevent unnecessary re-renders of child components
+  const handleNewAssessment = useCallback(() => {
     resetAssessment();
     localStorage.removeItem('candidato_notion_id');
     navigate('/');
-  };
+  }, [resetAssessment, navigate]);
+
+  if (!candidate || !naturalProfile || !adaptedProfile || !sprangerProfile || !profile) {
+    return null;
+  }
 
   const handleDownloadPDF = async () => {
     if (!reportRef.current || !candidate) return;
@@ -250,14 +262,18 @@ export default function Results() {
 
         {/* Navigation */}
         <div className="no-print">
-          <ReportNavigation />
+          <Suspense fallback={<ChartLoader />}>
+            <ReportNavigation />
+          </Suspense>
         </div>
 
         {/* Main Content */}
         <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         {/* Cover Section */}
         <section id="overview" className="animate-fade-in">
-          <ReportCover candidate={candidate} />
+          <Suspense fallback={<ChartLoader />}>
+            <ReportCover candidate={candidate} />
+          </Suspense>
         </section>
 
         {/* Methodology Card */}
@@ -316,37 +332,49 @@ export default function Results() {
         {/* DISC Charts Section */}
         <section id="disc-chart" className="space-y-6">
           <div ref={chartRef}>
-            <DISCHorizontalChart naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
+            <Suspense fallback={<ChartLoader />}>
+              <DISCHorizontalChart naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
+            </Suspense>
           </div>
         </section>
 
         {/* Amplitude Analysis */}
         <section id="amplitude">
-          <AmplitudeAnalysis naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
+          <Suspense fallback={<ChartLoader />}>
+            <AmplitudeAnalysis naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
+          </Suspense>
         </section>
 
         {/* Progress Comparison */}
         <section id="progress">
-          <ProgressComparison naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
+          <Suspense fallback={<ChartLoader />}>
+            <ProgressComparison naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
+          </Suspense>
         </section>
 
         {/* Competencies Radar */}
         <section id="competencies">
-          <CompetenciesRadar naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
+          <Suspense fallback={<ChartLoader />}>
+            <CompetenciesRadar naturalProfile={naturalProfile} adaptedProfile={adaptedProfile} />
+          </Suspense>
         </section>
 
         {/* Spranger Values */}
         <section id="valores">
-          {sprangerProfile ? (
-            <SprangerValuesReport sprangerProfile={sprangerProfile} />
-          ) : (
-            <SprangerValuesChart naturalProfile={naturalProfile} />
-          )}
+          <Suspense fallback={<ChartLoader />}>
+            {sprangerProfile ? (
+              <SprangerValuesReport sprangerProfile={sprangerProfile} />
+            ) : (
+              <SprangerValuesChart naturalProfile={naturalProfile} />
+            )}
+          </Suspense>
         </section>
 
         {/* Leadership Pie Chart */}
         <section id="leadership">
-          <LeadershipPieChart naturalProfile={naturalProfile} />
+          <Suspense fallback={<ChartLoader />}>
+            <LeadershipPieChart naturalProfile={naturalProfile} />
+          </Suspense>
         </section>
 
         {/* Recommendations Section */}
