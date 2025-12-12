@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAssessment } from '@/context/AssessmentContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { User, Phone, Briefcase, Instagram, ArrowRight, Loader2 } from 'lucide-react';
+import { User, Phone, Briefcase, Instagram, ArrowRight, Loader2, Mail } from 'lucide-react';
 
 const CARGO_OPTIONS = [
   'Sócio/Empresário',
@@ -28,6 +28,7 @@ export default function Identification() {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     nome_completo: '',
+    email: '',
     telefone_whatsapp: '',
     cargo_atual: '',
     empresa_instagram: '',
@@ -78,6 +79,12 @@ export default function Identification() {
     } else if (formData.nome_completo.trim().length < 3) {
       newErrors.nome_completo = 'Nome deve ter pelo menos 3 caracteres';
     }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'E-mail é obrigatório';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      newErrors.email = 'E-mail inválido';
+    }
     
     const phoneNumbers = formData.telefone_whatsapp.replace(/\D/g, '');
     if (!phoneNumbers) {
@@ -113,6 +120,7 @@ export default function Identification() {
         .from('candidatos_disc')
         .insert({
           nome_completo: formData.nome_completo.trim(),
+          email: formData.email.trim(),
           telefone_whatsapp: formData.telefone_whatsapp,
           cargo_atual: formData.cargo_atual,
           empresa_instagram: formData.empresa_instagram,
@@ -216,6 +224,26 @@ export default function Identification() {
                 />
                 {errors.nome_completo && (
                   <p className="text-sm text-destructive">{errors.nome_completo}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-muted-foreground" />
+                  E-mail
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={getInputClass('email')}
+                  disabled={isLoading}
+                />
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email}</p>
                 )}
               </div>
 
