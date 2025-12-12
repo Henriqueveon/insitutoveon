@@ -33,10 +33,10 @@ import {
   Star,
   TrendingUp,
   BookOpen,
-  Download,
-  Loader2
+  Loader2,
+  Copy,
+  Check
 } from 'lucide-react';
-import html2pdf from 'html2pdf.js';
 
 // Loading fallback component
 const ChartLoader = () => (
@@ -45,14 +45,67 @@ const ChartLoader = () => (
   </div>
 );
 
+// Alert Box Component for copying link
+const AlertCopyLink = ({ candidateId }: { candidateId: string }) => {
+  const [copied, setCopied] = useState(false);
+
+  const getReportUrl = () => {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/relatorio/${candidateId}`;
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(getReportUrl());
+      setCopied(true);
+      toast.success('Link copiado!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error('Erro ao copiar link');
+    }
+  };
+
+  return (
+    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 rounded-xl p-6 shadow-lg">
+      <div className="flex flex-col items-center text-center gap-4">
+        <div className="flex items-center gap-2 text-amber-600">
+          <AlertTriangle className="w-6 h-6" />
+          <span className="text-lg font-semibold">Importante!</span>
+        </div>
+        <p className="text-amber-800 font-medium max-w-lg">
+          Copie e guarde o link desta pagina. Ao fechar, voce nao tera acesso novamente.
+        </p>
+        <Button
+          onClick={handleCopyLink}
+          className={`gap-2 px-6 py-3 text-base font-semibold transition-all ${
+            copied
+              ? 'bg-green-500 hover:bg-green-600'
+              : 'bg-amber-500 hover:bg-amber-600'
+          } text-white`}
+        >
+          {copied ? (
+            <>
+              <Check className="w-5 h-5" />
+              Link Copiado!
+            </>
+          ) : (
+            <>
+              <Copy className="w-5 h-5" />
+              Copiar Link
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 export default function Results() {
   const navigate = useNavigate();
   const { candidate, naturalProfile, adaptedProfile, sprangerProfile, resetAssessment } = useAssessment();
   const chartRef = useRef<HTMLDivElement>(null);
-  const reportRef = useRef<HTMLDivElement>(null);
   const [notionSynced, setNotionSynced] = useState(false);
   const [dbSynced, setDbSynced] = useState(false);
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
     if (!candidate || !naturalProfile || !adaptedProfile || !sprangerProfile) {
@@ -184,158 +237,16 @@ export default function Results() {
     return null;
   }
 
-  const handleDownloadPDF = async () => {
-    if (!reportRef.current || !candidate) return;
-
-    setIsGeneratingPDF(true);
-
-    try {
-      const element = reportRef.current;
-      const fileName = `relatorio-disc-${candidate.nome_completo.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
-
-      const options = {
-        margin: [10, 10, 10, 10] as [number, number, number, number],
-        filename: fileName,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-        },
-        jsPDF: {
-          unit: 'mm' as const,
-          format: 'a4' as const,
-          orientation: 'portrait' as const,
-        },
-        pagebreak: {
-          mode: ['css', 'legacy'],
-          before: '.page-break-before',
-          after: '.page-break-after',
-          avoid: ['.no-break', 'img', 'svg', 'canvas'],
-        },
-      };
-
-      // Hide elements with .no-print class
-      const elementosOcultar = element.querySelectorAll('.no-print');
-      elementosOcultar.forEach(el => (el as HTMLElement).style.display = 'none');
-
-      // Generate PDF as blob
-      const pdfBlob = await html2pdf().set(options).from(element).outputPdf('blob');
-
-      // Restore hidden elements
-      elementosOcultar.forEach(el => (el as HTMLElement).style.display = '');
-
-      // Upload to Supabase Storage and update database
-      try {
-        // Get candidate ID from context or localStorage
-        const candidatoId = candidate?.id || localStorage.getItem('candidato_id');
-
-        const { error: uploadError } = await supabase.storage
-          .from('teste')
-          .upload(`pdfs/${fileName}`, pdfBlob, {
-            contentType: 'application/pdf',
-            upsert: true,
-          });
-
-        if (!uploadError) {
-          const { data: urlData } = supabase.storage
-            .from('teste')
-            .getPublicUrl(`pdfs/${fileName}`);
-
-          const pdfUrl = urlData.publicUrl;
-          console.log('📤 PDF uploaded to:', pdfUrl);
-
-          // Update pdf_url in database
-          if (candidatoId && pdfUrl) {
-            const { error: updateError } = await supabase
-              .from('candidatos_disc')
-              .update({ pdf_url: pdfUrl })
-              .eq('id', candidatoId);
-
-            if (updateError) {
-              console.warn('Erro ao salvar PDF URL no banco:', updateError);
-            } else {
-              console.log('✅ PDF URL salvo no banco de dados');
-            }
-          } else {
-            console.warn('PDF URL não salvo: candidatoId ou pdfUrl ausente', { candidatoId, pdfUrl });
-          }
-
-          // Update Notion with PDF URL
-          const notionPageId = localStorage.getItem('candidato_notion_id');
-          if (notionPageId && pdfUrl) {
-            const notionResponse = await supabase.functions.invoke('notion-sync', {
-              body: {
-                action: 'update_pdf',
-                data: { notionPageId, pdfUrl },
-              },
-            });
-
-            if (notionResponse.data?.success) {
-              console.log('✅ PDF URL enviado ao Notion com sucesso');
-            } else {
-              console.warn('Notion PDF sync failed:', notionResponse.error || notionResponse.data?.error);
-            }
-          }
-        } else {
-          console.warn('Upload error:', uploadError);
-          // Try to still generate and download the PDF locally even if upload fails
-        }
-      } catch (uploadErr) {
-        console.warn('Upload error (non-blocking):', uploadErr);
-        // The PDF will still be downloaded locally even if upload fails
-      }
-
-      // Trigger download
-      const downloadUrl = URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(downloadUrl);
-
-      toast.success('PDF baixado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      toast.error('Erro ao gerar PDF. Tente novamente.');
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
-
   return (
-    <div ref={reportRef} className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="w-full py-4 px-4 sm:px-8 border-b border-border bg-card/95 backdrop-blur-md sticky top-0 z-40 no-print">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Logo />
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleDownloadPDF}
-              disabled={isGeneratingPDF}
-              className="gap-2 gradient-veon hover:opacity-90"
-            >
-              {isGeneratingPDF ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="hidden sm:inline">Gerando...</span>
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" />
-                  <span className="hidden sm:inline">Baixar Relatório em PDF</span>
-                  <span className="sm:hidden">PDF</span>
-                </>
-              )}
-            </Button>
-            <Button variant="outline" onClick={handleNewAssessment} className="gap-2">
-              <RotateCcw className="w-4 h-4" />
-              <span className="hidden sm:inline">Novo Teste</span>
-            </Button>
-          </div>
+          <Button variant="outline" onClick={handleNewAssessment} className="gap-2">
+            <RotateCcw className="w-4 h-4" />
+            <span className="hidden sm:inline">Novo Teste</span>
+          </Button>
         </div>
       </header>
 
@@ -348,6 +259,9 @@ export default function Results() {
 
         {/* Main Content */}
         <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {/* Alert Box - Top */}
+        <AlertCopyLink candidateId={candidate.id} />
+
         {/* Cover Section */}
         <section id="overview" className="animate-fade-in">
           <Suspense fallback={<ChartLoader />}>
@@ -647,6 +561,9 @@ export default function Results() {
 
         </section>
 
+        {/* Alert Box - Bottom */}
+        <AlertCopyLink candidateId={candidate.id} />
+
         {/* Footer */}
         <div className="text-center py-8 space-y-4 border-t border-border">
           <Button
@@ -656,10 +573,10 @@ export default function Results() {
             className="gap-2"
           >
             <RotateCcw className="w-5 h-5" />
-            Realizar Nova Avaliação
+            Realizar Nova Avaliacao
           </Button>
           <p className="text-sm text-muted-foreground">
-            Instituto VEON • "A bússola que aponta para o sucesso!"
+            Instituto VEON - "A bussola que aponta para o sucesso!"
           </p>
         </div>
       </main>

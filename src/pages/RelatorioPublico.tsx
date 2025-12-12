@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState, useMemo, lazy, Suspense } from 'react';
+import { useEffect, useState, useMemo, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { getProfileDescription, getProfileType } from '@/data/discProfiles';
+import { getProfileDescription } from '@/data/discProfiles';
 import { supabase } from '@/integrations/supabase/client';
 import '@/styles/pdf-styles.css';
 import { toast } from 'sonner';
@@ -29,10 +29,10 @@ import {
   Star,
   TrendingUp,
   BookOpen,
-  Download,
-  Loader2
+  Loader2,
+  Copy,
+  Check
 } from 'lucide-react';
-import html2pdf from 'html2pdf.js';
 
 interface DISCProfile {
   D: number;
@@ -61,12 +61,60 @@ const ChartLoader = () => (
   </div>
 );
 
+// Alert Box Component
+const AlertCopyLink = () => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      toast.success('Link copiado!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error('Erro ao copiar link');
+    }
+  };
+
+  return (
+    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 rounded-xl p-6 shadow-lg">
+      <div className="flex flex-col items-center text-center gap-4">
+        <div className="flex items-center gap-2 text-amber-600">
+          <AlertTriangle className="w-6 h-6" />
+          <span className="text-lg font-semibold">Importante!</span>
+        </div>
+        <p className="text-amber-800 font-medium max-w-lg">
+          Copie e guarde o link desta pagina. Ao fechar, voce nao tera acesso novamente.
+        </p>
+        <Button
+          onClick={handleCopyLink}
+          className={`gap-2 px-6 py-3 text-base font-semibold transition-all ${
+            copied
+              ? 'bg-green-500 hover:bg-green-600'
+              : 'bg-amber-500 hover:bg-amber-600'
+          } text-white`}
+        >
+          {copied ? (
+            <>
+              <Check className="w-5 h-5" />
+              Link Copiado!
+            </>
+          ) : (
+            <>
+              <Copy className="w-5 h-5" />
+              Copiar Link
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 export default function RelatorioPublico() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const reportRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [candidato, setCandidato] = useState<CandidatoData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -127,67 +175,6 @@ export default function RelatorioPublico() {
   const naturalProfile = candidato?.perfil_natural || null;
   const adaptedProfile = candidato?.perfil_adaptado || null;
 
-  const handleDownloadPDF = async () => {
-    if (!reportRef.current || !candidato) return;
-
-    setIsGeneratingPDF(true);
-
-    try {
-      const element = reportRef.current;
-      const fileName = `relatorio-disc-${candidato.nome_completo.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
-
-      const options = {
-        margin: [10, 10, 10, 10] as [number, number, number, number],
-        filename: fileName,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-        },
-        jsPDF: {
-          unit: 'mm' as const,
-          format: 'a4' as const,
-          orientation: 'portrait' as const,
-        },
-        pagebreak: {
-          mode: ['css', 'legacy'],
-          before: '.page-break-before',
-          after: '.page-break-after',
-          avoid: ['.no-break', 'img', 'svg', 'canvas'],
-        },
-      };
-
-      // Hide elements with .no-print class
-      const elementosOcultar = element.querySelectorAll('.no-print');
-      elementosOcultar.forEach(el => (el as HTMLElement).style.display = 'none');
-
-      // Generate PDF as blob
-      const pdfBlob = await html2pdf().set(options).from(element).outputPdf('blob');
-
-      // Restore hidden elements
-      elementosOcultar.forEach(el => (el as HTMLElement).style.display = '');
-
-      // Trigger download
-      const downloadUrl = URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(downloadUrl);
-
-      toast.success('PDF baixado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      toast.error('Erro ao gerar PDF. Tente novamente.');
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
-
   // Loading state
   if (isLoading) {
     return (
@@ -231,36 +218,19 @@ export default function RelatorioPublico() {
   };
 
   return (
-    <div ref={reportRef} className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="w-full py-4 px-4 sm:px-8 border-b border-border bg-card/95 backdrop-blur-md sticky top-0 z-40 no-print">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+      <header className="w-full py-4 px-4 sm:px-8 border-b border-border bg-card/95 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto flex items-center justify-center">
           <Logo />
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleDownloadPDF}
-              disabled={isGeneratingPDF}
-              className="gap-2 gradient-veon hover:opacity-90"
-            >
-              {isGeneratingPDF ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="hidden sm:inline">Gerando...</span>
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" />
-                  <span className="hidden sm:inline">Baixar Relatorio em PDF</span>
-                  <span className="sm:hidden">PDF</span>
-                </>
-              )}
-            </Button>
-          </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {/* Alert Box - Top */}
+        <AlertCopyLink />
+
         {/* Cover Section */}
         <section id="overview" className="animate-fade-in">
           <Suspense fallback={<ChartLoader />}>
@@ -550,6 +520,9 @@ export default function RelatorioPublico() {
             </CardContent>
           </Card>
         </section>
+
+        {/* Alert Box - Bottom */}
+        <AlertCopyLink />
 
         {/* Footer */}
         <div className="text-center py-8 space-y-4 border-t border-border">
