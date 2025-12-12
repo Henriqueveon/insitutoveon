@@ -10,6 +10,7 @@ import Assessment from "./pages/Assessment";
 import SituationalTest from "./pages/SituationalTest";
 import SprangerTest from "./pages/SprangerTest";
 import Results from "./pages/Results";
+import RelatorioPublico from "./pages/RelatorioPublico";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import PDFPreview from "./pages/PDFPreview";
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/admin" element={<Admin />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/pdf-preview" element={<PDFPreview />} />
+              <Route path="/relatorio/:id" element={<RelatorioPublico />} />
 
               {/* Painel do Gestor */}
               <Route path="/painel/login" element={<PainelLogin />} />

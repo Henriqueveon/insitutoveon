@@ -40,6 +40,8 @@ import {
   ChevronRight,
   X,
   Copy,
+  Link,
+  ExternalLink,
 } from 'lucide-react';
 import { toast as sonnerToast } from 'sonner';
 import { format } from 'date-fns';
@@ -402,7 +404,7 @@ export default function PainelCandidatos() {
                   <TableHead className="text-slate-400">E-mail</TableHead>
                   <TableHead className="text-slate-400">Cargo</TableHead>
                   <TableHead className="text-slate-400">Instagram</TableHead>
-                  <TableHead className="text-slate-400 text-center">PDF</TableHead>
+                  <TableHead className="text-slate-400 text-center">Relatorio</TableHead>
                   <TableHead className="text-slate-400">Perfil DISC</TableHead>
                 </TableRow>
               </TableHeader>
@@ -521,20 +523,37 @@ export default function PainelCandidatos() {
                         </div>
                       </TableCell>
 
-                      {/* PDF Download */}
+                      {/* Link do Relatorio */}
                       <TableCell className="text-center">
-                        {candidato.pdf_url ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-[#00D9FF] hover:text-white hover:bg-[#00D9FF]/20"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.open(candidato.pdf_url!, '_blank');
-                            }}
-                          >
-                            <Download className="w-4 h-4" />
-                          </Button>
+                        {candidato.perfil_tipo ? (
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-[#00D9FF] hover:text-white hover:bg-[#00D9FF]/20"
+                              title="Copiar link do relatorio"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const baseUrl = window.location.origin;
+                                const relatorioUrl = `${baseUrl}/relatorio/${candidato.id}`;
+                                copiarTexto(relatorioUrl, 'Link do relatorio');
+                              }}
+                            >
+                              <Link className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-green-400 hover:text-white hover:bg-green-500/20"
+                              title="Abrir relatorio"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(`/relatorio/${candidato.id}`, '_blank');
+                              }}
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </Button>
+                          </div>
                         ) : (
                           <span className="text-slate-600">-</span>
                         )}
@@ -706,17 +725,31 @@ export default function PainelCandidatos() {
                   </Select>
                 </div>
 
-                {selectedCandidato.pdf_url && (
-                  <Button asChild className="bg-gradient-to-r from-[#00D9FF] to-[#0099CC]">
-                    <a
-                      href={selectedCandidato.pdf_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                {selectedCandidato.perfil_tipo && (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="border-[#00D9FF] text-[#00D9FF] hover:bg-[#00D9FF]/10"
+                      onClick={() => {
+                        const baseUrl = window.location.origin;
+                        const relatorioUrl = `${baseUrl}/relatorio/${selectedCandidato.id}`;
+                        copiarTexto(relatorioUrl, 'Link do relatorio');
+                      }}
                     >
-                      <FileText className="w-4 h-4 mr-2" />
-                      Ver Relatório PDF
-                    </a>
-                  </Button>
+                      <Link className="w-4 h-4 mr-2" />
+                      Copiar Link
+                    </Button>
+                    <Button asChild className="bg-gradient-to-r from-[#00D9FF] to-[#0099CC]">
+                      <a
+                        href={`/relatorio/${selectedCandidato.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Ver Relatorio
+                      </a>
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
