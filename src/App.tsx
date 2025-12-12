@@ -44,6 +44,9 @@ import AnalistaDashboard from "./pages/analista/Dashboard";
 import AnalistaCandidatos from "./pages/analista/Candidatos";
 import AnalistaConfiguracoes from "./pages/analista/Configuracoes";
 
+// Página de Base Científica
+import BaseCientifica from "./pages/BaseCientifica";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -66,6 +69,7 @@ const App = () => (
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/relatorio/:id" element={<RelatorioPublico />} />
+                <Route path="/base-cientifica" element={<BaseCientifica />} />
 
                 {/* Login unificado para Fundador/Analista */}
                 <Route path="/login" element={<Login />} />

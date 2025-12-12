@@ -23,15 +23,17 @@ import {
   ChevronDown,
   Shield,
   BarChart3,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navigation = [
   { name: 'Dashboard', href: '/fundador/dashboard', icon: LayoutDashboard },
   { name: 'Analistas', href: '/fundador/analistas', icon: Users },
-  { name: 'Licenças', href: '/fundador/licencas', icon: CreditCard },
-  { name: 'Métricas', href: '/fundador/metricas', icon: BarChart3 },
-  { name: 'Configurações', href: '/fundador/configuracoes', icon: Settings },
+  { name: 'Licencas', href: '/fundador/licencas', icon: CreditCard },
+  { name: 'Metricas', href: '/fundador/metricas', icon: BarChart3 },
+  { name: 'Base Cientifica', href: '/base-cientifica', icon: BookOpen },
+  { name: 'Configuracoes', href: '/fundador/configuracoes', icon: Settings },
 ];
 
 export default function FundadorLayout() {

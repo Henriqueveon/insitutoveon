@@ -20,13 +20,15 @@ import {
   Menu,
   X,
   ChevronDown,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navigation = [
   { name: 'Dashboard', href: '/analista/dashboard', icon: LayoutDashboard },
   { name: 'Meus Candidatos', href: '/analista/candidatos', icon: Users },
-  { name: 'Configurações', href: '/analista/configuracoes', icon: Settings },
+  { name: 'Base Cientifica', href: '/base-cientifica', icon: BookOpen },
+  { name: 'Configuracoes', href: '/analista/configuracoes', icon: Settings },
 ];
 
 export default function AnalistaLayout() {
