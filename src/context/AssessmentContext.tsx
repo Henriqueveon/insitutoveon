@@ -113,35 +113,63 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
 
     setNaturalProfile(natural);
 
-    // Calculate Adapted Profile (simulated adjustment)
+    // Calculate Adapted Profile using deterministic algorithm based on DISC theory
+    // The adapted profile represents behavioral adjustments in professional environments
+    // Based on: Marston's DISC theory - people adapt their behavior to meet environmental demands
+
     const adapted: Profile = { ...natural };
-
-    // Find dominant factor
     const factors: Array<'D' | 'I' | 'S' | 'C'> = ['D', 'I', 'S', 'C'];
-    const dominant = factors.reduce((a, b) => (natural[a] > natural[b] ? a : b));
 
-    // Apply adjustment based on dominant factor
-    const adjustmentAmount = Math.floor(Math.random() * 3) + 3; // 3-5
-    const increaseAmount = Math.floor(Math.random() * 3) + 1; // 1-3
+    // Sort factors by score to identify dominant and lowest
+    const sortedFactors = [...factors].sort((a, b) => natural[b] - natural[a]);
+    const dominant = sortedFactors[0];
+    const lowest = sortedFactors[3];
 
-    switch (dominant) {
-      case 'D':
-        adapted.D -= adjustmentAmount;
-        adapted.S += increaseAmount;
-        break;
-      case 'I':
-        adapted.I -= adjustmentAmount;
-        adapted.C += increaseAmount;
-        break;
-      case 'S':
-        adapted.S -= adjustmentAmount;
-        adapted.D += increaseAmount;
-        break;
-      case 'C':
-        adapted.C -= adjustmentAmount;
-        adapted.I += increaseAmount;
-        break;
-    }
+    // Calculate intensity of adaptation based on profile extremity
+    // More extreme profiles tend to adapt more in professional settings
+    const dominantScore = natural[dominant];
+    const lowestScore = natural[lowest];
+    const profileSpread = dominantScore - lowestScore; // Range: 0-50
+
+    // Adaptation intensity: profiles with larger spread adapt more (regression to mean)
+    // Formula: base adjustment + spread-based adjustment
+    const baseAdjustment = 2;
+    const spreadFactor = Math.round(profileSpread * 0.08); // 0-4 additional points
+    const totalAdjustment = baseAdjustment + spreadFactor;
+
+    // Apply DISC-theory based adaptations:
+    // In professional environments, people typically:
+    // 1. Moderate their dominant trait (social pressure to conform)
+    // 2. Increase their opposite trait (environmental demands)
+    // 3. Secondary traits shift based on professional context
+
+    // Opposite pairs in DISC: D↔S (pace), I↔C (priority)
+    const opposites: Record<string, 'D' | 'I' | 'S' | 'C'> = {
+      D: 'S', S: 'D', I: 'C', C: 'I'
+    };
+
+    const oppositeFactor = opposites[dominant];
+
+    // Primary adaptation: reduce dominant, increase opposite
+    adapted[dominant] -= totalAdjustment;
+    adapted[oppositeFactor] += Math.round(totalAdjustment * 0.6);
+
+    // Secondary adaptation: slight regression toward center for all factors
+    // This represents the "professional mask" effect
+    factors.forEach(factor => {
+      if (factor !== dominant && factor !== oppositeFactor) {
+        if (natural[factor] > 5) {
+          adapted[factor] -= 1; // Reduce high secondary traits
+        } else if (natural[factor] < -5) {
+          adapted[factor] += 1; // Increase low secondary traits
+        }
+      }
+    });
+
+    // Ensure adapted profile stays within valid range (-25 to +25)
+    factors.forEach(factor => {
+      adapted[factor] = Math.max(-25, Math.min(25, adapted[factor]));
+    });
 
     setAdaptedProfile(adapted);
   };
