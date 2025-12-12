@@ -67,17 +67,7 @@ export default function MetricasValidacao() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // Fetch aggregated statistics
-      const { data: statsData, error: statsError } = await supabase
-        .from('estatisticas_validacao')
-        .select('*')
-        .single();
-
-      if (statsError && statsError.code !== 'PGRST116') {
-        console.error('Error fetching stats:', statsError);
-      }
-
-      // Fetch detailed metrics with candidate info
+      // Fetch detailed metrics with candidate info using type assertion
       const { data: metricasData, error: metricasError } = await supabase
         .from('metricas_teste')
         .select(`
@@ -88,29 +78,23 @@ export default function MetricasValidacao() {
           )
         `)
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(100) as { data: MetricaDetalhada[] | null; error: any };
 
       if (metricasError) {
         console.error('Error fetching metrics:', metricasError);
       }
 
-      // If view doesn't exist yet, calculate stats manually
-      if (!statsData && metricasData) {
+      // Calculate stats manually from metrics data
+      if (metricasData && metricasData.length > 0) {
         const manual: MetricasEstatisticas = {
           total_testes: metricasData.length,
           testes_alta: metricasData.filter(m => m.confiabilidade_nivel === 'ALTA').length,
           testes_media: metricasData.filter(m => m.confiabilidade_nivel === 'MEDIA').length,
           testes_baixa: metricasData.filter(m => m.confiabilidade_nivel === 'BAIXA').length,
           testes_suspeita: metricasData.filter(m => m.confiabilidade_nivel === 'SUSPEITA').length,
-          score_medio: metricasData.length > 0
-            ? Math.round(metricasData.reduce((sum, m) => sum + (m.confiabilidade_score || 0), 0) / metricasData.length)
-            : 0,
-          tempo_medio_segundos: metricasData.length > 0
-            ? Math.round(metricasData.reduce((sum, m) => sum + (m.tempo_total_segundos || 0), 0) / metricasData.length)
-            : 0,
-          tempo_medio_por_questao_ms: metricasData.length > 0
-            ? Math.round(metricasData.reduce((sum, m) => sum + (m.tempo_medio_ms || 0), 0) / metricasData.length)
-            : 0,
+          score_medio: Math.round(metricasData.reduce((sum, m) => sum + (m.confiabilidade_score || 0), 0) / metricasData.length),
+          tempo_medio_segundos: Math.round(metricasData.reduce((sum, m) => sum + (m.tempo_total_segundos || 0), 0) / metricasData.length),
+          tempo_medio_por_questao_ms: 0,
           falhas_atencao: metricasData.filter(m => !m.ctrl_atencao_passou).length,
           falhas_desejabilidade: metricasData.filter(m => !m.ctrl_desejabilidade_passou).length,
           falhas_consistencia: metricasData.filter(m => !m.ctrl_consistencia_passou).length,
@@ -118,8 +102,6 @@ export default function MetricasValidacao() {
           versao_teste: '2.0',
         };
         setEstatisticas(manual);
-      } else {
-        setEstatisticas(statsData);
       }
 
       setMetricas(metricasData || []);
