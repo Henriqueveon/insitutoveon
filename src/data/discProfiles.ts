@@ -566,25 +566,428 @@ export const discProfiles: Record<string, ProfileData> = {
         "O medo de incerteza te mantém preso em zonas de conforto limitantes"
       ]
     }
+  },
+  // Perfis compostos adicionais (ordem inversa)
+  ID: {
+    nome: "Influente-Dominante",
+    descricaoCurta: "Comunicador assertivo, persuasivo e orientado a conquistas",
+    descricaoCompleta: "Combinação de carisma com determinação. Usa habilidades sociais para alcançar resultados. Excelente em vendas, negociação e liderança de equipes. Motiva através de entusiasmo enquanto mantém foco em metas. Gosta de reconhecimento por conquistas.",
+    potencialidades: [
+      "Persuasão e influência natural",
+      "Capacidade de motivar e vender ideias",
+      "Networking estratégico para resultados",
+      "Comunicação impactante e assertiva",
+      "Liderança carismática e orientada a metas"
+    ],
+    relacoesInterpessoais: "Extremamente sociável e ao mesmo tempo competitivo. Usa relacionamentos estrategicamente. Gosta de ser o centro das atenções e de vencer.",
+    tomadaDecisao: "Decisões rápidas baseadas em intuição e impacto social. Confia no poder de persuasão para implementar.",
+    motivadores: {
+      principal: "Reconhecimento e Sucesso - Busca admiração por conquistas visíveis",
+      secundario: "Influência - Motivado por persuadir e liderar outros"
+    },
+    medos: [
+      "Perder popularidade ou status",
+      "Falhar publicamente",
+      "Ser ignorado ou esquecido",
+      "Perder controle sobre resultados"
+    ],
+    melhorAdequacao: "Vendas, marketing, liderança comercial, empreendedorismo, apresentações, negociação de alto nível.",
+    pontosDesenvolver: [
+      "Desenvolver paciência com processos",
+      "Ouvir mais antes de falar",
+      "Equilibrar charme com substância",
+      "Aceitar que nem todos precisam gostar de você"
+    ],
+    comunicacao: {
+      comoComunicar: "Seja entusiasta mas direto. Reconheça conquistas. Dê espaço para brilhar.",
+      comoReceber: "Use histórias de sucesso. Mostre benefícios. Permita expressão."
+    },
+    planoAcao: [
+      "Praticar escuta ativa em reuniões",
+      "Incluir dados e análises em apresentações",
+      "Desenvolver paciência com detalhes",
+      "Buscar feedback honesto sobre impacto"
+    ],
+    cargosIdeais: ["Diretor de Vendas", "Empreendedor", "Palestrante", "Negociador", "Head de Marketing", "Business Development"],
+    alertasCriticos: {
+      malInterpretado: [
+        "Sua sociabilidade estratégica pode parecer manipulação",
+        "Seu entusiasmo pode ser visto como superficialidade",
+        "Sua competitividade pode parecer egoísmo",
+        "Sua necessidade de destaque pode irritar colegas",
+        "Sua pressa pode parecer desconsideração pelos outros"
+      ],
+      perdaColaboradores: [
+        "Colaboradores podem se sentir usados para seus objetivos",
+        "A competição interna pode criar ambiente tóxico",
+        "Pessoas introvertidas podem se sentir ofuscadas",
+        "Funcionários podem sair por falta de reconhecimento compartilhado",
+        "O foco em resultados pode negligenciar bem-estar da equipe"
+      ],
+      medosTravas: [
+        "O medo de falhar publicamente te faz evitar riscos importantes",
+        "O medo de perder popularidade te impede de tomar decisões impopulares",
+        "O medo de ser esquecido te faz buscar atenção excessiva",
+        "O medo de perder status te faz competir quando deveria colaborar",
+        "O medo de rejeição te faz prometer mais do que pode entregar"
+      ]
+    }
+  },
+  IC: {
+    nome: "Influente-Conforme",
+    descricaoCurta: "Comunicador analítico, criativo e detalhista",
+    descricaoCompleta: "Combinação rara de sociabilidade com precisão. Usa habilidades de comunicação para explicar conceitos complexos. Excelente em apresentações técnicas, treinamento e consultoria. Equilibra criatividade com rigor metodológico.",
+    potencialidades: [
+      "Comunicação de conceitos complexos",
+      "Criatividade com fundamentação",
+      "Apresentações técnicas envolventes",
+      "Capacidade de traduzir dados em histórias",
+      "Networking com profundidade técnica"
+    ],
+    relacoesInterpessoais: "Sociável mas seletivo. Prefere relacionamentos com pessoas inteligentes. Gosta de discussões profundas e debates construtivos.",
+    tomadaDecisao: "Decisões que combinam intuição com análise. Busca consenso mas fundamentado em dados.",
+    motivadores: {
+      principal: "Reconhecimento Intelectual - Busca ser admirado por conhecimento e comunicação",
+      secundario: "Excelência - Motivado por fazer coisas certas e bem comunicadas"
+    },
+    medos: [
+      "Parecer superficial ou ignorante",
+      "Cometer erros públicos",
+      "Perder credibilidade técnica",
+      "Ser visto como apenas 'falador'"
+    ],
+    melhorAdequacao: "Consultoria, treinamento técnico, marketing de conteúdo, apresentações corporativas, ensino superior.",
+    pontosDesenvolver: [
+      "Acelerar tomada de decisão",
+      "Aceitar imperfeição em prol de velocidade",
+      "Equilibrar análise com ação",
+      "Simplificar comunicação quando necessário"
+    ],
+    comunicacao: {
+      comoComunicar: "Seja inteligente e amigável. Forneça dados com contexto. Permita discussão.",
+      comoReceber: "Use argumentos lógicos com empatia. Reconheça expertise. Dê tempo para análise."
+    },
+    planoAcao: [
+      "Estabelecer prazos para análises",
+      "Praticar comunicação simplificada",
+      "Aceitar decisões com 80% de certeza",
+      "Desenvolver tolerância a ambiguidade"
+    ],
+    cargosIdeais: ["Consultor", "Trainer Técnico", "Professor Universitário", "Content Strategist", "Analista Sênior", "Especialista de Produto"],
+    alertasCriticos: {
+      malInterpretado: [
+        "Sua análise pode parecer indecisão ou procrastinação",
+        "Sua sociabilidade seletiva pode parecer esnobismo",
+        "Suas explicações detalhadas podem parecer condescendência",
+        "Seu perfeccionismo pode parecer lentidão",
+        "Sua necessidade de estar certo pode parecer arrogância"
+      ],
+      perdaColaboradores: [
+        "Colaboradores podem se frustrar com análises intermináveis",
+        "Pessoas práticas podem sair por falta de ação",
+        "O ambiente pode parecer acadêmico demais",
+        "Funcionários podem se sentir julgados intelectualmente",
+        "A demora em decisões pode fazer equipe perder oportunidades"
+      ],
+      medosTravas: [
+        "O medo de parecer ignorante te faz analisar demais",
+        "O medo de erro te impede de arriscar e inovar",
+        "O medo de perder credibilidade te faz evitar áreas novas",
+        "O medo de simplificar te faz comunicar de forma complexa",
+        "O medo de crítica te impede de expor ideias não finalizadas"
+      ]
+    }
+  },
+  SD: {
+    nome: "Estável-Dominante",
+    descricaoCurta: "Líder paciente, persistente e orientado a pessoas",
+    descricaoCompleta: "Combinação de paciência com determinação. Lidera de forma firme mas acolhedora. Excelente em construir equipes sólidas e alcançar resultados sustentáveis. Prefere mudanças graduais mas não tem medo de tomar decisões difíceis.",
+    potencialidades: [
+      "Liderança firme e acolhedora",
+      "Persistência para metas de longo prazo",
+      "Construção de equipes leais",
+      "Equilíbrio entre resultados e pessoas",
+      "Estabilidade com capacidade de ação"
+    ],
+    relacoesInterpessoais: "Leal e protetor com sua equipe. Combina firmeza com empatia. Defende seu time mas cobra resultados.",
+    tomadaDecisao: "Decisões ponderadas mas definitivas. Considera impacto nas pessoas sem perder foco em resultados.",
+    motivadores: {
+      principal: "Conquistas Sustentáveis - Busca resultados duradouros com equipe engajada",
+      secundario: "Lealdade - Motivado por construir relacionamentos de confiança"
+    },
+    medos: [
+      "Mudanças bruscas que afetem a equipe",
+      "Perder controle de forma desorganizada",
+      "Trair a confiança de pessoas próximas",
+      "Falhar em proteger sua equipe"
+    ],
+    melhorAdequacao: "Gestão de operações, liderança de equipes, gerência de projetos, recursos humanos estratégico.",
+    pontosDesenvolver: [
+      "Aceitar mudanças mais rápidas quando necessário",
+      "Delegar mais para desenvolver outros",
+      "Ser mais direto em feedbacks negativos",
+      "Equilibrar proteção com desenvolvimento"
+    ],
+    comunicacao: {
+      comoComunicar: "Seja direto mas respeitoso. Mostre plano e consistência. Valorize lealdade.",
+      comoReceber: "Forneça contexto e tempo. Demonstre compromisso. Respeite relacionamentos."
+    },
+    planoAcao: [
+      "Praticar feedbacks mais diretos",
+      "Aceitar uma mudança significativa por mês",
+      "Delegar responsabilidades importantes",
+      "Desenvolver conforto com incerteza"
+    ],
+    cargosIdeais: ["Gerente de Operações", "Líder de Equipe", "Diretor de RH", "Gestor de Projetos", "Coordenador", "Supervisor"],
+    alertasCriticos: {
+      malInterpretado: [
+        "Sua proteção à equipe pode parecer favoritismo",
+        "Sua cautela pode parecer resistência a mudanças",
+        "Sua firmeza pode parecer inflexibilidade",
+        "Sua lealdade pode parecer falta de visão estratégica",
+        "Seu ritmo pode parecer lentidão em crises"
+      ],
+      perdaColaboradores: [
+        "Colaboradores ambiciosos podem sair por falta de velocidade",
+        "A proteção excessiva pode impedir crescimento individual",
+        "Pessoas inovadoras podem se frustrar com conservadorismo",
+        "Funcionários podem sair se sentirem estagnação",
+        "A resistência a mudanças pode fazer equipe perder relevância"
+      ],
+      medosTravas: [
+        "O medo de mudança te faz perder oportunidades de crescimento",
+        "O medo de desagradar te impede de dar feedbacks duros necessários",
+        "O medo de instabilidade te mantém em situações confortáveis mas limitantes",
+        "O medo de perder controle te faz centralizar demais",
+        "O medo de conflito te faz evitar conversas difíceis com a equipe"
+      ]
+    }
+  },
+  SI: {
+    nome: "Estável-Influente",
+    descricaoCurta: "Facilitador acolhedor, otimista e colaborativo",
+    descricaoCompleta: "Combinação de empatia com entusiasmo. Cria ambientes harmoniosos e positivos. Excelente em unir pessoas, mediar conflitos e manter moral da equipe alta. Prefere colaboração a competição.",
+    potencialidades: [
+      "Criação de ambientes positivos",
+      "Mediação e resolução de conflitos",
+      "Construção de relacionamentos duradouros",
+      "Comunicação empática e acolhedora",
+      "Manutenção de moral e engajamento"
+    ],
+    relacoesInterpessoais: "Extremamente acolhedor e otimista. Todos se sentem bem perto. Evita conflitos mas mantém relacionamentos superficialmente positivos.",
+    tomadaDecisao: "Decisões baseadas em consenso e bem-estar coletivo. Pode demorar para não desagradar ninguém.",
+    motivadores: {
+      principal: "Harmonia e Conexão - Busca ambiente positivo com relacionamentos fortes",
+      secundario: "Reconhecimento Social - Motivado por ser querido e valorizado"
+    },
+    medos: [
+      "Conflitos e desentendimentos",
+      "Rejeição ou desaprovação",
+      "Ambientes negativos ou tóxicos",
+      "Ser visto como o 'vilão'"
+    ],
+    melhorAdequacao: "Recursos humanos, atendimento ao cliente, coaching, facilitação, eventos, relações públicas internas.",
+    pontosDesenvolver: [
+      "Desenvolver assertividade e dizer não",
+      "Aceitar que conflito pode ser construtivo",
+      "Tomar decisões mesmo sem consenso",
+      "Equilibrar gentileza com firmeza"
+    ],
+    comunicacao: {
+      comoComunicar: "Seja amigável e positivo. Reconheça contribuições. Evite confronto direto.",
+      comoReceber: "Use tom gentil e encorajador. Forneça suporte emocional. Valorize relacionamento."
+    },
+    planoAcao: [
+      "Praticar dizer não com gentileza",
+      "Dar um feedback construtivo por semana",
+      "Tomar decisões sem consenso total",
+      "Aceitar que nem todos vão gostar de você"
+    ],
+    cargosIdeais: ["Coordenador de RH", "Atendimento ao Cliente", "Coach", "Facilitador", "Event Planner", "Customer Success"],
+    alertasCriticos: {
+      malInterpretado: [
+        "Sua gentileza pode ser vista como fraqueza",
+        "Seu otimismo pode parecer ingenuidade",
+        "Sua busca por harmonia pode parecer falta de opinião",
+        "Sua dificuldade em dizer não pode parecer inconsistência",
+        "Sua evitação de conflito pode parecer covardia"
+      ],
+      perdaColaboradores: [
+        "Colaboradores diretos podem se frustrar com falta de decisão",
+        "Problemas não resolvidos podem crescer e explodir",
+        "Pessoas assertivas podem sair por falta de clareza",
+        "A evitação de feedback pode prejudicar desenvolvimento",
+        "Funcionários podem perder respeito pela liderança"
+      ],
+      medosTravas: [
+        "O medo de conflito te faz evitar conversas necessárias",
+        "O medo de rejeição te faz ceder demais",
+        "O medo de ser desagradável te impede de liderar com firmeza",
+        "O medo de ambiente negativo te faz ignorar problemas reais",
+        "O medo de desagradar te impede de tomar decisões difíceis"
+      ]
+    }
+  },
+  CD: {
+    nome: "Conforme-Dominante",
+    descricaoCurta: "Estrategista analítico, exigente e orientado a excelência",
+    descricaoCompleta: "Combinação de precisão com assertividade. Busca resultados através de planejamento meticuloso. Exige alto padrão de si e dos outros. Excelente em resolver problemas complexos com soluções práticas.",
+    potencialidades: [
+      "Análise estratégica rigorosa",
+      "Resolução de problemas complexos",
+      "Planejamento detalhado com execução",
+      "Alto padrão de qualidade",
+      "Liderança baseada em competência"
+    ],
+    relacoesInterpessoais: "Profissional e exigente. Respeita competência acima de tudo. Pode parecer distante ou crítico. Relacionamentos baseados em desempenho.",
+    tomadaDecisao: "Decisões baseadas em dados extensivos mas com capacidade de agir. Não hesita em implementar após análise.",
+    motivadores: {
+      principal: "Excelência e Resultados - Busca qualidade superior com impacto mensurável",
+      secundario: "Competência - Motivado por demonstrar expertise e entregar"
+    },
+    medos: [
+      "Erros que comprometam resultados",
+      "Incompetência própria ou alheia",
+      "Perder controle de qualidade",
+      "Ser visto como falho"
+    ],
+    melhorAdequacao: "Gestão de projetos críticos, consultoria estratégica, engenharia, finanças, auditoria, direção de qualidade.",
+    pontosDesenvolver: [
+      "Desenvolver paciência com pessoas menos técnicas",
+      "Equilibrar exigência com reconhecimento",
+      "Aceitar que bom é suficiente às vezes",
+      "Melhorar habilidades interpessoais"
+    ],
+    comunicacao: {
+      comoComunicar: "Seja preciso, preparado e focado. Use dados. Demonstre competência.",
+      comoReceber: "Apresente informações estruturadas. Mostre expertise. Seja objetivo."
+    },
+    planoAcao: [
+      "Reconhecer esforço além de resultado",
+      "Aceitar 90% de qualidade em não-críticos",
+      "Desenvolver empatia com menos técnicos",
+      "Praticar feedback positivo"
+    ],
+    cargosIdeais: ["Diretor de Qualidade", "Consultor Estratégico", "Controller", "Gerente de Projetos", "CTO", "Auditor Sênior"],
+    alertasCriticos: {
+      malInterpretado: [
+        "Sua exigência pode parecer perfeccionismo tóxico",
+        "Sua frieza analítica pode parecer falta de humanidade",
+        "Suas críticas podem ser vistas como ataques pessoais",
+        "Sua independência pode parecer arrogância",
+        "Seu foco em qualidade pode parecer lentidão"
+      ],
+      perdaColaboradores: [
+        "Colaboradores podem se sentir nunca bons o suficiente",
+        "O ambiente de alta pressão pode gerar burnout",
+        "Pessoas criativas podem sair por falta de espaço para errar",
+        "A falta de reconhecimento emocional pode afastar talentos",
+        "Funcionários podem sair por não receberem elogios"
+      ],
+      medosTravas: [
+        "O medo de erro te faz revisar obsessivamente",
+        "O medo de incompetência te impede de pedir ajuda",
+        "O medo de falhar te faz evitar projetos arriscados",
+        "O medo de perder controle te faz microgerenciar",
+        "O medo de crítica te faz ser excessivamente duro consigo"
+      ]
+    }
+  },
+  CI: {
+    nome: "Conforme-Influente",
+    descricaoCurta: "Especialista comunicativo, preciso e diplomático",
+    descricaoCompleta: "Combinação de precisão com habilidade social. Usa expertise técnica para influenciar e persuadir. Excelente em apresentar dados de forma envolvente. Constrói credibilidade através de conhecimento demonstrado.",
+    potencialidades: [
+      "Apresentação de dados complexos",
+      "Influência baseada em expertise",
+      "Diplomacia com fundamentação",
+      "Comunicação técnica acessível",
+      "Construção de credibilidade"
+    ],
+    relacoesInterpessoais: "Sociável dentro de contextos profissionais. Usa conhecimento para conectar. Prefere ser admirado por competência.",
+    tomadaDecisao: "Decisões bem fundamentadas com consideração ao impacto social. Busca convencer através de argumentos sólidos.",
+    motivadores: {
+      principal: "Credibilidade e Reconhecimento - Busca ser respeitado por expertise compartilhada",
+      secundario: "Precisão - Motivado por estar certo e ser reconhecido por isso"
+    },
+    medos: [
+      "Parecer incompetente publicamente",
+      "Cometer erros que afetem reputação",
+      "Perder credibilidade técnica",
+      "Ser desacreditado"
+    ],
+    melhorAdequacao: "Consultoria, vendas técnicas, treinamento, suporte especializado, análise de negócios, product management.",
+    pontosDesenvolver: [
+      "Aceitar que não precisa saber tudo",
+      "Agir com informação incompleta",
+      "Equilibrar análise com velocidade",
+      "Desenvolver confiança em intuição"
+    ],
+    comunicacao: {
+      comoComunicar: "Seja informativo e amigável. Forneça contexto técnico. Reconheça conhecimento.",
+      comoReceber: "Use dados com empatia. Demonstre respeito por expertise. Permita tempo para análise."
+    },
+    planoAcao: [
+      "Tomar decisões com 80% de informação",
+      "Admitir não saber em público",
+      "Praticar comunicação mais simples",
+      "Desenvolver conforto com imperfeição"
+    ],
+    cargosIdeais: ["Consultor Técnico", "Vendas Técnicas", "Product Manager", "Trainer", "Analista de Negócios", "Solutions Architect"],
+    alertasCriticos: {
+      malInterpretado: [
+        "Sua precisão pode parecer pedantismo",
+        "Sua necessidade de estar certo pode parecer arrogância",
+        "Sua análise pode parecer indecisão",
+        "Sua comunicação técnica pode parecer inacessível",
+        "Sua busca por credibilidade pode parecer insegurança"
+      ],
+      perdaColaboradores: [
+        "Colaboradores podem se cansar de explicações longas",
+        "Pessoas práticas podem sair por excesso de análise",
+        "O ambiente pode parecer academicamente intimidador",
+        "Funcionários podem se sentir menos inteligentes",
+        "A demora em decisões pode frustrar a equipe"
+      ],
+      medosTravas: [
+        "O medo de parecer incompetente te faz estudar demais antes de agir",
+        "O medo de erro te impede de tomar riscos calculados",
+        "O medo de perder credibilidade te faz evitar áreas desconhecidas",
+        "O medo de simplificar te faz comunicar de forma complexa",
+        "O medo de crítica te impede de expor trabalho em progresso"
+      ]
+    }
   }
 };
 
 export function getProfileDescription(d: number, i: number, s: number, c: number): ProfileData {
   const scores = { D: d, I: i, S: s, C: c };
   const sorted = Object.entries(scores).sort(([, a], [, b]) => b - a);
-  
+
   const primary = sorted[0][0];
   const secondary = sorted[1][0];
-  
-  // Se a diferença entre o primeiro e segundo for pequena, considera perfil composto
-  const diff = sorted[0][1] - sorted[1][1];
-  
-  if (diff <= 5 && sorted[1][1] > 0) {
-    const compositeKey = `${primary}${secondary}`;
-    if (discProfiles[compositeKey]) {
-      return discProfiles[compositeKey];
+  const primaryScore = sorted[0][1];
+  const secondaryScore = sorted[1][1];
+
+  // Calculate difference between primary and secondary
+  const diff = primaryScore - secondaryScore;
+
+  // Determine if composite profile should be used
+  // Threshold: if difference is <= 6 points and secondary is positive, use composite
+  if (diff <= 6 && secondaryScore > 0) {
+    // Try primary+secondary combination first
+    const compositeKey1 = `${primary}${secondary}`;
+    if (discProfiles[compositeKey1]) {
+      return discProfiles[compositeKey1];
+    }
+
+    // Try secondary+primary combination (e.g., if DI doesn't exist, try ID)
+    const compositeKey2 = `${secondary}${primary}`;
+    if (discProfiles[compositeKey2]) {
+      return discProfiles[compositeKey2];
     }
   }
-  
+
+  // Fallback to pure profile
   return discProfiles[primary] || discProfiles.D;
 }

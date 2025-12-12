@@ -94,9 +94,10 @@ function drawGradientBackground(pdf: jsPDF, width: number, height: number) {
   }
 }
 
-// Helper to normalize DISC scores from -25/+25 to percentage
+// Helper to normalize DISC scores from -50/+50 to percentage
+// Scale: -50 to +50 (25 questions × 2 points each direction)
 function normalizeScore(score: number): number {
-  return Math.round(((score + 25) / 50) * 100);
+  return Math.round(((score + 50) / 100) * 100);
 }
 
 // Helper to draw bar chart
@@ -798,12 +799,40 @@ export async function generatePDF(
     pdf.setFontSize(9);
     pdf.setFont('helvetica', 'bold');
     pdf.text(`${index + 1}`, margin + 8, yPos + 3, { align: 'center' });
-    
+
     pdf.setTextColor(...VEON_COLORS.cinzaTexto);
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
     pdf.text(dica, margin + 18, yPos + 3);
     yPos += 10;
+  });
+
+  yPos += 15;
+
+  // Disclaimer section
+  pdf.setFillColor(250, 250, 250);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 45, 3, 3, 'F');
+  pdf.setDrawColor(200, 200, 200);
+  pdf.setLineWidth(0.3);
+  pdf.roundedRect(margin, yPos - 5, contentWidth, 45, 3, 3, 'S');
+
+  pdf.setTextColor(100, 100, 100);
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('AVISO IMPORTANTE', margin + 5, yPos + 3);
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(7);
+  const disclaimerText = [
+    'Este relatório é uma ferramenta de autoconhecimento baseada na metodologia DISC e valores de Spranger.',
+    'Os resultados refletem suas respostas no momento da avaliação e podem variar conforme o contexto.',
+    'O perfil adaptado é uma estimativa baseada em teoria comportamental, não em respostas diretas.',
+    'Este documento não substitui avaliações psicológicas profissionais para fins clínicos ou de seleção.',
+    'Recomendamos usar este relatório como ponto de partida para reflexão e desenvolvimento pessoal.',
+  ];
+
+  disclaimerText.forEach((line, index) => {
+    pdf.text(`• ${line}`, margin + 5, yPos + 10 + (index * 6));
   });
 
   // ========================================

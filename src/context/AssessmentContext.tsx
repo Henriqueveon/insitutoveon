@@ -42,6 +42,13 @@ export interface SprangerProfile {
   TRA: number; // Tradicional
 }
 
+// Consistency validation result
+export interface ConsistencyResult {
+  score: number; // 0-100 (100 = perfectly consistent)
+  level: 'high' | 'medium' | 'low';
+  warnings: string[];
+}
+
 interface AssessmentContextType {
   candidate: CandidateData | null;
   setCandidate: (data: CandidateData) => void;
@@ -64,6 +71,9 @@ interface AssessmentContextType {
   setSprangerStartTime: (time: number) => void;
   // Combined analysis
   getSprangerDISCCorrelation: () => { value: SprangerValue; discMatch: string; strength: number }[] | null;
+  // Consistency validation
+  consistencyResult: ConsistencyResult | null;
+  calculateConsistency: () => ConsistencyResult;
 }
 
 const AssessmentContext = createContext<AssessmentContextType | undefined>(undefined);
@@ -74,6 +84,7 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
   const [naturalProfile, setNaturalProfile] = useState<Profile | null>(null);
   const [adaptedProfile, setAdaptedProfile] = useState<Profile | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [consistencyResult, setConsistencyResult] = useState<ConsistencyResult | null>(null);
 
   // Spranger state
   const [sprangerAnswers, setSprangerAnswers] = useState<SprangerAnswer[]>([]);
@@ -103,14 +114,17 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
   };
 
   const calculateProfiles = () => {
-    // Calculate Natural Profile
+    // Calculate Natural Profile with improved scoring system
+    // Using +2/-2 instead of +1/-1 for better differentiation
     const natural: Profile = { D: 0, I: 0, S: 0, C: 0 };
 
     answers.forEach((answer) => {
-      natural[answer.mais] += 1;
-      natural[answer.menos] -= 1;
+      natural[answer.mais] += 2;  // "Mais combina" gets +2 points
+      natural[answer.menos] -= 2; // "Menos combina" gets -2 points
+      // Note: The other 2 factors get 0 points (neutral)
     });
 
+    // Scale is now -50 to +50 (25 questions × 2 points each direction)
     setNaturalProfile(natural);
 
     // Calculate Adapted Profile using deterministic algorithm based on DISC theory
@@ -129,12 +143,13 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
     // More extreme profiles tend to adapt more in professional settings
     const dominantScore = natural[dominant];
     const lowestScore = natural[lowest];
-    const profileSpread = dominantScore - lowestScore; // Range: 0-50
+    const profileSpread = dominantScore - lowestScore; // Range: 0-100 (with +2/-2 scoring)
 
     // Adaptation intensity: profiles with larger spread adapt more (regression to mean)
     // Formula: base adjustment + spread-based adjustment
-    const baseAdjustment = 2;
-    const spreadFactor = Math.round(profileSpread * 0.08); // 0-4 additional points
+    // Adjusted for new scale (-50 to +50)
+    const baseAdjustment = 4; // Doubled from 2 due to new scale
+    const spreadFactor = Math.round(profileSpread * 0.04); // 0-4 additional points
     const totalAdjustment = baseAdjustment + spreadFactor;
 
     // Apply DISC-theory based adaptations:
@@ -156,19 +171,20 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
 
     // Secondary adaptation: slight regression toward center for all factors
     // This represents the "professional mask" effect
+    // Thresholds adjusted for new scale (-50 to +50)
     factors.forEach(factor => {
       if (factor !== dominant && factor !== oppositeFactor) {
-        if (natural[factor] > 5) {
-          adapted[factor] -= 1; // Reduce high secondary traits
-        } else if (natural[factor] < -5) {
-          adapted[factor] += 1; // Increase low secondary traits
+        if (natural[factor] > 10) {
+          adapted[factor] -= 2; // Reduce high secondary traits
+        } else if (natural[factor] < -10) {
+          adapted[factor] += 2; // Increase low secondary traits
         }
       }
     });
 
-    // Ensure adapted profile stays within valid range (-25 to +25)
+    // Ensure adapted profile stays within valid range (-50 to +50)
     factors.forEach(factor => {
-      adapted[factor] = Math.max(-25, Math.min(25, adapted[factor]));
+      adapted[factor] = Math.max(-50, Math.min(50, adapted[factor]));
     });
 
     setAdaptedProfile(adapted);
@@ -215,10 +231,10 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
     const values: SprangerValue[] = ['TEO', 'ECO', 'EST', 'SOC', 'IND', 'TRA'];
     const discFactors: Array<'D' | 'I' | 'S' | 'C'> = ['D', 'I', 'S', 'C'];
 
-    // Normalize DISC profile to 0-100 scale
+    // Normalize DISC profile to 0-100 scale (from -50/+50 scale)
     const normalizedDISC: Record<string, number> = {};
     discFactors.forEach((factor) => {
-      normalizedDISC[factor] = Math.round(((naturalProfile[factor] + 25) / 50) * 100);
+      normalizedDISC[factor] = Math.round(((naturalProfile[factor] + 50) / 100) * 100);
     });
 
     // For each Spranger value, find the strongest DISC correlation
@@ -251,12 +267,126 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  // Calculate consistency/reliability of responses
+  const calculateConsistency = (): ConsistencyResult => {
+    const warnings: string[] = [];
+    let deductions = 0;
+
+    if (answers.length === 0) {
+      return { score: 0, level: 'low', warnings: ['Nenhuma resposta registrada'] };
+    }
+
+    // 1. Check response time consistency (if available)
+    if (startTime) {
+      const totalTime = Date.now() - startTime;
+      const avgTimePerQuestion = totalTime / answers.length;
+
+      // Too fast (< 3 seconds average) suggests random clicking
+      if (avgTimePerQuestion < 3000) {
+        deductions += 20;
+        warnings.push('Respostas muito rápidas - possível falta de reflexão');
+      }
+      // Very fast (< 5 seconds average)
+      else if (avgTimePerQuestion < 5000) {
+        deductions += 10;
+        warnings.push('Tempo de resposta abaixo do ideal');
+      }
+    }
+
+    // 2. Check for contradictory patterns
+    // Group answers by factor to check for consistency
+    const factorChoices: Record<string, { mais: number; menos: number }> = {
+      D: { mais: 0, menos: 0 },
+      I: { mais: 0, menos: 0 },
+      S: { mais: 0, menos: 0 },
+      C: { mais: 0, menos: 0 },
+    };
+
+    answers.forEach((answer) => {
+      factorChoices[answer.mais].mais++;
+      factorChoices[answer.menos].menos++;
+    });
+
+    // Check for factors that are both frequently "mais" AND "menos" (contradiction)
+    const factors: Array<'D' | 'I' | 'S' | 'C'> = ['D', 'I', 'S', 'C'];
+    factors.forEach((factor) => {
+      const choice = factorChoices[factor];
+      // If a factor is selected as "mais" and "menos" with similar frequency, it's inconsistent
+      const total = choice.mais + choice.menos;
+      if (total >= 6) {
+        const ratio = Math.min(choice.mais, choice.menos) / Math.max(choice.mais, choice.menos);
+        if (ratio > 0.6) {
+          deductions += 15;
+          warnings.push(`Padrão contraditório no fator ${factor}`);
+        }
+      }
+    });
+
+    // 3. Check for flat profile (all factors similar - may indicate random answers)
+    if (naturalProfile) {
+      const values = [naturalProfile.D, naturalProfile.I, naturalProfile.S, naturalProfile.C];
+      const max = Math.max(...values);
+      const min = Math.min(...values);
+      const spread = max - min;
+
+      // Very flat profile (spread < 10 on -50/+50 scale) suggests random answers
+      if (spread < 10) {
+        deductions += 15;
+        warnings.push('Perfil muito homogêneo - pode indicar respostas aleatórias');
+      }
+    }
+
+    // 4. Check for extreme profile (may be valid but worth noting)
+    if (naturalProfile) {
+      const values = [naturalProfile.D, naturalProfile.I, naturalProfile.S, naturalProfile.C];
+      const max = Math.max(...values);
+      const min = Math.min(...values);
+
+      if (max > 40 || min < -40) {
+        // Not a deduction, just a note
+        warnings.push('Perfil com tendências muito fortes - verifique se reflete sua realidade');
+      }
+    }
+
+    // 5. Check answer distribution (should use all 4 factors somewhat evenly for "mais")
+    const maisDistribution = factors.map(f => factorChoices[f].mais);
+    const maxMais = Math.max(...maisDistribution);
+    const minMais = Math.min(...maisDistribution);
+
+    if (maxMais > 0 && minMais === 0) {
+      // One factor was never selected as "mais" - might indicate bias
+      const neverSelected = factors.filter(f => factorChoices[f].mais === 0);
+      if (neverSelected.length >= 2) {
+        deductions += 10;
+        warnings.push('Alguns fatores nunca foram selecionados como "mais combina"');
+      }
+    }
+
+    // Calculate final score
+    const score = Math.max(0, Math.min(100, 100 - deductions));
+
+    // Determine level
+    let level: 'high' | 'medium' | 'low';
+    if (score >= 80) {
+      level = 'high';
+    } else if (score >= 60) {
+      level = 'medium';
+    } else {
+      level = 'low';
+    }
+
+    const result: ConsistencyResult = { score, level, warnings };
+    setConsistencyResult(result);
+    return result;
+  };
+
   const resetAssessment = () => {
     setCandidate(null);
     setAnswers([]);
     setNaturalProfile(null);
     setAdaptedProfile(null);
     setStartTime(null);
+    setConsistencyResult(null);
     setSprangerAnswers([]);
     setSprangerProfile(null);
     setSprangerStartTime(null);
@@ -285,6 +415,9 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
         sprangerStartTime,
         setSprangerStartTime,
         getSprangerDISCCorrelation,
+        // Consistency
+        consistencyResult,
+        calculateConsistency,
       }}
     >
       {children}
