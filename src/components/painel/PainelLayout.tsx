@@ -21,7 +21,6 @@ import {
   Menu,
   X,
   ChevronDown,
-  Building2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -34,7 +33,7 @@ const navigation = [
 
 export default function PainelLayout() {
   const navigate = useNavigate();
-  const { gestor, empresa, signOut } = useAuth();
+  const { profile, user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -50,6 +49,8 @@ export default function PainelLayout() {
       .join('')
       .toUpperCase();
   };
+
+  const displayName = profile?.nome_completo || user?.email || 'Usuário';
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -79,21 +80,6 @@ export default function PainelLayout() {
           </button>
         </div>
 
-        {/* Company info */}
-        {empresa && (
-          <div className="p-4 border-b border-slate-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00D9FF] to-[#0099CC] flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">{empresa.nome}</p>
-                <p className="text-xs text-slate-400">Empresa ativa</p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Navigation */}
         <nav className="p-4 space-y-1">
           {navigation.map((item) => (
@@ -121,12 +107,12 @@ export default function PainelLayout() {
           <div className="flex items-center gap-3 p-2">
             <Avatar className="h-9 w-9">
               <AvatarFallback className="bg-slate-700 text-white text-xs">
-                {gestor ? getInitials(gestor.nome) : 'U'}
+                {getInitials(displayName)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{gestor?.nome || 'Usuário'}</p>
-              <p className="text-xs text-slate-400 truncate">{gestor?.email}</p>
+              <p className="text-sm font-medium text-white truncate">{displayName}</p>
+              <p className="text-xs text-slate-400 truncate">{user?.email}</p>
             </div>
           </div>
         </div>
@@ -160,18 +146,18 @@ export default function PainelLayout() {
                   >
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="bg-slate-700 text-white text-xs">
-                        {gestor ? getInitials(gestor.nome) : 'U'}
+                        {getInitials(displayName)}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden sm:inline-block text-sm">{gestor?.nome?.split(' ')[0]}</span>
+                    <span className="hidden sm:inline-block text-sm">{displayName.split(' ')[0]}</span>
                     <ChevronDown className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-slate-800 border-slate-700">
                   <DropdownMenuLabel className="text-white">
                     <div className="flex flex-col">
-                      <span>{gestor?.nome}</span>
-                      <span className="text-xs font-normal text-slate-400">{gestor?.email}</span>
+                      <span>{displayName}</span>
+                      <span className="text-xs font-normal text-slate-400">{user?.email}</span>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-slate-700" />

@@ -2,31 +2,18 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-interface Gestor {
+interface Profile {
   id: string;
-  user_id: string;
-  empresa_id: string;
-  nome: string;
-  email: string;
+  nome_completo: string;
   cargo: string | null;
-  is_admin: boolean;
-  ativo: boolean;
-}
-
-interface Empresa {
-  id: string;
-  nome: string;
-  cnpj: string | null;
-  logo_url: string | null;
-  cor_primaria: string;
-  cor_secundaria: string;
+  avatar_url: string | null;
 }
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
-  gestor: Gestor | null;
-  empresa: Empresa | null;
+  profile: Profile | null;
+  isAdmin: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -38,41 +25,34 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [gestor, setGestor] = useState<Gestor | null>(null);
-  const [empresa, setEmpresa] = useState<Empresa | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchGestorData = async (userId: string) => {
+  const fetchUserData = async (userId: string) => {
     try {
-      // Buscar dados do gestor
-      const { data: gestorData, error: gestorError } = await supabase
-        .from('gestores')
+      // Buscar perfil
+      const { data: profileData } = await supabase
+        .from('profiles')
         .select('*')
-        .eq('user_id', userId)
-        .eq('ativo', true)
+        .eq('id', userId)
         .single();
 
-      if (gestorError || !gestorData) {
-        console.error('Gestor não encontrado:', gestorError);
-        return;
+      if (profileData) {
+        setProfile(profileData as Profile);
       }
 
-      setGestor(gestorData as Gestor);
+      // Verificar se é admin
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .single();
 
-      // Buscar dados da empresa
-      if (gestorData.empresa_id) {
-        const { data: empresaData, error: empresaError } = await supabase
-          .from('empresas')
-          .select('*')
-          .eq('id', gestorData.empresa_id)
-          .single();
-
-        if (!empresaError && empresaData) {
-          setEmpresa(empresaData as Empresa);
-        }
-      }
+      setIsAdmin(!!roleData);
     } catch (error) {
-      console.error('Erro ao buscar dados do gestor:', error);
+      console.error('Erro ao buscar dados do usuário:', error);
     }
   };
 
@@ -82,22 +62,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchGestorData(session.user.id);
+        fetchUserData(session.user.id);
       }
       setIsLoading(false);
     });
 
     // Listener para mudanças de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
 
         if (event === 'SIGNED_IN' && session?.user) {
-          await fetchGestorData(session.user.id);
+          // Usar setTimeout para evitar deadlock
+          setTimeout(() => {
+            fetchUserData(session.user.id);
+          }, 0);
         } else if (event === 'SIGNED_OUT') {
-          setGestor(null);
-          setEmpresa(null);
+          setProfile(null);
+          setIsAdmin(false);
         }
 
         setIsLoading(false);
@@ -128,8 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setSession(null);
     setUser(null);
-    setGestor(null);
-    setEmpresa(null);
+    setProfile(null);
+    setIsAdmin(false);
   };
 
   return (
@@ -137,12 +120,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         session,
         user,
-        gestor,
-        empresa,
+        profile,
+        isAdmin,
         isLoading,
         signIn,
         signOut,
-        isAuthenticated: !!session && !!gestor,
+        isAuthenticated: !!session,
       }}
     >
       {children}
