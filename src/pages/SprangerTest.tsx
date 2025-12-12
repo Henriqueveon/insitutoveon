@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAssessment } from '@/context/AssessmentContext';
 import { sprangerQuestions } from '@/data/sprangerQuestions';
 import { discQuestions, discSituationalQuestions } from '@/data/discQuestions';
+import { getProfileType } from '@/data/discProfiles';
 import { SprangerInstructions } from '@/components/spranger/SprangerInstructions';
 import { SprangerQuestion } from '@/components/spranger/SprangerQuestion';
 import { Logo } from '@/components/Logo';
@@ -42,6 +43,7 @@ export default function SprangerTest() {
     answers,
     situationalAnswers,
     naturalProfile,
+    adaptedProfile,
     sprangerAnswers,
     addSprangerAnswer,
     calculateSprangerProfile,
@@ -160,7 +162,12 @@ export default function SprangerTest() {
       // Calculate Spranger profile
       calculateSprangerProfile();
 
-      // Save to Supabase
+      // Calculate perfil_tipo from DISC profile
+      const perfilTipo = naturalProfile
+        ? getProfileType(naturalProfile.D, naturalProfile.I, naturalProfile.S, naturalProfile.C)
+        : null;
+
+      // Save to Supabase with DISC profile data
       const { data, error } = await supabase
         .from('candidatos_disc')
         .insert({
@@ -169,11 +176,28 @@ export default function SprangerTest() {
           telefone_whatsapp: formData.telefone_whatsapp,
           cargo_atual: formData.cargo_atual,
           empresa_instagram: formData.empresa_instagram,
+          // Include DISC profile data immediately
+          perfil_natural: naturalProfile ? {
+            D: naturalProfile.D,
+            I: naturalProfile.I,
+            S: naturalProfile.S,
+            C: naturalProfile.C
+          } : null,
+          perfil_adaptado: adaptedProfile ? {
+            D: adaptedProfile.D,
+            I: adaptedProfile.I,
+            S: adaptedProfile.S,
+            C: adaptedProfile.C
+          } : null,
+          perfil_tipo: perfilTipo,
+          status: 'completo',
         })
         .select('id')
         .single();
 
       if (error) throw error;
+
+      console.log('✅ Candidato e perfil DISC salvos no banco de dados');
 
       // Save to Notion via edge function
       try {

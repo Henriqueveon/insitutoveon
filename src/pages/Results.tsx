@@ -60,19 +60,39 @@ export default function Results() {
     }
   }, [candidate, naturalProfile, adaptedProfile, sprangerProfile, navigate]);
 
-  // Sync DISC profile to Supabase database
+  // Profile sync is now done in SprangerTest.tsx during candidate creation
+  // This useEffect is kept as a backup fallback only
   useEffect(() => {
     const syncToDatabase = async () => {
       if (dbSynced || !naturalProfile || !adaptedProfile || !candidate?.id) return;
 
-      const perfilTipo = getProfileType(
-        naturalProfile.D,
-        naturalProfile.I,
-        naturalProfile.S,
-        naturalProfile.C
-      );
+      // Check if profile is already saved (to avoid redundant updates)
+      const candidatoId = candidate.id || localStorage.getItem('candidato_id');
+      if (!candidatoId) return;
 
       try {
+        // First check if profile already exists
+        const { data: existingData } = await supabase
+          .from('candidatos_disc')
+          .select('perfil_tipo')
+          .eq('id', candidatoId)
+          .single();
+
+        // If profile already saved, just mark as synced
+        if (existingData?.perfil_tipo) {
+          console.log('✅ Perfil DISC já estava salvo no banco');
+          setDbSynced(true);
+          return;
+        }
+
+        // If not saved, update now (fallback)
+        const perfilTipo = getProfileType(
+          naturalProfile.D,
+          naturalProfile.I,
+          naturalProfile.S,
+          naturalProfile.C
+        );
+
         const { error } = await supabase
           .from('candidatos_disc')
           .update({
@@ -81,12 +101,12 @@ export default function Results() {
             perfil_tipo: perfilTipo,
             status: 'completo',
           })
-          .eq('id', candidate.id);
+          .eq('id', candidatoId);
 
         if (error) {
           console.warn('Erro ao atualizar perfil no banco:', error);
         } else {
-          console.log('✅ Perfil DISC salvo no banco de dados');
+          console.log('✅ Perfil DISC salvo no banco de dados (fallback)');
           setDbSynced(true);
         }
       } catch (error) {
@@ -206,8 +226,11 @@ export default function Results() {
       // Restore hidden elements
       elementosOcultar.forEach(el => (el as HTMLElement).style.display = '');
 
-      // Upload to Supabase Storage and update Notion
+      // Upload to Supabase Storage and update database
       try {
+        // Get candidate ID from context or localStorage
+        const candidatoId = candidate?.id || localStorage.getItem('candidato_id');
+
         const { error: uploadError } = await supabase.storage
           .from('teste')
           .upload(`pdfs/${fileName}`, pdfBlob, {
@@ -224,12 +247,19 @@ export default function Results() {
           console.log('📤 PDF uploaded to:', pdfUrl);
 
           // Update pdf_url in database
-          if (candidate?.id && pdfUrl) {
-            await supabase
+          if (candidatoId && pdfUrl) {
+            const { error: updateError } = await supabase
               .from('candidatos_disc')
               .update({ pdf_url: pdfUrl })
-              .eq('id', candidate.id);
-            console.log('✅ PDF URL salvo no banco de dados');
+              .eq('id', candidatoId);
+
+            if (updateError) {
+              console.warn('Erro ao salvar PDF URL no banco:', updateError);
+            } else {
+              console.log('✅ PDF URL salvo no banco de dados');
+            }
+          } else {
+            console.warn('PDF URL não salvo: candidatoId ou pdfUrl ausente', { candidatoId, pdfUrl });
           }
 
           // Update Notion with PDF URL
@@ -250,9 +280,11 @@ export default function Results() {
           }
         } else {
           console.warn('Upload error:', uploadError);
+          // Try to still generate and download the PDF locally even if upload fails
         }
       } catch (uploadErr) {
         console.warn('Upload error (non-blocking):', uploadErr);
+        // The PDF will still be downloaded locally even if upload fails
       }
 
       // Trigger download
