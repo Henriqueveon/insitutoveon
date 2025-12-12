@@ -9,19 +9,21 @@ interface SprangerQuestionProps {
   question: SprangerQuestionType;
   questionNumber: number;
   totalQuestions: number;
-  onAnswer: (ranking: string[]) => void; // Array ordenado do 1º ao 4º lugar
+  onAnswer: (ranking: string[]) => void; // Array ordenado do 1º ao 6º lugar
   onBack?: () => void;
-  initialAnswer?: string[]; // Array ordenado do 1º ao 4º lugar
+  initialAnswer?: string[]; // Array ordenado do 1º ao 6º lugar
   totalGlobalQuestions?: number;
   globalQuestionNumber?: number;
 }
 
-// Cores para cada posição do ranking
+// Cores para cada posição do ranking (6 posições)
 const RANKING_COLORS = {
-  1: { bg: '#22C55E', label: '1º - Mais combina', short: '1º' },
-  2: { bg: '#84CC16', label: '2º lugar', short: '2º' },
-  3: { bg: '#EAB308', label: '3º lugar', short: '3º' },
-  4: { bg: '#EF4444', label: '4º - Menos combina', short: '4º' },
+  1: { bg: '#22C55E', label: '1º - Mais combina', short: '1º', points: '+5' },
+  2: { bg: '#4ADE80', label: '2º lugar', short: '2º', points: '+4' },
+  3: { bg: '#84CC16', label: '3º lugar', short: '3º', points: '+3' },
+  4: { bg: '#EAB308', label: '4º lugar', short: '4º', points: '+2' },
+  5: { bg: '#F97316', label: '5º lugar', short: '5º', points: '+1' },
+  6: { bg: '#EF4444', label: '6º - Menos combina', short: '6º', points: '0' },
 };
 
 export function SprangerQuestion({
@@ -46,9 +48,7 @@ export function SprangerQuestion({
     // Reset transitioning state first
     setIsTransitioning(false);
 
-    if (initialAnswer && initialAnswer.length === 4) {
-      // If we have a complete initial answer, just set the ranking
-      // The user can go back and change it
+    if (initialAnswer && initialAnswer.length === 6) {
       setRanking(initialAnswer);
     } else {
       setRanking([]);
@@ -58,7 +58,7 @@ export function SprangerQuestion({
   // Get current stage info
   const getCurrentStageInfo = () => {
     const position = ranking.length + 1;
-    if (position > 4) {
+    if (position > 6) {
       return { title: 'COMPLETO', color: '#22C55E', position: 0 };
     }
     const info = RANKING_COLORS[position as keyof typeof RANKING_COLORS];
@@ -79,14 +79,14 @@ export function SprangerQuestion({
 
   // Handle option click
   const handleOptionClick = (option: SprangerOption) => {
-    if (ranking.length >= 4 || isTransitioning) return;
+    if (ranking.length >= 6 || isTransitioning) return;
     if (ranking.includes(option.id)) return;
 
     const newRanking = [...ranking, option.id];
     setRanking(newRanking);
 
-    // Check if complete (4 selections)
-    if (newRanking.length === 4) {
+    // Check if complete (6 selections)
+    if (newRanking.length === 6) {
       setIsTransitioning(true);
       // Auto advance after short delay for visual feedback
       setTimeout(() => {
@@ -116,7 +116,7 @@ export function SprangerQuestion({
     }
 
     // Not selected - show current stage color
-    if (ranking.length >= 4) {
+    if (ranking.length >= 6) {
       return {
         borderColor: '#e5e7eb',
         backgroundColor: 'transparent',
@@ -173,7 +173,7 @@ export function SprangerQuestion({
             {stageInfo.title}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {ranking.length}/4 selecionados
+            {ranking.length}/6 selecionados
           </p>
         </div>
 
@@ -184,11 +184,11 @@ export function SprangerQuestion({
           </h3>
         </div>
 
-        {/* Options - 2x2 grid for 4 options */}
+        {/* Options - 2x3 grid for 6 options */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
           {question.opcoes.map((option) => {
             const style = getOptionStyle(option);
-            const isSelectable = !style.selected && ranking.length < 4;
+            const isSelectable = !style.selected && ranking.length < 6;
 
             return (
               <button
@@ -231,8 +231,8 @@ export function SprangerQuestion({
 
         {/* Selection summary - ranking legend */}
         <div className="bg-card rounded-xl p-4 shadow-lg mb-6">
-          <div className="grid grid-cols-4 gap-2">
-            {[1, 2, 3, 4].map((pos) => {
+          <div className="grid grid-cols-6 gap-1">
+            {[1, 2, 3, 4, 5, 6].map((pos) => {
               const color = RANKING_COLORS[pos as keyof typeof RANKING_COLORS];
               const isSelected = ranking.length >= pos;
               return (
@@ -244,7 +244,7 @@ export function SprangerQuestion({
                     {pos}º
                   </div>
                   <span className="text-xs text-muted-foreground text-center">
-                    {pos === 1 ? '+3' : pos === 2 ? '+2' : pos === 3 ? '+1' : '0'}
+                    {color.points}
                   </span>
                 </div>
               );

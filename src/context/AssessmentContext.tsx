@@ -29,7 +29,7 @@ export type SprangerValue = 'TEO' | 'ECO' | 'EST' | 'SOC' | 'IND' | 'TRA';
 
 export interface SprangerAnswer {
   questionId: number;
-  ranking: string[]; // Array ordenado: [1º lugar +3pts, 2º +2pts, 3º +1pt, 4º 0pts]
+  ranking: string[]; // Array ordenado: [1º +5pts, 2º +4pts, 3º +3pts, 4º +2pts, 5º +1pt, 6º 0pts]
   timestamp: number;
 }
 
@@ -165,8 +165,8 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
       });
     });
 
-    // Pontuação: 1º lugar = 3pts, 2º = 2pts, 3º = 1pt, 4º = 0pts
-    const points = [3, 2, 1, 0];
+    // Pontuação: 1º = 5pts, 2º = 4pts, 3º = 3pts, 4º = 2pts, 5º = 1pt, 6º = 0pts
+    const points = [5, 4, 3, 2, 1, 0];
 
     // Process each answer
     sprangerAnswers.forEach((answer) => {

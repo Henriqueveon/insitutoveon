@@ -36,78 +36,96 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground flex items-center gap-2">
                 <Info className="w-5 h-5 text-primary" />
-                Como funciona? Organize as 4 opções!
+                Como funciona? Ordene as 6 opções!
               </h3>
 
-              <div className="space-y-4">
-                {/* Etapa 1 - Verde */}
+              <div className="space-y-3">
+                {/* Etapa 1 */}
                 <div className="flex gap-3 items-start">
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
                     style={{ backgroundColor: '#22C55E' }}
                   >
                     1º
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-foreground" style={{ color: '#22C55E' }}>
-                      Clique na que MAIS combina com você (+3 pts)
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Esta é a sua prioridade máxima
+                    <p className="font-medium text-sm" style={{ color: '#22C55E' }}>
+                      O que MAIS combina com você (+5 pts)
                     </p>
                   </div>
                 </div>
 
-                {/* Etapa 2 - Verde claro */}
+                {/* Etapa 2 */}
                 <div className="flex gap-3 items-start">
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                    style={{ backgroundColor: '#84CC16' }}
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                    style={{ backgroundColor: '#4ADE80' }}
                   >
                     2º
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium" style={{ color: '#84CC16' }}>
-                      Clique na segunda que mais combina (+2 pts)
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Também é importante para você
+                    <p className="font-medium text-sm" style={{ color: '#4ADE80' }}>
+                      Segunda opção (+4 pts)
                     </p>
                   </div>
                 </div>
 
-                {/* Etapa 3 - Amarelo */}
+                {/* Etapa 3 */}
                 <div className="flex gap-3 items-start">
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                    style={{ backgroundColor: '#EAB308' }}
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                    style={{ backgroundColor: '#84CC16' }}
                   >
                     3º
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium" style={{ color: '#EAB308' }}>
-                      Clique na terceira opção (+1 pt)
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Menos prioritária, mas ainda relevante
+                    <p className="font-medium text-sm" style={{ color: '#84CC16' }}>
+                      Terceira opção (+3 pts)
                     </p>
                   </div>
                 </div>
 
-                {/* Etapa 4 - Vermelho */}
+                {/* Etapa 4 */}
                 <div className="flex gap-3 items-start">
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                    style={{ backgroundColor: '#EF4444' }}
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                    style={{ backgroundColor: '#EAB308' }}
                   >
                     4º
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium" style={{ color: '#EF4444' }}>
-                      A última é a que MENOS combina (0 pts)
+                    <p className="font-medium text-sm" style={{ color: '#EAB308' }}>
+                      Quarta opção (+2 pts)
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      Avança automaticamente após selecionar!
+                  </div>
+                </div>
+
+                {/* Etapa 5 */}
+                <div className="flex gap-3 items-start">
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                    style={{ backgroundColor: '#F97316' }}
+                  >
+                    5º
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm" style={{ color: '#F97316' }}>
+                      Quinta opção (+1 pt)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Etapa 6 */}
+                <div className="flex gap-3 items-start">
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                    style={{ backgroundColor: '#EF4444' }}
+                  >
+                    6º
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm" style={{ color: '#EF4444' }}>
+                      O que MENOS combina (0 pts) - Avança automático!
                     </p>
                   </div>
                 </div>
@@ -119,18 +137,24 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
                   <MousePointer className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium text-foreground">Só clicar nas opções em ordem!</span>
                 </div>
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="p-2 rounded-lg text-center text-xs" style={{ backgroundColor: '#22C55E20', border: '2px solid #22C55E' }}>
-                    <span style={{ color: '#22C55E' }}>1º +3</span>
+                <div className="grid grid-cols-6 gap-1">
+                  <div className="p-1.5 rounded-lg text-center text-xs" style={{ backgroundColor: '#22C55E20', border: '2px solid #22C55E' }}>
+                    <span style={{ color: '#22C55E' }}>+5</span>
                   </div>
-                  <div className="p-2 rounded-lg text-center text-xs" style={{ backgroundColor: '#84CC1620', border: '2px solid #84CC16' }}>
-                    <span style={{ color: '#84CC16' }}>2º +2</span>
+                  <div className="p-1.5 rounded-lg text-center text-xs" style={{ backgroundColor: '#4ADE8020', border: '2px solid #4ADE80' }}>
+                    <span style={{ color: '#4ADE80' }}>+4</span>
                   </div>
-                  <div className="p-2 rounded-lg text-center text-xs" style={{ backgroundColor: '#EAB30820', border: '2px solid #EAB308' }}>
-                    <span style={{ color: '#EAB308' }}>3º +1</span>
+                  <div className="p-1.5 rounded-lg text-center text-xs" style={{ backgroundColor: '#84CC1620', border: '2px solid #84CC16' }}>
+                    <span style={{ color: '#84CC16' }}>+3</span>
                   </div>
-                  <div className="p-2 rounded-lg text-center text-xs" style={{ backgroundColor: '#EF444420', border: '2px solid #EF4444' }}>
-                    <span style={{ color: '#EF4444' }}>4º 0</span>
+                  <div className="p-1.5 rounded-lg text-center text-xs" style={{ backgroundColor: '#EAB30820', border: '2px solid #EAB308' }}>
+                    <span style={{ color: '#EAB308' }}>+2</span>
+                  </div>
+                  <div className="p-1.5 rounded-lg text-center text-xs" style={{ backgroundColor: '#F9731620', border: '2px solid #F97316' }}>
+                    <span style={{ color: '#F97316' }}>+1</span>
+                  </div>
+                  <div className="p-1.5 rounded-lg text-center text-xs" style={{ backgroundColor: '#EF444420', border: '2px solid #EF4444' }}>
+                    <span style={{ color: '#EF4444' }}>0</span>
                   </div>
                 </div>
               </div>
