@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Info, ArrowRight, GripVertical } from 'lucide-react';
+import { Info, ArrowRight, MousePointer } from 'lucide-react';
 
 interface SprangerInstructionsProps {
   onStart: () => void;
@@ -28,7 +28,7 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
             <div className="bg-primary/5 rounded-xl p-4">
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Este teste vai te ajudar a entender <strong className="text-foreground">quais valores são mais importantes para você</strong>.
-                Não existem respostas certas ou erradas - cada pessoa valoriza coisas diferentes, e isso é o que nos torna únicos!
+                Não existem respostas certas ou erradas - cada pessoa valoriza coisas diferentes!
               </p>
             </div>
 
@@ -36,77 +36,81 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground flex items-center gap-2">
                 <Info className="w-5 h-5 text-primary" />
-                Como funciona?
+                Como funciona? É simples!
               </h3>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
+                {/* Etapa 1 - Verde */}
                 <div className="flex gap-3 items-start">
-                  <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                    style={{ backgroundColor: '#22C55E' }}
+                  >
                     1
                   </div>
-                  <div>
-                    <p className="font-medium text-foreground">Leia a pergunta</p>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground" style={{ color: '#22C55E' }}>
+                      Clique nas 2 que MAIS combinam com você
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      Você verá uma situação ou pergunta com 6 opções de resposta.
+                      Opções com borda verde - escolha as 2 que mais têm a ver com você
                     </p>
                   </div>
                 </div>
 
+                {/* Etapa 2 - Amarelo */}
                 <div className="flex gap-3 items-start">
-                  <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                    style={{ backgroundColor: '#EAB308' }}
+                  >
                     2
                   </div>
-                  <div>
-                    <p className="font-medium text-foreground">Arraste e organize</p>
+                  <div className="flex-1">
+                    <p className="font-medium" style={{ color: '#EAB308' }}>
+                      Clique nas 2 que são MAIS OU MENOS você
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      Arraste cada opção para um dos três grupos abaixo:
+                      Opções restantes ficam amarelas - escolha 2 neutras
+                    </p>
+                  </div>
+                </div>
+
+                {/* Etapa 3 - Vermelho */}
+                <div className="flex gap-3 items-start">
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                    style={{ backgroundColor: '#EF4444' }}
+                  >
+                    3
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium" style={{ color: '#EF4444' }}>
+                      As 2 últimas são as que MENOS combinam
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Clique nas últimas opções e avança automaticamente!
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Demonstração dos grupos */}
-              <div className="grid gap-3 mt-4">
-                <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-lg border-2 border-green-500/30">
-                  <GripVertical className="w-5 h-5 text-green-600" />
-                  <div>
-                    <span className="font-bold text-green-700 dark:text-green-400">MUITO EU</span>
-                    <span className="text-sm text-muted-foreground ml-2">
-                      - Coloque aqui as 2 opções que mais têm a ver com você
-                    </span>
+              {/* Visual demo */}
+              <div className="bg-muted/30 rounded-xl p-4 mt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <MousePointer className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">Só clicar nas opções!</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="p-2 rounded-lg text-center text-xs" style={{ backgroundColor: '#22C55E20', border: '2px solid #22C55E' }}>
+                    <span style={{ color: '#22C55E' }}>Mais combina</span>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 bg-yellow-500/10 rounded-lg border-2 border-yellow-500/30">
-                  <GripVertical className="w-5 h-5 text-yellow-600" />
-                  <div>
-                    <span className="font-bold text-yellow-700 dark:text-yellow-400">MAIS OU MENOS</span>
-                    <span className="text-sm text-muted-foreground ml-2">
-                      - Coloque aqui as 2 opções que são mais ou menos você
-                    </span>
+                  <div className="p-2 rounded-lg text-center text-xs" style={{ backgroundColor: '#EAB30820', border: '2px solid #EAB308' }}>
+                    <span style={{ color: '#EAB308' }}>Neutro</span>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 bg-red-500/10 rounded-lg border-2 border-red-500/30">
-                  <GripVertical className="w-5 h-5 text-red-600" />
-                  <div>
-                    <span className="font-bold text-red-700 dark:text-red-400">POUCO EU</span>
-                    <span className="text-sm text-muted-foreground ml-2">
-                      - Coloque aqui as 2 opções que menos têm a ver com você
-                    </span>
+                  <div className="p-2 rounded-lg text-center text-xs" style={{ backgroundColor: '#EF444420', border: '2px solid #EF4444' }}>
+                    <span style={{ color: '#EF4444' }}>Menos combina</span>
                   </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 items-start mt-4">
-                <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
-                  3
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">Avance para a próxima</p>
-                  <p className="text-sm text-muted-foreground">
-                    Quando todos os grupos estiverem completos (2 opções em cada), clique em "Próxima" para continuar.
-                  </p>
                 </div>
               </div>
             </div>
@@ -116,11 +120,10 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
               <h4 className="font-semibold text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-2">
                 <span>💡</span> Dicas importantes
               </h4>
-              <ul className="text-sm text-muted-foreground space-y-2">
+              <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Responda de forma <strong className="text-foreground">sincera e espontânea</strong></li>
-                <li>• Não pense demais - vá com sua primeira impressão</li>
-                <li>• Lembre-se: não há respostas certas ou erradas!</li>
-                <li>• O teste tem <strong className="text-foreground">14 perguntas</strong> e leva cerca de 10 minutos</li>
+                <li>• Vá com sua primeira impressão - não pense demais!</li>
+                <li>• <strong className="text-foreground">14 perguntas</strong> • Avança automático ao completar</li>
               </ul>
             </div>
 
@@ -128,7 +131,7 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
             <Button
               onClick={onStart}
               size="lg"
-              className="w-full text-lg py-6 mt-4"
+              className="w-full text-lg py-6 mt-4 gradient-veon hover:opacity-90"
             >
               Começar o Teste
               <ArrowRight className="w-5 h-5 ml-2" />

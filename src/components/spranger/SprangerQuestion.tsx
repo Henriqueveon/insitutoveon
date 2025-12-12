@@ -1,8 +1,9 @@
-import { useState, useEffect, DragEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { SprangerQuestion as SprangerQuestionType, SprangerOption } from '@/data/sprangerQuestions';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowRight, ArrowLeft, GripVertical, Check, AlertCircle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface SprangerQuestionProps {
   question: SprangerQuestionType;
@@ -15,13 +16,22 @@ interface SprangerQuestionProps {
     maisOuMenos: string[];
     poucoEu: string[];
   };
+  totalGlobalQuestions?: number;
+  globalQuestionNumber?: number;
 }
 
-type DropZone = 'available' | 'muitoEu' | 'maisOuMenos' | 'poucoEu';
+// Cores definidas
+const COLORS = {
+  green: '#22C55E',
+  yellow: '#EAB308',
+  red: '#EF4444',
+};
 
-interface DragItem {
-  option: SprangerOption;
-  fromZone: DropZone;
+type SelectionStage = 'green' | 'yellow' | 'red' | 'complete';
+
+interface Selection {
+  id: string;
+  stage: 'green' | 'yellow' | 'red';
 }
 
 export function SprangerQuestion({
@@ -31,325 +41,296 @@ export function SprangerQuestion({
   onAnswer,
   onBack,
   initialAnswer,
+  totalGlobalQuestions = 39,
+  globalQuestionNumber,
 }: SprangerQuestionProps) {
-  const [available, setAvailable] = useState<SprangerOption[]>([]);
-  const [muitoEu, setMuitoEu] = useState<SprangerOption[]>([]);
-  const [maisOuMenos, setMaisOuMenos] = useState<SprangerOption[]>([]);
-  const [poucoEu, setPoucoEu] = useState<SprangerOption[]>([]);
-  const [draggedItem, setDraggedItem] = useState<DragItem | null>(null);
-  const [dragOverZone, setDragOverZone] = useState<DropZone | null>(null);
+  const [selections, setSelections] = useState<Selection[]>([]);
+  const [currentStage, setCurrentStage] = useState<SelectionStage>('green');
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Calculate global progress (DISC + Spranger)
+  const actualGlobalQuestion = globalQuestionNumber || (25 + questionNumber);
+  const globalProgress = ((actualGlobalQuestion - 1) / totalGlobalQuestions) * 100;
 
   // Initialize or reset when question changes
   useEffect(() => {
     if (initialAnswer) {
-      const muitoEuOptions = question.opcoes.filter((o) =>
-        initialAnswer.muitoEu.includes(o.id)
-      );
-      const maisOuMenosOptions = question.opcoes.filter((o) =>
-        initialAnswer.maisOuMenos.includes(o.id)
-      );
-      const poucoEuOptions = question.opcoes.filter((o) =>
-        initialAnswer.poucoEu.includes(o.id)
-      );
-      const usedIds = [
-        ...initialAnswer.muitoEu,
-        ...initialAnswer.maisOuMenos,
-        ...initialAnswer.poucoEu,
-      ];
-      const availableOptions = question.opcoes.filter(
-        (o) => !usedIds.includes(o.id)
-      );
+      const newSelections: Selection[] = [];
+      initialAnswer.muitoEu.forEach(id => newSelections.push({ id, stage: 'green' }));
+      initialAnswer.maisOuMenos.forEach(id => newSelections.push({ id, stage: 'yellow' }));
+      initialAnswer.poucoEu.forEach(id => newSelections.push({ id, stage: 'red' }));
+      setSelections(newSelections);
 
-      setMuitoEu(muitoEuOptions);
-      setMaisOuMenos(maisOuMenosOptions);
-      setPoucoEu(poucoEuOptions);
-      setAvailable(availableOptions);
+      // Determine current stage based on selections
+      if (newSelections.length >= 6) {
+        setCurrentStage('complete');
+      } else if (newSelections.filter(s => s.stage === 'green').length >= 2) {
+        if (newSelections.filter(s => s.stage === 'yellow').length >= 2) {
+          setCurrentStage('red');
+        } else {
+          setCurrentStage('yellow');
+        }
+      } else {
+        setCurrentStage('green');
+      }
     } else {
-      setAvailable([...question.opcoes]);
-      setMuitoEu([]);
-      setMaisOuMenos([]);
-      setPoucoEu([]);
+      setSelections([]);
+      setCurrentStage('green');
     }
-  }, [question, initialAnswer]);
+    setIsTransitioning(false);
+  }, [question.id, initialAnswer]);
 
-  const isComplete =
-    muitoEu.length === 2 && maisOuMenos.length === 2 && poucoEu.length === 2;
-  const progress = ((questionNumber - 1) / totalQuestions) * 100;
-
-  const handleDragStart = (e: DragEvent, option: SprangerOption, fromZone: DropZone) => {
-    setDraggedItem({ option, fromZone });
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', option.id);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedItem(null);
-    setDragOverZone(null);
-  };
-
-  const handleDragOver = (e: DragEvent, zone: DropZone) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDragOverZone(zone);
-  };
-
-  const handleDragLeave = () => {
-    setDragOverZone(null);
-  };
-
-  const getZoneState = (zone: DropZone) => {
-    switch (zone) {
-      case 'available':
-        return { items: available, setItems: setAvailable, maxItems: 6 };
-      case 'muitoEu':
-        return { items: muitoEu, setItems: setMuitoEu, maxItems: 2 };
-      case 'maisOuMenos':
-        return { items: maisOuMenos, setItems: setMaisOuMenos, maxItems: 2 };
-      case 'poucoEu':
-        return { items: poucoEu, setItems: setPoucoEu, maxItems: 2 };
+  // Get stage info
+  const getStageInfo = () => {
+    switch (currentStage) {
+      case 'green':
+        return {
+          title: 'SELECIONE O QUE MAIS COMBINA COM VOCÊ',
+          subtitle: 'Escolha 2 opções',
+          color: COLORS.green,
+          needed: 2,
+          current: selections.filter(s => s.stage === 'green').length,
+        };
+      case 'yellow':
+        return {
+          title: 'O QUE MAIS OU MENOS COMBINA COM VOCÊ',
+          subtitle: 'Escolha 2 opções',
+          color: COLORS.yellow,
+          needed: 2,
+          current: selections.filter(s => s.stage === 'yellow').length,
+        };
+      case 'red':
+        return {
+          title: 'O QUE MENOS COMBINA COM VOCÊ',
+          subtitle: 'Escolha as 2 últimas opções',
+          color: COLORS.red,
+          needed: 2,
+          current: selections.filter(s => s.stage === 'red').length,
+        };
+      default:
+        return {
+          title: 'COMPLETO',
+          subtitle: '',
+          color: COLORS.green,
+          needed: 0,
+          current: 0,
+        };
     }
   };
 
-  const handleDrop = (e: DragEvent, toZone: DropZone) => {
-    e.preventDefault();
-    setDragOverZone(null);
+  const stageInfo = getStageInfo();
 
-    if (!draggedItem) return;
-    const { option, fromZone } = draggedItem;
-
-    if (fromZone === toZone) return;
-
-    const toZoneState = getZoneState(toZone);
-    const fromZoneState = getZoneState(fromZone);
-
-    // Check if destination zone is full (except for 'available' zone)
-    if (toZone !== 'available' && toZoneState.items.length >= toZoneState.maxItems) {
-      return;
-    }
-
-    // Remove from source
-    fromZoneState.setItems(fromZoneState.items.filter((o) => o.id !== option.id));
-
-    // Add to destination
-    toZoneState.setItems([...toZoneState.items, option]);
-
-    setDraggedItem(null);
+  // Check if option is selected and get its stage
+  const getOptionSelection = (optionId: string): Selection | undefined => {
+    return selections.find(s => s.id === optionId);
   };
 
-  const handleClickToMove = (option: SprangerOption, fromZone: DropZone) => {
-    // On mobile or for accessibility, click to cycle through zones
-    const zones: DropZone[] = ['muitoEu', 'maisOuMenos', 'poucoEu', 'available'];
-    const currentIndex = zones.indexOf(fromZone);
+  // Handle option click
+  const handleOptionClick = (option: SprangerOption) => {
+    if (currentStage === 'complete' || isTransitioning) return;
 
-    // Find next zone that has space
-    for (let i = 1; i <= zones.length; i++) {
-      const nextZone = zones[(currentIndex + i) % zones.length];
-      const zoneState = getZoneState(nextZone);
+    const existingSelection = getOptionSelection(option.id);
 
-      if (nextZone === 'available' || zoneState.items.length < zoneState.maxItems) {
-        const fromState = getZoneState(fromZone);
-        fromState.setItems(fromState.items.filter((o) => o.id !== option.id));
-        zoneState.setItems([...zoneState.items, option]);
-        break;
+    // If already selected, ignore (can't unselect in this flow)
+    if (existingSelection) return;
+
+    const newSelection: Selection = { id: option.id, stage: currentStage as 'green' | 'yellow' | 'red' };
+    const newSelections = [...selections, newSelection];
+    setSelections(newSelections);
+
+    // Check if we need to advance to next stage
+    const currentStageCount = newSelections.filter(s => s.stage === currentStage).length;
+
+    if (currentStageCount >= 2) {
+      if (currentStage === 'green') {
+        setCurrentStage('yellow');
+      } else if (currentStage === 'yellow') {
+        setCurrentStage('red');
+      } else if (currentStage === 'red') {
+        // All selections complete - auto advance
+        setCurrentStage('complete');
+        setIsTransitioning(true);
+
+        const greenIds = newSelections.filter(s => s.stage === 'green').map(s => s.id);
+        const yellowIds = newSelections.filter(s => s.stage === 'yellow').map(s => s.id);
+        const redIds = newSelections.filter(s => s.stage === 'red').map(s => s.id);
+
+        // Auto advance after short delay for visual feedback
+        setTimeout(() => {
+          onAnswer(greenIds, yellowIds, redIds);
+        }, 400);
       }
     }
   };
 
-  const handleSubmit = () => {
-    if (!isComplete) return;
-    onAnswer(
-      muitoEu.map((o) => o.id),
-      maisOuMenos.map((o) => o.id),
-      poucoEu.map((o) => o.id)
-    );
-  };
+  // Get border/background style for option
+  const getOptionStyle = (option: SprangerOption) => {
+    const selection = getOptionSelection(option.id);
 
-  const renderOption = (option: SprangerOption, zone: DropZone) => {
-    const isDragging = draggedItem?.option.id === option.id;
+    if (selection) {
+      // Already selected - show with its color
+      const color = selection.stage === 'green' ? COLORS.green :
+                    selection.stage === 'yellow' ? COLORS.yellow : COLORS.red;
+      return {
+        borderColor: color,
+        backgroundColor: `${color}20`,
+        selected: true,
+        color,
+      };
+    }
 
-    return (
-      <div
-        key={option.id}
-        draggable
-        onDragStart={(e) => handleDragStart(e, option, zone)}
-        onDragEnd={handleDragEnd}
-        onClick={() => handleClickToMove(option, zone)}
-        className={`
-          flex items-center gap-2 p-3 bg-card rounded-lg border-2 cursor-grab active:cursor-grabbing
-          transition-all duration-200 select-none
-          ${isDragging ? 'opacity-50 scale-95' : 'opacity-100'}
-          ${zone === 'available' ? 'border-border hover:border-primary/50 hover:shadow-md' : 'border-transparent'}
-        `}
-      >
-        <GripVertical className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-        <span className="text-sm text-foreground leading-tight">{option.texto}</span>
-      </div>
-    );
-  };
+    // Not selected - show current stage color as border
+    if (currentStage === 'complete') {
+      return {
+        borderColor: '#e5e7eb',
+        backgroundColor: 'transparent',
+        selected: false,
+        color: '#9ca3af',
+      };
+    }
 
-  const renderDropZone = (
-    zone: DropZone,
-    title: string,
-    color: string,
-    bgColor: string,
-    borderColor: string
-  ) => {
-    const zoneState = getZoneState(zone);
-    const items = zoneState.items;
-    const isFull = items.length >= 2;
-    const isOver = dragOverZone === zone;
-    const canDrop = !isFull || zone === 'available';
-
-    return (
-      <div
-        onDragOver={(e) => handleDragOver(e, zone)}
-        onDragLeave={handleDragLeave}
-        onDrop={(e) => handleDrop(e, zone)}
-        className={`
-          rounded-xl p-4 border-2 transition-all duration-200 min-h-[140px]
-          ${bgColor}
-          ${isOver && canDrop ? borderColor + ' scale-[1.02] shadow-lg' : 'border-transparent'}
-          ${!canDrop && isOver ? 'border-red-400' : ''}
-        `}
-      >
-        <div className="flex items-center justify-between mb-3">
-          <h4 className={`font-bold text-sm ${color}`}>{title}</h4>
-          <div className="flex items-center gap-1">
-            {[0, 1].map((i) => (
-              <div
-                key={i}
-                className={`w-3 h-3 rounded-full ${
-                  items.length > i
-                    ? color.replace('text-', 'bg-').replace('-700', '-500').replace('-600', '-500')
-                    : 'bg-muted'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          {items.map((option) => renderOption(option, zone))}
-          {items.length < 2 && (
-            <div className="text-xs text-muted-foreground text-center py-4 border-2 border-dashed border-muted rounded-lg">
-              {items.length === 0 ? 'Arraste 2 opções aqui' : 'Arraste mais 1 opção'}
-            </div>
-          )}
-        </div>
-      </div>
-    );
+    return {
+      borderColor: stageInfo.color,
+      backgroundColor: 'transparent',
+      selected: false,
+      color: stageInfo.color,
+    };
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background py-6 px-4">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
+    <div className={cn(
+      "min-h-screen bg-gradient-to-br from-background via-muted/30 to-background py-6 px-4",
+      "transition-opacity duration-300",
+      isTransitioning ? "opacity-50" : "opacity-100"
+    )}>
+      <div className="max-w-2xl mx-auto">
+        {/* Header with global progress */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-muted-foreground">
-              Pergunta {questionNumber} de {totalQuestions}
+              Pergunta {actualGlobalQuestion} de {totalGlobalQuestions}
             </span>
             <span className="text-sm font-medium text-primary">
-              {Math.round(progress)}% completo
+              {Math.round(globalProgress)}% completo
             </span>
           </div>
-          <Progress value={progress} className="h-2" />
+          <Progress value={globalProgress} className="h-2" />
+          <p className="text-xs text-muted-foreground mt-1">
+            Teste de Valores • Pergunta {questionNumber} de {totalQuestions}
+          </p>
+        </div>
+
+        {/* Stage indicator */}
+        <div
+          className="rounded-xl p-4 mb-6 text-center transition-all duration-300"
+          style={{
+            backgroundColor: `${stageInfo.color}15`,
+            borderLeft: `4px solid ${stageInfo.color}`,
+          }}
+        >
+          <h2
+            className="text-lg font-bold mb-1"
+            style={{ color: stageInfo.color }}
+          >
+            {stageInfo.title}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {stageInfo.subtitle} ({stageInfo.current}/{stageInfo.needed})
+          </p>
         </div>
 
         {/* Question */}
         <div className="bg-card rounded-xl p-6 shadow-lg mb-6">
-          <h2 className="text-xl font-display font-bold text-foreground mb-2">
+          <h3 className="text-xl font-display font-bold text-foreground">
             {question.pergunta}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Arraste cada opção para o grupo que melhor representa você
-          </p>
+          </h3>
         </div>
 
-        {/* Available options */}
-        {available.length > 0 && (
-          <div className="bg-muted/30 rounded-xl p-4 mb-6">
-            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-              <span className="text-lg">📋</span>
-              Opções disponíveis
-              <span className="text-xs text-muted-foreground font-normal">
-                ({available.length} restantes)
-              </span>
-            </h3>
-            <div className="grid gap-2">
-              {available.map((option) => renderOption(option, 'available'))}
+        {/* Options grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+          {question.opcoes.map((option) => {
+            const style = getOptionStyle(option);
+            const isSelectable = !style.selected && currentStage !== 'complete';
+
+            return (
+              <button
+                key={option.id}
+                onClick={() => handleOptionClick(option)}
+                disabled={!isSelectable || isTransitioning}
+                className={cn(
+                  "relative p-4 rounded-xl border-3 text-left transition-all duration-200",
+                  "focus:outline-none focus:ring-2 focus:ring-offset-2",
+                  isSelectable && "hover:scale-[1.02] hover:shadow-lg cursor-pointer",
+                  !isSelectable && "cursor-default",
+                  style.selected && "shadow-md transform scale-[1.02]"
+                )}
+                style={{
+                  borderColor: style.borderColor,
+                  backgroundColor: style.backgroundColor,
+                  borderWidth: style.selected ? '3px' : '2px',
+                }}
+              >
+                <span className={cn(
+                  "text-sm font-medium leading-tight block",
+                  style.selected ? "text-foreground" : "text-foreground"
+                )}>
+                  {option.texto}
+                </span>
+
+                {/* Selection indicator */}
+                {style.selected && (
+                  <div
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md animate-in zoom-in duration-200"
+                    style={{ backgroundColor: style.color }}
+                  >
+                    {selections.findIndex(s => s.id === option.id) + 1}
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Selection summary */}
+        <div className="bg-card rounded-xl p-4 shadow-lg mb-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div
+                className="w-4 h-4 rounded-full"
+                style={{ backgroundColor: selections.filter(s => s.stage === 'green').length >= 2 ? COLORS.green : '#e5e7eb' }}
+              />
+              <span className="text-xs text-muted-foreground">Mais combina</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div
+                className="w-4 h-4 rounded-full"
+                style={{ backgroundColor: selections.filter(s => s.stage === 'yellow').length >= 2 ? COLORS.yellow : '#e5e7eb' }}
+              />
+              <span className="text-xs text-muted-foreground">Neutro</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div
+                className="w-4 h-4 rounded-full"
+                style={{ backgroundColor: selections.filter(s => s.stage === 'red').length >= 2 ? COLORS.red : '#e5e7eb' }}
+              />
+              <span className="text-xs text-muted-foreground">Menos combina</span>
             </div>
           </div>
-        )}
-
-        {/* Drop zones */}
-        <div className="grid gap-4 mb-6">
-          {renderDropZone(
-            'muitoEu',
-            'MUITO EU',
-            'text-green-700 dark:text-green-400',
-            'bg-green-500/10',
-            'border-green-500'
-          )}
-          {renderDropZone(
-            'maisOuMenos',
-            'MAIS OU MENOS',
-            'text-yellow-700 dark:text-yellow-400',
-            'bg-yellow-500/10',
-            'border-yellow-500'
-          )}
-          {renderDropZone(
-            'poucoEu',
-            'POUCO EU',
-            'text-red-700 dark:text-red-400',
-            'bg-red-500/10',
-            'border-red-500'
-          )}
         </div>
 
-        {/* Status and navigation */}
-        <div className="bg-card rounded-xl p-4 shadow-lg">
-          {/* Completion status */}
-          <div className="flex items-center gap-2 mb-4">
-            {isComplete ? (
-              <>
-                <Check className="w-5 h-5 text-green-600" />
-                <span className="text-sm text-green-600 font-medium">
-                  Tudo certo! Você pode avançar para a próxima pergunta.
-                </span>
-              </>
-            ) : (
-              <>
-                <AlertCircle className="w-5 h-5 text-amber-500" />
-                <span className="text-sm text-muted-foreground">
-                  Coloque 2 opções em cada grupo para continuar.
-                </span>
-              </>
-            )}
-          </div>
-
-          {/* Navigation buttons */}
-          <div className="flex gap-3">
-            {onBack && (
-              <Button
-                variant="outline"
-                onClick={onBack}
-                className="flex-1"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar
-              </Button>
-            )}
+        {/* Navigation - only back button */}
+        {onBack && (
+          <div className="flex justify-start">
             <Button
-              onClick={handleSubmit}
-              disabled={!isComplete}
-              className="flex-1"
+              variant="outline"
+              onClick={onBack}
+              className="gap-2"
             >
-              {questionNumber === totalQuestions ? 'Finalizar' : 'Próxima'}
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <ArrowLeft className="w-4 h-4" />
+              Voltar
             </Button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

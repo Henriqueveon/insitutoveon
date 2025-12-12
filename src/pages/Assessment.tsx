@@ -1,13 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/Logo';
-import { ProgressBar } from '@/components/ProgressBar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { useAssessment, Answer } from '@/context/AssessmentContext';
 import { discQuestions } from '@/data/discQuestions';
-import { ThumbsUp, ThumbsDown, ArrowRight, ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Cores definidas
+const COLORS = {
+  green: '#22C55E',
+  red: '#EF4444',
+};
+
+type SelectionStage = 'mais' | 'menos' | 'complete';
 
 export default function Assessment() {
   const navigate = useNavigate();
@@ -15,61 +22,81 @@ export default function Assessment() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedMais, setSelectedMais] = useState<'D' | 'I' | 'S' | 'C' | null>(null);
   const [selectedMenos, setSelectedMenos] = useState<'D' | 'I' | 'S' | 'C' | null>(null);
+  const [currentStage, setCurrentStage] = useState<SelectionStage>('mais');
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const totalGlobalQuestions = 39; // 25 DISC + 14 Valores
+  const globalProgress = (currentQuestion / totalGlobalQuestions) * 100;
 
   // Initialize start time when component mounts
   useEffect(() => {
     setStartTime(Date.now());
   }, [setStartTime]);
 
+  // Load existing answer for current question
   useEffect(() => {
-    // Load existing answer for current question
     const existingAnswer = answers.find(
       (a) => a.questionId === discQuestions[currentQuestion].id
     );
     if (existingAnswer) {
       setSelectedMais(existingAnswer.mais);
       setSelectedMenos(existingAnswer.menos);
+      setCurrentStage('complete');
     } else {
       setSelectedMais(null);
       setSelectedMenos(null);
+      setCurrentStage('mais');
     }
+    setIsTransitioning(false);
   }, [currentQuestion, answers]);
 
   const question = discQuestions[currentQuestion];
   const isLastQuestion = currentQuestion === discQuestions.length - 1;
-  const canProceed = selectedMais && selectedMenos && selectedMais !== selectedMenos;
 
-  const handleSelectMais = (fator: 'D' | 'I' | 'S' | 'C') => {
-    if (fator === selectedMenos) {
-      setSelectedMenos(null);
+  // Auto-advance when both selections are made
+  const handleAutoAdvance = useCallback(() => {
+    if (selectedMais && selectedMenos && selectedMais !== selectedMenos && !isTransitioning) {
+      setIsTransitioning(true);
+      setCurrentStage('complete');
+
+      const answer: Answer = {
+        questionId: question.id,
+        mais: selectedMais,
+        menos: selectedMenos,
+        timestamp: Date.now(),
+      };
+      addAnswer(answer);
+
+      // Auto advance after short delay for visual feedback
+      setTimeout(() => {
+        if (isLastQuestion) {
+          calculateProfiles();
+          navigate('/teste-valores');
+        } else {
+          setCurrentQuestion((prev) => prev + 1);
+        }
+      }, 400);
     }
-    setSelectedMais(fator);
-  };
+  }, [selectedMais, selectedMenos, isTransitioning, question.id, isLastQuestion, addAnswer, calculateProfiles, navigate]);
 
-  const handleSelectMenos = (fator: 'D' | 'I' | 'S' | 'C') => {
-    if (fator === selectedMais) {
-      setSelectedMais(null);
-    }
-    setSelectedMenos(fator);
-  };
+  // Watch for complete selection
+  useEffect(() => {
+    handleAutoAdvance();
+  }, [handleAutoAdvance]);
 
-  const handleNext = () => {
-    if (!canProceed) return;
+  const handleSelect = (fator: 'D' | 'I' | 'S' | 'C') => {
+    if (isTransitioning) return;
 
-    const answer: Answer = {
-      questionId: question.id,
-      mais: selectedMais!,
-      menos: selectedMenos!,
-      timestamp: Date.now(),
-    };
-    addAnswer(answer);
-
-    if (isLastQuestion) {
-      // Calculate DISC profiles and navigate to Spranger test
-      calculateProfiles();
-      navigate('/teste-valores');
-    } else {
-      setCurrentQuestion((prev) => prev + 1);
+    if (currentStage === 'mais') {
+      setSelectedMais(fator);
+      setCurrentStage('menos');
+    } else if (currentStage === 'menos') {
+      if (fator === selectedMais) {
+        // Can't select same as MAIS
+        return;
+      }
+      setSelectedMenos(fator);
+      // Auto-advance will trigger via useEffect
     }
   };
 
@@ -79,147 +106,177 @@ export default function Assessment() {
     }
   };
 
+  // Get stage info
+  const getStageInfo = () => {
+    switch (currentStage) {
+      case 'mais':
+        return {
+          title: 'SELECIONE O QUE MAIS COMBINA COM VOCÊ',
+          color: COLORS.green,
+        };
+      case 'menos':
+        return {
+          title: 'AGORA SELECIONE O QUE MENOS COMBINA',
+          color: COLORS.red,
+        };
+      default:
+        return {
+          title: 'COMPLETO',
+          color: COLORS.green,
+        };
+    }
+  };
+
+  const stageInfo = getStageInfo();
+
   // Shuffle descriptors for each question (but consistently)
   const shuffledDescriptors = [...question.descritores].sort(
     (a, b) => a.texto.localeCompare(b.texto)
   );
 
   return (
-    <div className="min-h-screen gradient-hero flex flex-col">
+    <div className={cn(
+      "min-h-screen bg-gradient-to-br from-background via-muted/30 to-background",
+      "transition-opacity duration-300",
+      isTransitioning ? "opacity-50" : "opacity-100"
+    )}>
       {/* Header */}
       <header className="w-full py-4 px-4 sm:px-8 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Logo showText={false} />
-          <div className="flex-1 max-w-md mx-4">
-            <ProgressBar current={currentQuestion + 1} total={discQuestions.length} />
-          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 py-8">
-        <Card className="w-full max-w-2xl card-elevated animate-fade-in">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="font-display text-xl sm:text-2xl text-foreground">
-              Questão {currentQuestion + 1} de {discQuestions.length}
-            </CardTitle>
-            <p className="text-muted-foreground mt-2">
-              Selecione o descritor que <strong className="text-disc-s">MAIS</strong> e o que{' '}
-              <strong className="text-veon-red">MENOS</strong> combina com você
-            </p>
-          </CardHeader>
+      <main className="max-w-2xl mx-auto px-4 py-6">
+        {/* Progress */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-muted-foreground">
+              Pergunta {currentQuestion + 1} de {totalGlobalQuestions}
+            </span>
+            <span className="text-sm font-medium text-primary">
+              {Math.round(globalProgress)}% completo
+            </span>
+          </div>
+          <Progress value={globalProgress} className="h-2" />
+          <p className="text-xs text-muted-foreground mt-1">
+            Teste DISC • Pergunta {currentQuestion + 1} de {discQuestions.length}
+          </p>
+        </div>
 
-          <CardContent className="space-y-6">
-            {/* Legend */}
-            <div className="flex justify-center gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <ThumbsUp className="w-4 h-4 text-disc-s" />
-                <span className="text-muted-foreground">Mais me descreve</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <ThumbsDown className="w-4 h-4 text-veon-red" />
-                <span className="text-muted-foreground">Menos me descreve</span>
-              </div>
-            </div>
+        {/* Stage indicator */}
+        <div
+          className="rounded-xl p-4 mb-6 text-center transition-all duration-300"
+          style={{
+            backgroundColor: `${stageInfo.color}15`,
+            borderLeft: `4px solid ${stageInfo.color}`,
+          }}
+        >
+          <h2
+            className="text-lg font-bold"
+            style={{ color: stageInfo.color }}
+          >
+            {stageInfo.title}
+          </h2>
+        </div>
 
-            {/* Descriptors Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {shuffledDescriptors.map((descriptor) => {
-                const isMais = selectedMais === descriptor.fator;
-                const isMenos = selectedMenos === descriptor.fator;
+        {/* Descriptors Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          {shuffledDescriptors.map((descriptor) => {
+            const isMais = selectedMais === descriptor.fator;
+            const isMenos = selectedMenos === descriptor.fator;
+            const isSelected = isMais || isMenos;
+            const isDisabled = (currentStage === 'menos' && isMais) || currentStage === 'complete';
 
-                return (
-                  <div
-                    key={descriptor.fator}
-                    className={cn(
-                      'relative p-4 rounded-xl border-2 transition-all duration-200',
-                      isMais && 'border-disc-s bg-disc-s/10 shadow-md',
-                      isMenos && 'border-veon-red bg-veon-red/10 shadow-md',
-                      !isMais && !isMenos && 'border-border bg-card hover:border-muted-foreground'
-                    )}
-                  >
-                    <div className="text-center mb-3">
-                      <span className="font-semibold text-lg text-foreground">
-                        {descriptor.texto}
-                      </span>
-                    </div>
+            // Determine border color
+            let borderColor = stageInfo.color;
+            let backgroundColor = 'transparent';
 
-                    <div className="flex justify-center gap-3">
-                      <Button
-                        variant={isMais ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handleSelectMais(descriptor.fator)}
-                        className={cn(
-                          'flex-1 max-w-[100px]',
-                          isMais && 'bg-disc-s hover:bg-disc-s/90 border-disc-s'
-                        )}
-                      >
-                        <ThumbsUp className="w-4 h-4 mr-1" />
-                        Mais
-                      </Button>
-                      <Button
-                        variant={isMenos ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handleSelectMenos(descriptor.fator)}
-                        className={cn(
-                          'flex-1 max-w-[100px]',
-                          isMenos && 'bg-veon-red hover:bg-veon-red/90 border-veon-red'
-                        )}
-                      >
-                        <ThumbsDown className="w-4 h-4 mr-1" />
-                        Menos
-                      </Button>
-                    </div>
+            if (isMais) {
+              borderColor = COLORS.green;
+              backgroundColor = `${COLORS.green}20`;
+            } else if (isMenos) {
+              borderColor = COLORS.red;
+              backgroundColor = `${COLORS.red}20`;
+            } else if (currentStage === 'complete') {
+              borderColor = '#e5e7eb';
+            }
 
-                    {/* Selection indicator */}
-                    {(isMais || isMenos) && (
-                      <div
-                        className={cn(
-                          'absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center',
-                          isMais && 'bg-disc-s',
-                          isMenos && 'bg-veon-red'
-                        )}
-                      >
-                        <Check className="w-4 h-4 text-white" />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Navigation */}
-            <div className="flex justify-between items-center pt-4">
-              <Button
-                variant="outline"
-                onClick={handlePrevious}
-                disabled={currentQuestion === 0}
-                className="gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Anterior
-              </Button>
-
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed}
+            return (
+              <button
+                key={descriptor.fator}
+                onClick={() => handleSelect(descriptor.fator)}
+                disabled={isDisabled || isTransitioning}
                 className={cn(
-                  'gap-2 min-w-[140px]',
-                  canProceed && 'gradient-veon hover:opacity-90'
+                  'relative p-5 rounded-xl text-center transition-all duration-200',
+                  'focus:outline-none focus:ring-2 focus:ring-offset-2',
+                  !isDisabled && !isSelected && 'hover:scale-[1.02] hover:shadow-lg cursor-pointer',
+                  isDisabled && 'cursor-default opacity-50',
+                  isSelected && 'shadow-md transform scale-[1.02]'
                 )}
+                style={{
+                  borderColor,
+                  backgroundColor,
+                  borderWidth: isSelected ? '3px' : '2px',
+                  borderStyle: 'solid',
+                }}
               >
-                {isLastQuestion ? 'Próximo Teste' : 'Próxima'}
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </div>
+                <span className="font-semibold text-lg text-foreground">
+                  {descriptor.texto}
+                </span>
 
-            {!canProceed && (selectedMais || selectedMenos) && (
-              <p className="text-center text-sm text-muted-foreground">
-                Selecione um descritor diferente para "Mais" e "Menos"
-              </p>
-            )}
-          </CardContent>
-        </Card>
+                {/* Selection indicator */}
+                {isSelected && (
+                  <div
+                    className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center text-white shadow-md animate-in zoom-in duration-200"
+                    style={{ backgroundColor: isMais ? COLORS.green : COLORS.red }}
+                  >
+                    <Check className="w-4 h-4" />
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Selection summary */}
+        <div className="bg-card rounded-xl p-4 shadow-lg mb-6">
+          <div className="flex items-center justify-center gap-8">
+            <div className="flex items-center gap-2">
+              <div
+                className="w-5 h-5 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: selectedMais ? COLORS.green : '#e5e7eb' }}
+              >
+                {selectedMais && <Check className="w-3 h-3 text-white" />}
+              </div>
+              <span className="text-sm text-muted-foreground">Mais combina</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div
+                className="w-5 h-5 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: selectedMenos ? COLORS.red : '#e5e7eb' }}
+              >
+                {selectedMenos && <Check className="w-3 h-3 text-white" />}
+              </div>
+              <span className="text-sm text-muted-foreground">Menos combina</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation - only back button */}
+        {currentQuestion > 0 && (
+          <div className="flex justify-start">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              className="gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar
+            </Button>
+          </div>
+        )}
       </main>
     </div>
   );
