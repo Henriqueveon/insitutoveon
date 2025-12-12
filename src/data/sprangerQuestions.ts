@@ -23,6 +23,8 @@ export interface SprangerQuestion {
 // IND = Político (Poder/Influência)
 // TRA = Religioso (Princípios/Regras)
 
+// 8 QUESTÕES SPRANGER OTIMIZADAS (reduzidas de 15 para melhorar engajamento)
+// Mantidas as questões com maior poder discriminativo
 export const sprangerQuestions: SprangerQuestion[] = [
   {
     id: 1,
@@ -52,172 +54,80 @@ export const sprangerQuestions: SprangerQuestion[] = [
   },
   {
     id: 3,
-    contexto: "O que mais te incomoda em um ambiente de trabalho?",
-    pergunta: "O que mais te incomoda em um ambiente de trabalho?",
+    contexto: "Qual frase mais representa você?",
+    pergunta: "Qual frase mais representa você?",
     opcoes: [
-      { id: "3a", texto: "Pessoas que não buscam entender as coisas a fundo", valor: "TEO" },
-      { id: "3b", texto: "Desperdício de recursos e falta de foco em resultados", valor: "ECO" },
-      { id: "3c", texto: "Ambientes feios, desorganizados e sem cuidado visual", valor: "EST" },
-      { id: "3d", texto: "Falta de empatia e colaboração entre as pessoas", valor: "SOC" },
-      { id: "3e", texto: "Não ter autonomia para tomar decisões importantes", valor: "IND" },
-      { id: "3f", texto: "Pessoas que não têm palavra e quebram compromissos", valor: "TRA" },
+      { id: "3a", texto: "Conhecimento é o maior patrimônio que alguém pode ter", valor: "TEO" },
+      { id: "3b", texto: "Tempo é dinheiro e dinheiro é liberdade", valor: "ECO" },
+      { id: "3c", texto: "A vida sem beleza e arte não vale a pena ser vivida", valor: "EST" },
+      { id: "3d", texto: "O sentido da vida está em servir e ajudar os outros", valor: "SOC" },
+      { id: "3e", texto: "Quem não lidera é liderado por outros", valor: "IND" },
+      { id: "3f", texto: "Meus valores e princípios não estão à venda", valor: "TRA" },
     ],
   },
   {
     id: 4,
-    contexto: "Qual frase mais representa você?",
-    pergunta: "Qual frase mais representa você?",
+    contexto: "O que você mais admira em uma pessoa?",
+    pergunta: "O que você mais admira em uma pessoa?",
     opcoes: [
-      { id: "4a", texto: "Conhecimento é o maior patrimônio que alguém pode ter", valor: "TEO" },
-      { id: "4b", texto: "Tempo é dinheiro e dinheiro é liberdade", valor: "ECO" },
-      { id: "4c", texto: "A vida sem beleza e arte não vale a pena ser vivida", valor: "EST" },
-      { id: "4d", texto: "O sentido da vida está em servir e ajudar os outros", valor: "SOC" },
-      { id: "4e", texto: "Quem não lidera é liderado por outros", valor: "IND" },
-      { id: "4f", texto: "Meus valores e princípios não estão à venda", valor: "TRA" },
+      { id: "4a", texto: "Inteligência, cultura e capacidade de análise", valor: "TEO" },
+      { id: "4b", texto: "Visão de negócios e capacidade de gerar resultados", valor: "ECO" },
+      { id: "4c", texto: "Bom gosto, elegância e sensibilidade artística", valor: "EST" },
+      { id: "4d", texto: "Generosidade, empatia e espírito de servir", valor: "SOC" },
+      { id: "4e", texto: "Carisma, poder de influência e liderança natural", valor: "IND" },
+      { id: "4f", texto: "Integridade, caráter e fidelidade aos princípios", valor: "TRA" },
     ],
   },
   {
     id: 5,
-    contexto: "O que você mais admira em uma pessoa?",
-    pergunta: "O que você mais admira em uma pessoa?",
+    contexto: "Qual legado você gostaria de deixar?",
+    pergunta: "Qual legado você gostaria de deixar?",
     opcoes: [
-      { id: "5a", texto: "Inteligência, cultura e capacidade de análise", valor: "TEO" },
-      { id: "5b", texto: "Visão de negócios e capacidade de gerar resultados", valor: "ECO" },
-      { id: "5c", texto: "Bom gosto, elegância e sensibilidade artística", valor: "EST" },
-      { id: "5d", texto: "Generosidade, empatia e espírito de servir", valor: "SOC" },
-      { id: "5e", texto: "Carisma, poder de influência e liderança natural", valor: "IND" },
-      { id: "5f", texto: "Integridade, caráter e fidelidade aos princípios", valor: "TRA" },
+      { id: "5a", texto: "Ser lembrado como alguém que contribuiu para o conhecimento", valor: "TEO" },
+      { id: "5b", texto: "Construir um patrimônio sólido para as próximas gerações", valor: "ECO" },
+      { id: "5c", texto: "Criar algo belo que inspire e emocione as pessoas", valor: "EST" },
+      { id: "5d", texto: "Ter transformado positivamente a vida de muitas pessoas", valor: "SOC" },
+      { id: "5e", texto: "Ser reconhecido como alguém que fez história e liderou mudanças", valor: "IND" },
+      { id: "5f", texto: "Transmitir valores e princípios para quem vem depois de mim", valor: "TRA" },
     ],
   },
   {
     id: 6,
-    contexto: "Como você prefere passar seu tempo livre?",
-    pergunta: "Como você prefere passar seu tempo livre?",
+    contexto: "O que te motiva a acordar todos os dias?",
+    pergunta: "O que te motiva a acordar todos os dias?",
     opcoes: [
-      { id: "6a", texto: "Lendo, estudando ou assistindo conteúdos educativos", valor: "TEO" },
-      { id: "6b", texto: "Planejando finanças ou buscando novas oportunidades", valor: "ECO" },
-      { id: "6c", texto: "Apreciando arte, música, natureza ou design", valor: "EST" },
-      { id: "6d", texto: "Fazendo trabalho voluntário ou ajudando alguém", valor: "SOC" },
-      { id: "6e", texto: "Participando de grupos onde posso liderar ou influenciar", valor: "IND" },
-      { id: "6f", texto: "Em atividades ligadas à minha fé ou filosofia de vida", valor: "TRA" },
+      { id: "6a", texto: "A oportunidade de aprender algo novo", valor: "TEO" },
+      { id: "6b", texto: "A possibilidade de progredir financeiramente", valor: "ECO" },
+      { id: "6c", texto: "Viver momentos de beleza e harmonia", valor: "EST" },
+      { id: "6d", texto: "A chance de fazer a diferença na vida de alguém", valor: "SOC" },
+      { id: "6e", texto: "Conquistar novos objetivos e superar desafios", valor: "IND" },
+      { id: "6f", texto: "Cumprir meu propósito de vida com integridade", valor: "TRA" },
     ],
   },
   {
     id: 7,
-    contexto: "Qual legado você gostaria de deixar?",
-    pergunta: "Qual legado você gostaria de deixar?",
+    contexto: "Em uma decisão difícil, o que pesa mais?",
+    pergunta: "Em uma decisão difícil, o que pesa mais?",
     opcoes: [
-      { id: "7a", texto: "Ser lembrado como alguém que contribuiu para o conhecimento", valor: "TEO" },
-      { id: "7b", texto: "Construir um patrimônio sólido para as próximas gerações", valor: "ECO" },
-      { id: "7c", texto: "Criar algo belo que inspire e emocione as pessoas", valor: "EST" },
-      { id: "7d", texto: "Ter transformado positivamente a vida de muitas pessoas", valor: "SOC" },
-      { id: "7e", texto: "Ser reconhecido como alguém que fez história e liderou mudanças", valor: "IND" },
-      { id: "7f", texto: "Transmitir valores e princípios para quem vem depois de mim", valor: "TRA" },
+      { id: "7a", texto: "Os dados, fatos e análises racionais disponíveis", valor: "TEO" },
+      { id: "7b", texto: "O impacto financeiro e o retorno sobre o investimento", valor: "ECO" },
+      { id: "7c", texto: "Se a escolha traz equilíbrio e harmonia para minha vida", valor: "EST" },
+      { id: "7d", texto: "Como minha decisão afetará as pessoas ao meu redor", valor: "SOC" },
+      { id: "7e", texto: "Se isso me coloca em posição de vantagem ou liderança", valor: "IND" },
+      { id: "7f", texto: "Se está alinhado com meus valores e convicções pessoais", valor: "TRA" },
     ],
   },
   {
     id: 8,
-    contexto: "O que te motiva a acordar todos os dias?",
-    pergunta: "O que te motiva a acordar todos os dias?",
-    opcoes: [
-      { id: "8a", texto: "A oportunidade de aprender algo novo", valor: "TEO" },
-      { id: "8b", texto: "A possibilidade de progredir financeiramente", valor: "ECO" },
-      { id: "8c", texto: "Viver momentos de beleza e harmonia", valor: "EST" },
-      { id: "8d", texto: "A chance de fazer a diferença na vida de alguém", valor: "SOC" },
-      { id: "8e", texto: "Conquistar novos objetivos e superar desafios", valor: "IND" },
-      { id: "8f", texto: "Cumprir meu propósito de vida com integridade", valor: "TRA" },
-    ],
-  },
-  {
-    id: 9,
-    contexto: "Em uma decisão difícil, o que pesa mais?",
-    pergunta: "Em uma decisão difícil, o que pesa mais?",
-    opcoes: [
-      { id: "9a", texto: "Os dados, fatos e análises racionais disponíveis", valor: "TEO" },
-      { id: "9b", texto: "O impacto financeiro e o retorno sobre o investimento", valor: "ECO" },
-      { id: "9c", texto: "Se a escolha traz equilíbrio e harmonia para minha vida", valor: "EST" },
-      { id: "9d", texto: "Como minha decisão afetará as pessoas ao meu redor", valor: "SOC" },
-      { id: "9e", texto: "Se isso me coloca em posição de vantagem ou liderança", valor: "IND" },
-      { id: "9f", texto: "Se está alinhado com meus valores e convicções pessoais", valor: "TRA" },
-    ],
-  },
-  {
-    id: 10,
-    contexto: "O que te faria mudar de emprego imediatamente?",
-    pergunta: "O que te faria mudar de emprego imediatamente?",
-    opcoes: [
-      { id: "10a", texto: "Um cargo onde eu pudesse pesquisar e aprender constantemente", valor: "TEO" },
-      { id: "10b", texto: "Um salário muito maior e melhores benefícios financeiros", valor: "ECO" },
-      { id: "10c", texto: "Um ambiente de trabalho mais bonito e agradável", valor: "EST" },
-      { id: "10d", texto: "Uma empresa com forte impacto social positivo", valor: "SOC" },
-      { id: "10e", texto: "Uma posição de liderança com poder de decisão real", valor: "IND" },
-      { id: "10f", texto: "Uma organização 100% alinhada com meus princípios", valor: "TRA" },
-    ],
-  },
-  // 5 NOVAS PERGUNTAS SPRANGER (11-15) - Para aumentar precisão estatística
-  {
-    id: 11,
-    contexto: "Como você prefere ser reconhecido?",
-    pergunta: "Como você prefere ser reconhecido?",
-    opcoes: [
-      { id: "11a", texto: "Por minha expertise e profundidade de conhecimento", valor: "TEO" },
-      { id: "11b", texto: "Pelos resultados financeiros que gero", valor: "ECO" },
-      { id: "11c", texto: "Pelo bom gosto e qualidade estética do meu trabalho", valor: "EST" },
-      { id: "11d", texto: "Pelo impacto positivo que tenho na vida das pessoas", valor: "SOC" },
-      { id: "11e", texto: "Pela minha capacidade de liderar e influenciar", valor: "IND" },
-      { id: "11f", texto: "Pela minha integridade e fidelidade aos meus valores", valor: "TRA" },
-    ],
-  },
-  {
-    id: 12,
-    contexto: "O que mais te frustra em um projeto?",
-    pergunta: "O que mais te frustra em um projeto?",
-    opcoes: [
-      { id: "12a", texto: "Não ter tempo para estudar e entender profundamente o assunto", valor: "TEO" },
-      { id: "12b", texto: "Perceber que o projeto não vai gerar retorno financeiro", valor: "ECO" },
-      { id: "12c", texto: "Ter que entregar algo visualmente feio ou mal acabado", valor: "EST" },
-      { id: "12d", texto: "Ver que o projeto não vai ajudar ninguém de verdade", valor: "SOC" },
-      { id: "12e", texto: "Não ter autonomia para tomar decisões importantes", valor: "IND" },
-      { id: "12f", texto: "Ter que comprometer meus princípios para entregar", valor: "TRA" },
-    ],
-  },
-  {
-    id: 13,
-    contexto: "Se você pudesse escolher um mentor, quem escolheria?",
-    pergunta: "Se você pudesse escolher um mentor, quem escolheria?",
-    opcoes: [
-      { id: "13a", texto: "Um cientista ou pesquisador renomado", valor: "TEO" },
-      { id: "13b", texto: "Um empresário bilionário de sucesso", valor: "ECO" },
-      { id: "13c", texto: "Um artista ou designer mundialmente reconhecido", valor: "EST" },
-      { id: "13d", texto: "Um líder humanitário ou filantropo", valor: "SOC" },
-      { id: "13e", texto: "Um político ou executivo de grande influência", valor: "IND" },
-      { id: "13f", texto: "Um líder espiritual ou filósofo respeitado", valor: "TRA" },
-    ],
-  },
-  {
-    id: 14,
     contexto: "O que você considera seu maior ativo pessoal?",
     pergunta: "O que você considera seu maior ativo pessoal?",
     opcoes: [
-      { id: "14a", texto: "Meu conhecimento e capacidade de aprender", valor: "TEO" },
-      { id: "14b", texto: "Minha capacidade de gerar riqueza e prosperidade", valor: "ECO" },
-      { id: "14c", texto: "Minha sensibilidade e percepção estética", valor: "EST" },
-      { id: "14d", texto: "Minha empatia e capacidade de ajudar os outros", valor: "SOC" },
-      { id: "14e", texto: "Minha capacidade de influenciar e liderar pessoas", valor: "IND" },
-      { id: "14f", texto: "Minha integridade e valores sólidos", valor: "TRA" },
-    ],
-  },
-  {
-    id: 15,
-    contexto: "Em uma situação de crise, o que você prioriza?",
-    pergunta: "Em uma situação de crise, o que você prioriza?",
-    opcoes: [
-      { id: "15a", texto: "Entender a fundo o que causou a crise", valor: "TEO" },
-      { id: "15b", texto: "Minimizar perdas financeiras e proteger recursos", valor: "ECO" },
-      { id: "15c", texto: "Manter a harmonia e o equilíbrio do ambiente", valor: "EST" },
-      { id: "15d", texto: "Garantir que as pessoas estejam bem e protegidas", valor: "SOC" },
-      { id: "15e", texto: "Assumir o controle e liderar a solução", valor: "IND" },
-      { id: "15f", texto: "Agir de acordo com meus princípios, mesmo sob pressão", valor: "TRA" },
+      { id: "8a", texto: "Meu conhecimento e capacidade de aprender", valor: "TEO" },
+      { id: "8b", texto: "Minha capacidade de gerar riqueza e prosperidade", valor: "ECO" },
+      { id: "8c", texto: "Minha sensibilidade e percepção estética", valor: "EST" },
+      { id: "8d", texto: "Minha empatia e capacidade de ajudar os outros", valor: "SOC" },
+      { id: "8e", texto: "Minha capacidade de influenciar e liderar pessoas", valor: "IND" },
+      { id: "8f", texto: "Minha integridade e valores sólidos", valor: "TRA" },
     ],
   },
 ];
@@ -298,12 +208,15 @@ export const sprangerValuesInfo: SprangerValueInfo[] = [
 ];
 
 // Classificação dos valores baseada na pontuação
+// Ajustado para 8 questões (max 40 pontos por valor)
 export type SprangerClassification = 'SIGNIFICATIVO' | 'CIRCUNSTANCIAL' | 'INDIFERENTE';
 
 export function getSprangerClassification(score: number): SprangerClassification {
-  if (score >= 40) return 'SIGNIFICATIVO';
-  if (score >= 25) return 'CIRCUNSTANCIAL';
-  return 'INDIFERENTE';
+  // Com 8 questões: máximo 40 pontos, mínimo 0
+  // Média esperada por valor: ~20 pontos (se distribuição uniforme)
+  if (score >= 28) return 'SIGNIFICATIVO';  // Acima de 70% do max
+  if (score >= 16) return 'CIRCUNSTANCIAL'; // Entre 40-70% do max
+  return 'INDIFERENTE';                      // Abaixo de 40%
 }
 
 export function getClassificationLabel(classification: SprangerClassification): string {
