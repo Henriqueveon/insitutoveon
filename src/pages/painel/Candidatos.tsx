@@ -399,6 +399,7 @@ export default function PainelCandidatos() {
                   <TableHead className="text-slate-400">Data/Hora</TableHead>
                   <TableHead className="text-slate-400">Nome</TableHead>
                   <TableHead className="text-slate-400">Telefone</TableHead>
+                  <TableHead className="text-slate-400">E-mail</TableHead>
                   <TableHead className="text-slate-400">Cargo</TableHead>
                   <TableHead className="text-slate-400">Instagram</TableHead>
                   <TableHead className="text-slate-400 text-center">PDF</TableHead>
@@ -419,6 +420,9 @@ export default function PainelCandidatos() {
                         <Skeleton className="h-5 w-32 bg-slate-700" />
                       </TableCell>
                       <TableCell>
+                        <Skeleton className="h-5 w-40 bg-slate-700" />
+                      </TableCell>
+                      <TableCell>
                         <Skeleton className="h-5 w-24 bg-slate-700" />
                       </TableCell>
                       <TableCell>
@@ -434,7 +438,7 @@ export default function PainelCandidatos() {
                   ))
                 ) : paginatedCandidatos.length === 0 ? (
                   <TableRow className="border-slate-700">
-                    <TableCell colSpan={7} className="text-center py-12">
+                    <TableCell colSpan={8} className="text-center py-12">
                       <Users className="w-12 h-12 text-slate-600 mx-auto" />
                       <p className="mt-4 text-slate-400">Nenhum candidato encontrado</p>
                     </TableCell>
@@ -472,6 +476,28 @@ export default function PainelCandidatos() {
                             <Copy className="w-3.5 h-3.5" />
                           </Button>
                         </div>
+                      </TableCell>
+
+                      {/* E-mail com botão copiar */}
+                      <TableCell>
+                        {candidato.email ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-300 truncate max-w-[180px]">{candidato.email}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-slate-500 hover:text-[#00D9FF] hover:bg-slate-700"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                copiarTexto(candidato.email!, 'E-mail');
+                              }}
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-slate-500">-</span>
+                        )}
                       </TableCell>
 
                       {/* Cargo */}

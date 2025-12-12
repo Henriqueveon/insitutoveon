@@ -165,6 +165,7 @@ export default function SprangerTest() {
         .from('candidatos_disc')
         .insert({
           nome_completo: formData.nome_completo.trim(),
+          email: formData.email.trim(),
           telefone_whatsapp: formData.telefone_whatsapp,
           cargo_atual: formData.cargo_atual,
           empresa_instagram: formData.empresa_instagram,
