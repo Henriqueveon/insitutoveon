@@ -200,16 +200,25 @@ export default function SprangerTest() {
 
       if (error) throw error;
 
-      // If test was from an analyst, decrement their available licenses
+      // If test was from an analyst, increment their used licenses
       if (analistaId) {
-        const { error: licenseError } = await supabase.rpc('incrementar_licencas_usadas', {
-          p_analista_id: analistaId,
-        });
+        try {
+          // Get current licenses used
+          const { data: analistaData } = await supabase
+            .from('analistas')
+            .select('licencas_usadas')
+            .eq('id', analistaId)
+            .single();
 
-        if (licenseError) {
-          console.warn('Erro ao decrementar licenças (não crítico):', licenseError);
-        } else {
-          console.log('✅ Licença do analista decrementada');
+          if (analistaData) {
+            await supabase
+              .from('analistas')
+              .update({ licencas_usadas: (analistaData.licencas_usadas || 0) + 1 })
+              .eq('id', analistaId);
+            console.log('✅ Licença do analista incrementada');
+          }
+        } catch (licenseError) {
+          console.warn('Erro ao incrementar licenças (não crítico):', licenseError);
         }
       }
 

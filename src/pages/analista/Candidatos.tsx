@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthAnalista, UsuarioAnalista } from '@/context/AuthAnalistaContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -38,10 +38,10 @@ import { ptBR } from 'date-fns/locale';
 interface Candidato {
   id: string;
   nome_completo: string;
-  email: string;
+  email: string | null;
   cargo_atual: string | null;
   created_at: string;
-  perfil_disc: string | null;
+  perfil_tipo: string | null;
 }
 
 // Cores DISC conforme especificação VEON
@@ -76,7 +76,7 @@ export default function AnalistaCandidatos() {
       try {
         const { data, error } = await supabase
           .from('candidatos_disc')
-          .select('id, nome_completo, email, cargo_atual, created_at, perfil_disc')
+          .select('id, nome_completo, email, cargo_atual, created_at, perfil_tipo')
           .eq('analista_id', analista.id)
           .order('created_at', { ascending: false });
 
@@ -105,15 +105,15 @@ export default function AnalistaCandidatos() {
       filtered = filtered.filter(
         (c) =>
           c.nome_completo.toLowerCase().includes(term) ||
-          c.email.toLowerCase().includes(term) ||
+          (c.email && c.email.toLowerCase().includes(term)) ||
           (c.cargo_atual && c.cargo_atual.toLowerCase().includes(term))
       );
     }
 
     if (perfilFilter !== 'all') {
       filtered = filtered.filter((c) => {
-        if (!c.perfil_disc) return perfilFilter === 'none';
-        return c.perfil_disc.charAt(0).toUpperCase() === perfilFilter;
+        if (!c.perfil_tipo) return perfilFilter === 'none';
+        return c.perfil_tipo.charAt(0).toUpperCase() === perfilFilter;
       });
     }
 
@@ -228,7 +228,7 @@ export default function AnalistaCandidatos() {
         <Card className="bg-slate-800/50 border-slate-700">
           <CardContent className="py-3 px-4">
             <p className="text-2xl font-bold text-red-500">
-              {candidatos.filter((c) => c.perfil_disc?.charAt(0) === 'D').length}
+              {candidatos.filter((c) => c.perfil_tipo?.charAt(0) === 'D').length}
             </p>
             <p className="text-xs text-slate-400">Dominância</p>
           </CardContent>
@@ -236,7 +236,7 @@ export default function AnalistaCandidatos() {
         <Card className="bg-slate-800/50 border-slate-700">
           <CardContent className="py-3 px-4">
             <p className="text-2xl font-bold text-yellow-500">
-              {candidatos.filter((c) => c.perfil_disc?.charAt(0) === 'I').length}
+              {candidatos.filter((c) => c.perfil_tipo?.charAt(0) === 'I').length}
             </p>
             <p className="text-xs text-slate-400">Influência</p>
           </CardContent>
@@ -244,7 +244,7 @@ export default function AnalistaCandidatos() {
         <Card className="bg-slate-800/50 border-slate-700">
           <CardContent className="py-3 px-4">
             <p className="text-2xl font-bold text-green-500">
-              {candidatos.filter((c) => c.perfil_disc?.charAt(0) === 'S').length}
+              {candidatos.filter((c) => c.perfil_tipo?.charAt(0) === 'S').length}
             </p>
             <p className="text-xs text-slate-400">Estabilidade</p>
           </CardContent>
@@ -359,7 +359,7 @@ export default function AnalistaCandidatos() {
                     <TableCell className="font-medium text-white">
                       {candidato.nome_completo}
                     </TableCell>
-                    <TableCell className="text-slate-300">{candidato.email}</TableCell>
+                    <TableCell className="text-slate-300">{candidato.email || '-'}</TableCell>
                     <TableCell className="text-slate-300">
                       {candidato.cargo_atual || '-'}
                     </TableCell>
@@ -368,7 +368,7 @@ export default function AnalistaCandidatos() {
                         locale: ptBR,
                       })}
                     </TableCell>
-                    <TableCell>{renderDISCProfile(candidato.perfil_disc)}</TableCell>
+                    <TableCell>{renderDISCProfile(candidato.perfil_tipo)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button
