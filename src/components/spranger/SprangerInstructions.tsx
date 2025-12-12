@@ -12,18 +12,11 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
     <div
       className="min-h-screen"
       style={{
-        backgroundColor: '#0F172A',
-        backgroundImage: `repeating-linear-gradient(
-          45deg,
-          transparent,
-          transparent 35px,
-          rgba(30, 41, 59, 0.3) 35px,
-          rgba(30, 41, 59, 0.3) 36px
-        )`,
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
       }}
     >
       {/* Header */}
-      <header className="w-full py-4 px-4 sm:px-8 border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-10">
+      <header className="w-full py-4 px-4 sm:px-8 border-b border-white/10 bg-black/30 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Logo showText={false} />
         </div>
@@ -32,7 +25,7 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
       {/* Main Content */}
       <main className="py-8 px-4">
         <div className="max-w-2xl mx-auto">
-          <Card className="shadow-xl border-2 border-slate-700 bg-slate-800/90 backdrop-blur-sm">
+          <Card className="shadow-xl border border-white/10 bg-white/5 backdrop-blur-sm">
           <CardHeader className="text-center pb-4">
             <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl">💎</span>
@@ -47,8 +40,8 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
 
           <CardContent className="space-y-6">
             {/* Introdução */}
-            <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
-              <p className="text-sm text-slate-300 leading-relaxed">
+            <div className="bg-white/10 rounded-xl p-4 border border-white/10">
+              <p className="text-sm text-white/80 leading-relaxed">
                 Este teste vai te ajudar a entender <strong className="text-white">quais valores são mais importantes para você</strong>.
                 Não existem respostas certas ou erradas - cada pessoa valoriza coisas diferentes!
               </p>
@@ -154,7 +147,7 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
               </div>
 
               {/* Visual demo */}
-              <div className="bg-slate-700/50 rounded-xl p-4 mt-4">
+              <div className="bg-white/10 rounded-xl p-4 mt-4 border border-white/10">
                 <div className="flex items-center gap-2 mb-3">
                   <MousePointer className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium text-white">Só clicar nas opções em ordem!</span>
@@ -183,11 +176,11 @@ export function SprangerInstructions({ onStart }: SprangerInstructionsProps) {
             </div>
 
             {/* Dicas */}
-            <div className="bg-amber-500/10 rounded-xl p-4 border border-amber-500/30">
+            <div className="bg-amber-500/15 rounded-xl p-4 border border-amber-500/30">
               <h4 className="font-semibold text-amber-400 mb-2 flex items-center gap-2">
                 <span>💡</span> Dicas importantes
               </h4>
-              <ul className="text-sm text-slate-300 space-y-1">
+              <ul className="text-sm text-white/80 space-y-1">
                 <li>• Responda de forma <strong className="text-white">sincera e espontânea</strong></li>
                 <li>• Vá com sua primeira impressão - não pense demais!</li>
                 <li>• <strong className="text-white">10 perguntas</strong> • Avança automático ao completar</li>

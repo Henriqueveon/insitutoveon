@@ -154,18 +154,11 @@ export default function Assessment() {
         isTransitioning ? "opacity-50" : "opacity-100"
       )}
       style={{
-        backgroundColor: '#0F172A',
-        backgroundImage: `repeating-linear-gradient(
-          45deg,
-          transparent,
-          transparent 35px,
-          rgba(30, 41, 59, 0.3) 35px,
-          rgba(30, 41, 59, 0.3) 36px
-        )`,
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
       }}
     >
       {/* Header */}
-      <header className="w-full py-4 px-4 sm:px-8 border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-10">
+      <header className="w-full py-4 px-4 sm:px-8 border-b border-white/10 bg-black/30 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Logo showText={false} />
         </div>
@@ -268,25 +261,25 @@ export default function Assessment() {
         </div>
 
         {/* Selection summary */}
-        <div className="bg-slate-800/80 rounded-xl p-4 shadow-lg mb-6 backdrop-blur-sm">
+        <div className="bg-white/10 rounded-xl p-4 shadow-lg mb-6 backdrop-blur-sm border border-white/10">
           <div className="flex items-center justify-center gap-8">
             <div className="flex items-center gap-2">
               <div
                 className="w-5 h-5 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: selectedMais ? COLORS.green : '#475569' }}
+                style={{ backgroundColor: selectedMais ? COLORS.green : 'rgba(255,255,255,0.2)' }}
               >
                 {selectedMais && <Check className="w-3 h-3 text-white" />}
               </div>
-              <span className="text-sm text-slate-300">Mais combina</span>
+              <span className="text-sm text-white/80">Mais combina</span>
             </div>
             <div className="flex items-center gap-2">
               <div
                 className="w-5 h-5 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: selectedMenos ? COLORS.red : '#475569' }}
+                style={{ backgroundColor: selectedMenos ? COLORS.red : 'rgba(255,255,255,0.2)' }}
               >
                 {selectedMenos && <Check className="w-3 h-3 text-white" />}
               </div>
-              <span className="text-sm text-slate-300">Menos combina</span>
+              <span className="text-sm text-white/80">Menos combina</span>
             </div>
           </div>
         </div>
@@ -298,7 +291,7 @@ export default function Assessment() {
             <Button
               variant="outline"
               onClick={handlePrevious}
-              className="gap-2 border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="gap-2 border-white/20 text-white/80 hover:bg-white/10 hover:text-white bg-transparent"
             >
               <ArrowLeft className="w-4 h-4" />
               Voltar
@@ -312,7 +305,7 @@ export default function Assessment() {
             <Button
               variant="ghost"
               onClick={handleClearAnswers}
-              className="gap-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10"
+              className="gap-2 text-white/60 hover:text-red-400 hover:bg-red-500/10"
             >
               <RotateCcw className="w-4 h-4" />
               Limpar Respostas

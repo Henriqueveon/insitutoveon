@@ -160,18 +160,11 @@ export function SprangerQuestion({
         isTransitioning ? "opacity-50" : "opacity-100"
       )}
       style={{
-        backgroundColor: '#0F172A',
-        backgroundImage: `repeating-linear-gradient(
-          45deg,
-          transparent,
-          transparent 35px,
-          rgba(30, 41, 59, 0.3) 35px,
-          rgba(30, 41, 59, 0.3) 36px
-        )`,
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
       }}
     >
       {/* Header */}
-      <header className="w-full py-4 px-4 sm:px-8 border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-10">
+      <header className="w-full py-4 px-4 sm:px-8 border-b border-white/10 bg-black/30 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Logo showText={false} />
         </div>
@@ -215,7 +208,7 @@ export function SprangerQuestion({
         </div>
 
         {/* Question */}
-        <div className="bg-slate-800/80 rounded-xl p-6 shadow-lg mb-6 backdrop-blur-sm">
+        <div className="bg-white/10 rounded-xl p-6 shadow-lg mb-6 backdrop-blur-sm border border-white/10">
           <h3 className="text-xl font-display font-bold text-white">
             {question.pergunta}
           </h3>
@@ -267,7 +260,7 @@ export function SprangerQuestion({
         </div>
 
         {/* Selection summary - ranking legend */}
-        <div className="bg-slate-800/80 rounded-xl p-4 shadow-lg mb-6 backdrop-blur-sm">
+        <div className="bg-white/10 rounded-xl p-4 shadow-lg mb-6 backdrop-blur-sm border border-white/10">
           <div className="grid grid-cols-6 gap-1">
             {[1, 2, 3, 4, 5, 6].map((pos) => {
               const color = RANKING_COLORS[pos as keyof typeof RANKING_COLORS];
@@ -276,11 +269,11 @@ export function SprangerQuestion({
                 <div key={pos} className="flex flex-col items-center gap-1">
                   <div
                     className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                    style={{ backgroundColor: isSelected ? color.bg : '#475569' }}
+                    style={{ backgroundColor: isSelected ? color.bg : 'rgba(255,255,255,0.2)' }}
                   >
                     {pos}º
                   </div>
-                  <span className="text-xs text-slate-400 text-center">
+                  <span className="text-xs text-white/60 text-center">
                     {color.points}
                   </span>
                 </div>
@@ -296,7 +289,7 @@ export function SprangerQuestion({
             <Button
               variant="outline"
               onClick={onBack}
-              className="gap-2 border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="gap-2 border-white/20 text-white/80 hover:bg-white/10 hover:text-white bg-transparent"
             >
               <ArrowLeft className="w-4 h-4" />
               Voltar
@@ -310,7 +303,7 @@ export function SprangerQuestion({
             <Button
               variant="ghost"
               onClick={handleClearAnswers}
-              className="gap-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10"
+              className="gap-2 text-white/60 hover:text-red-400 hover:bg-red-500/10"
             >
               <RotateCcw className="w-4 h-4" />
               Limpar Respostas
