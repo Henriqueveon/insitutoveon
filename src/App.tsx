@@ -35,6 +35,7 @@ import PainelConfiguracoes from "./pages/painel/Configuracoes";
 import FundadorLayout from "./components/fundador/FundadorLayout";
 import ProtectedRouteFundador from "./components/auth/ProtectedRouteFundador";
 import FundadorDashboard from "./pages/fundador/Dashboard";
+import MetricasValidacao from "./pages/fundador/MetricasValidacao";
 
 // Painel do Analista
 import AnalistaLayout from "./components/analista/AnalistaLayout";
@@ -82,6 +83,7 @@ const App = () => (
                   <Route path="dashboard" element={<FundadorDashboard />} />
                   <Route path="analistas" element={<FundadorDashboard />} />
                   <Route path="licencas" element={<FundadorDashboard />} />
+                  <Route path="metricas" element={<MetricasValidacao />} />
                   <Route path="configuracoes" element={<FundadorDashboard />} />
                 </Route>
 

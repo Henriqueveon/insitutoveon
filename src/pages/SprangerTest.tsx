@@ -222,6 +222,50 @@ export default function SprangerTest() {
 
       if (error) throw error;
 
+      // Save detailed metrics to metricas_teste table
+      try {
+        const avgTimeMs = questionTimes.length > 0
+          ? Math.round(questionTimes.reduce((sum, qt) => sum + qt.timeSpentMs, 0) / questionTimes.length)
+          : null;
+
+        await supabase
+          .from('metricas_teste')
+          .insert({
+            candidato_id: data.id,
+            tempo_total_segundos: totalTimeSeconds,
+            tempo_por_questao: tempoQuestoes,
+            tempo_medio_ms: avgTimeMs,
+            // Control results
+            ctrl_atencao_passou: !reliability.flags.attention_failed,
+            ctrl_desejabilidade_passou: !reliability.flags.fake_responses,
+            ctrl_consistencia_passou: !reliability.flags.inconsistent,
+            ctrl_tempo_passou: !reliability.flags.too_fast && !reliability.flags.too_slow,
+            // Reliability
+            confiabilidade_score: reliability.score,
+            confiabilidade_nivel: reliability.nivel,
+            flags_detectadas: reliability.warnings,
+            // Raw data for analysis
+            scores_disc_brutos: naturalProfile ? {
+              D: naturalProfile.D,
+              I: naturalProfile.I,
+              S: naturalProfile.S,
+              C: naturalProfile.C
+            } : null,
+            // Patterns
+            padrao_flat_profile: reliability.flags.flat_profile,
+            padrao_contraditorio: reliability.flags.contradictory_pattern,
+            padrao_tempo_rapido: reliability.flags.too_fast,
+            padrao_tempo_lento: reliability.flags.too_slow,
+            // Metadata
+            versao_teste: '2.0',
+            dispositivo: /Mobile|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+            navegador: navigator.userAgent.substring(0, 100),
+          });
+        console.log('✅ Métricas detalhadas salvas em metricas_teste');
+      } catch (metricsError) {
+        console.warn('Erro ao salvar métricas (não crítico):', metricsError);
+      }
+
       // If test was from an analyst, increment their used licenses
       if (analistaId) {
         try {

@@ -1,12 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useAssessment, Answer } from '@/context/AssessmentContext';
-import { discQuestions } from '@/data/discQuestions';
+import { discQuestions, controlItems, ControlItem } from '@/data/discQuestions';
+import { ControlQuestion } from '@/components/test/ControlQuestion';
 import { ArrowLeft, Check, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Control questions inserted at specific positions
+const CONTROL_POSITIONS: { afterDiscQuestion: number; controlId: number }[] = [
+  { afterDiscQuestion: 10, controlId: 202 }, // Attention check after Q10
+  { afterDiscQuestion: 21, controlId: 201 }, // Social desirability after Q21
+];
 
 // Cores definidas (mais fortes)
 const COLORS = {
@@ -18,23 +25,39 @@ type SelectionStage = 'mais' | 'menos' | 'complete';
 
 export default function Assessment() {
   const navigate = useNavigate();
-  const { addAnswer, answers, calculateProfiles, setStartTime } = useAssessment();
+  const { addAnswer, answers, calculateProfiles, setStartTime, addControlAnswer, addQuestionTime } = useAssessment();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedMais, setSelectedMais] = useState<'D' | 'I' | 'S' | 'C' | null>(null);
   const [selectedMenos, setSelectedMenos] = useState<'D' | 'I' | 'S' | 'C' | null>(null);
   const [currentStage, setCurrentStage] = useState<SelectionStage>('mais');
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const totalGlobalQuestions = 46; // 25 DISC + 6 Situacionais + 15 Valores
-  const globalProgress = (currentQuestion / totalGlobalQuestions) * 100;
+  // Control question state
+  const [showControlQuestion, setShowControlQuestion] = useState(false);
+  const [currentControlItem, setCurrentControlItem] = useState<ControlItem | null>(null);
+
+  // Time tracking
+  const questionStartTime = useRef<number>(Date.now());
+
+  const totalGlobalQuestions = 47; // 25 DISC + 10 Situacionais + 8 Spranger + 4 Controles
+  // Calculate progress including control questions
+  const controlsShownSoFar = CONTROL_POSITIONS.filter(cp => currentQuestion >= cp.afterDiscQuestion).length;
+  const globalProgress = ((currentQuestion + controlsShownSoFar) / totalGlobalQuestions) * 100;
 
   // Initialize start time when component mounts
   useEffect(() => {
     setStartTime(Date.now());
   }, [setStartTime]);
 
+  // Reset question start time when question changes
+  useEffect(() => {
+    questionStartTime.current = Date.now();
+  }, [currentQuestion, showControlQuestion]);
+
   // Load existing answer for current question
   useEffect(() => {
+    if (showControlQuestion) return; // Skip if showing control question
+
     const existingAnswer = answers.find(
       (a) => a.questionId === discQuestions[currentQuestion].id
     );
@@ -48,7 +71,53 @@ export default function Assessment() {
       setCurrentStage('mais');
     }
     setIsTransitioning(false);
-  }, [currentQuestion, answers]);
+  }, [currentQuestion, answers, showControlQuestion]);
+
+  // Check if we need to show a control question after current question
+  const checkForControlQuestion = useCallback((nextQuestionIndex: number) => {
+    const controlPosition = CONTROL_POSITIONS.find(
+      cp => cp.afterDiscQuestion === nextQuestionIndex
+    );
+
+    if (controlPosition) {
+      const control = controlItems.find(c => c.id === controlPosition.controlId);
+      if (control) {
+        setCurrentControlItem(control);
+        setShowControlQuestion(true);
+        return true;
+      }
+    }
+    return false;
+  }, []);
+
+  // Handle control question answer
+  const handleControlAnswer = useCallback((controlId: number, selectedFlag: string) => {
+    // Track time spent on control question
+    const timeSpent = Date.now() - questionStartTime.current;
+    addQuestionTime({
+      questionId: controlId,
+      questionType: 'control',
+      timeSpentMs: timeSpent,
+    });
+
+    // Save control answer
+    addControlAnswer({
+      controlId,
+      selectedFlag,
+      timestamp: Date.now(),
+    });
+
+    // Hide control question and continue to next DISC question
+    setShowControlQuestion(false);
+    setCurrentControlItem(null);
+
+    // Check if this was the last DISC question
+    if (currentQuestion === discQuestions.length - 1) {
+      navigate('/teste-situacional');
+    } else {
+      setCurrentQuestion(prev => prev + 1);
+    }
+  }, [addControlAnswer, addQuestionTime, currentQuestion, navigate]);
 
   const question = discQuestions[currentQuestion];
   const isLastQuestion = currentQuestion === discQuestions.length - 1;
@@ -58,6 +127,14 @@ export default function Assessment() {
     if (selectedMais && selectedMenos && selectedMais !== selectedMenos && !isTransitioning && currentStage !== 'complete') {
       setIsTransitioning(true);
       setCurrentStage('complete');
+
+      // Track time spent on this question
+      const timeSpent = Date.now() - questionStartTime.current;
+      addQuestionTime({
+        questionId: question.id,
+        questionType: 'disc',
+        timeSpentMs: timeSpent,
+      });
 
       const answer: Answer = {
         questionId: question.id,
@@ -70,6 +147,15 @@ export default function Assessment() {
       // Auto advance after short delay for visual feedback
       setTimeout(() => {
         try {
+          // Check if we need to show a control question before advancing
+          // Note: currentQuestion is 0-indexed, so Q10 = index 9, Q21 = index 20
+          const shouldShowControl = checkForControlQuestion(currentQuestion + 1);
+
+          if (shouldShowControl) {
+            setIsTransitioning(false);
+            return;
+          }
+
           if (isLastQuestion) {
             // Don't calculate profiles yet - go to situational test first
             navigate('/teste-situacional');
@@ -82,7 +168,7 @@ export default function Assessment() {
         }
       }, 400);
     }
-  }, [selectedMais, selectedMenos, isTransitioning, currentStage, question.id, isLastQuestion, addAnswer, calculateProfiles, navigate]);
+  }, [selectedMais, selectedMenos, isTransitioning, currentStage, question.id, isLastQuestion, addAnswer, navigate, addQuestionTime, checkForControlQuestion]);
 
   // Watch for complete selection
   useEffect(() => {
@@ -146,6 +232,19 @@ export default function Assessment() {
   const shuffledDescriptors = [...question.descritores].sort(
     (a, b) => a.texto.localeCompare(b.texto)
   );
+
+  // Render control question if active
+  if (showControlQuestion && currentControlItem) {
+    return (
+      <ControlQuestion
+        controlItem={currentControlItem}
+        questionNumber={currentQuestion + controlsShownSoFar + 1}
+        totalQuestions={totalGlobalQuestions}
+        globalProgress={globalProgress}
+        onAnswer={handleControlAnswer}
+      />
+    );
+  }
 
   return (
     <div

@@ -1,12 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useAssessment, SituationalAnswer } from '@/context/AssessmentContext';
-import { discSituationalQuestions, discQuestions } from '@/data/discQuestions';
+import { discSituationalQuestions, discQuestions, controlItems, ControlItem } from '@/data/discQuestions';
+import { ControlQuestion } from '@/components/test/ControlQuestion';
 import { ArrowLeft, Briefcase, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Control questions inserted at specific positions in situational test
+const CONTROL_POSITIONS: { afterSituationalQuestion: number; controlId: number }[] = [
+  { afterSituationalQuestion: 5, controlId: 203 }, // Consistency check after Q5
+  { afterSituationalQuestion: 8, controlId: 204 }, // Social desirability 2 after Q8
+];
 
 export default function SituationalTest() {
   const navigate = useNavigate();
@@ -14,16 +21,28 @@ export default function SituationalTest() {
     answers,
     situationalAnswers,
     addSituationalAnswer,
-    calculateProfiles
+    calculateProfiles,
+    addControlAnswer,
+    addQuestionTime,
   } = useAssessment();
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOption, setSelectedOption] = useState<'D' | 'I' | 'S' | 'C' | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Total: 25 DISC + 6 Situacionais + 15 Spranger = 46 perguntas
-  const totalGlobalQuestions = 46;
-  const globalProgress = ((25 + currentQuestion) / totalGlobalQuestions) * 100;
+  // Control question state
+  const [showControlQuestion, setShowControlQuestion] = useState(false);
+  const [currentControlItem, setCurrentControlItem] = useState<ControlItem | null>(null);
+
+  // Time tracking
+  const questionStartTime = useRef<number>(Date.now());
+
+  // Total: 25 DISC + 10 Situacionais + 8 Spranger + 4 Controles = 47 perguntas
+  const totalGlobalQuestions = 47;
+  // 25 DISC + 2 controls in DISC = 27 questions before situational
+  const baseProgress = 27;
+  const controlsShownSoFar = CONTROL_POSITIONS.filter(cp => currentQuestion >= cp.afterSituationalQuestion).length;
+  const globalProgress = ((baseProgress + currentQuestion + controlsShownSoFar) / totalGlobalQuestions) * 100;
 
   // Redirect if DISC test not completed (check if all 25 DISC questions answered)
   useEffect(() => {
@@ -32,8 +51,15 @@ export default function SituationalTest() {
     }
   }, [answers, navigate]);
 
+  // Reset question start time when question changes
+  useEffect(() => {
+    questionStartTime.current = Date.now();
+  }, [currentQuestion, showControlQuestion]);
+
   // Load existing answer for current question
   useEffect(() => {
+    if (showControlQuestion) return;
+
     const existingAnswer = situationalAnswers.find(
       (a) => a.questionId === discSituationalQuestions[currentQuestion].id
     );
@@ -43,7 +69,54 @@ export default function SituationalTest() {
       setSelectedOption(null);
     }
     setIsTransitioning(false);
-  }, [currentQuestion, situationalAnswers]);
+  }, [currentQuestion, situationalAnswers, showControlQuestion]);
+
+  // Check if we need to show a control question after current question
+  const checkForControlQuestion = useCallback((nextQuestionIndex: number) => {
+    const controlPosition = CONTROL_POSITIONS.find(
+      cp => cp.afterSituationalQuestion === nextQuestionIndex
+    );
+
+    if (controlPosition) {
+      const control = controlItems.find(c => c.id === controlPosition.controlId);
+      if (control) {
+        setCurrentControlItem(control);
+        setShowControlQuestion(true);
+        return true;
+      }
+    }
+    return false;
+  }, []);
+
+  // Handle control question answer
+  const handleControlAnswer = useCallback((controlId: number, selectedFlag: string) => {
+    // Track time spent on control question
+    const timeSpent = Date.now() - questionStartTime.current;
+    addQuestionTime({
+      questionId: controlId,
+      questionType: 'control',
+      timeSpentMs: timeSpent,
+    });
+
+    // Save control answer
+    addControlAnswer({
+      controlId,
+      selectedFlag,
+      timestamp: Date.now(),
+    });
+
+    // Hide control question and continue
+    setShowControlQuestion(false);
+    setCurrentControlItem(null);
+
+    // Check if this was the last situational question
+    if (currentQuestion === discSituationalQuestions.length - 1) {
+      calculateProfiles();
+      navigate('/teste-valores');
+    } else {
+      setCurrentQuestion(prev => prev + 1);
+    }
+  }, [addControlAnswer, addQuestionTime, currentQuestion, calculateProfiles, navigate]);
 
   const question = discSituationalQuestions[currentQuestion];
   const isLastQuestion = currentQuestion === discSituationalQuestions.length - 1;
@@ -54,6 +127,14 @@ export default function SituationalTest() {
     setSelectedOption(fator);
     setIsTransitioning(true);
 
+    // Track time spent on this question
+    const timeSpent = Date.now() - questionStartTime.current;
+    addQuestionTime({
+      questionId: question.id,
+      questionType: 'situational',
+      timeSpentMs: timeSpent,
+    });
+
     const answer: SituationalAnswer = {
       questionId: question.id,
       selected: fator,
@@ -63,6 +144,14 @@ export default function SituationalTest() {
 
     // Auto advance after short delay
     setTimeout(() => {
+      // Check if we need to show a control question before advancing
+      const shouldShowControl = checkForControlQuestion(currentQuestion + 1);
+
+      if (shouldShowControl) {
+        setIsTransitioning(false);
+        return;
+      }
+
       if (isLastQuestion) {
         calculateProfiles();
         navigate('/teste-valores');
@@ -85,6 +174,19 @@ export default function SituationalTest() {
   const shuffledOptions = [...question.opcoes].sort(
     (a, b) => a.texto.localeCompare(b.texto)
   );
+
+  // Render control question if active
+  if (showControlQuestion && currentControlItem) {
+    return (
+      <ControlQuestion
+        controlItem={currentControlItem}
+        questionNumber={baseProgress + currentQuestion + controlsShownSoFar + 1}
+        totalQuestions={totalGlobalQuestions}
+        globalProgress={globalProgress}
+        onAnswer={handleControlAnswer}
+      />
+    );
+  }
 
   return (
     <div
