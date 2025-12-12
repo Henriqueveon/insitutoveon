@@ -18,27 +18,45 @@ export type Database = {
         Row: {
           cargo_atual: string
           created_at: string | null
+          email: string | null
           empresa_instagram: string
           id: string
           nome_completo: string
+          pdf_url: string | null
+          perfil_adaptado: Json | null
+          perfil_natural: Json | null
+          perfil_tipo: string | null
+          status: string | null
           telefone_whatsapp: string
           updated_at: string | null
         }
         Insert: {
           cargo_atual: string
           created_at?: string | null
+          email?: string | null
           empresa_instagram: string
           id?: string
           nome_completo: string
+          pdf_url?: string | null
+          perfil_adaptado?: Json | null
+          perfil_natural?: Json | null
+          perfil_tipo?: string | null
+          status?: string | null
           telefone_whatsapp: string
           updated_at?: string | null
         }
         Update: {
           cargo_atual?: string
           created_at?: string | null
+          email?: string | null
           empresa_instagram?: string
           id?: string
           nome_completo?: string
+          pdf_url?: string | null
+          perfil_adaptado?: Json | null
+          perfil_natural?: Json | null
+          perfil_tipo?: string | null
+          status?: string | null
           telefone_whatsapp?: string
           updated_at?: string | null
         }
