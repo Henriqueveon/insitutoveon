@@ -34,14 +34,15 @@ export function SprangerQuestion({
   onAnswer,
   onBack,
   initialAnswer,
-  totalGlobalQuestions = 35,
+  totalGlobalQuestions = 46,
   globalQuestionNumber,
 }: SprangerQuestionProps) {
   const [ranking, setRanking] = useState<string[]>([]);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Calculate global progress (DISC + Spranger)
-  const actualGlobalQuestion = globalQuestionNumber || (25 + questionNumber);
+  // Calculate global progress (DISC + Situacional + Spranger)
+  // 25 DISC + 6 Situacional + X Spranger = total position
+  const actualGlobalQuestion = globalQuestionNumber || (25 + 6 + questionNumber);
   const globalProgress = ((actualGlobalQuestion - 1) / totalGlobalQuestions) * 100;
 
   // Initialize or reset when question changes

@@ -287,7 +287,7 @@ export default function SprangerTest() {
                   Parabéns! Teste Concluído
                 </CardTitle>
                 <CardDescription className="text-base text-slate-500">
-                  Você respondeu todas as 35 perguntas! Agora preencha seus dados para ver seu resultado completo.
+                  Você respondeu todas as 46 perguntas! Agora preencha seus dados para ver seu resultado completo.
                 </CardDescription>
               </CardHeader>
 

@@ -154,6 +154,72 @@ export const sprangerQuestions: SprangerQuestion[] = [
       { id: "10f", texto: "Uma organização 100% alinhada com meus princípios", valor: "TRA" },
     ],
   },
+  // 5 NOVAS PERGUNTAS SPRANGER (11-15) - Para aumentar precisão estatística
+  {
+    id: 11,
+    contexto: "Como você prefere ser reconhecido?",
+    pergunta: "Como você prefere ser reconhecido?",
+    opcoes: [
+      { id: "11a", texto: "Por minha expertise e profundidade de conhecimento", valor: "TEO" },
+      { id: "11b", texto: "Pelos resultados financeiros que gero", valor: "ECO" },
+      { id: "11c", texto: "Pelo bom gosto e qualidade estética do meu trabalho", valor: "EST" },
+      { id: "11d", texto: "Pelo impacto positivo que tenho na vida das pessoas", valor: "SOC" },
+      { id: "11e", texto: "Pela minha capacidade de liderar e influenciar", valor: "IND" },
+      { id: "11f", texto: "Pela minha integridade e fidelidade aos meus valores", valor: "TRA" },
+    ],
+  },
+  {
+    id: 12,
+    contexto: "O que mais te frustra em um projeto?",
+    pergunta: "O que mais te frustra em um projeto?",
+    opcoes: [
+      { id: "12a", texto: "Não ter tempo para estudar e entender profundamente o assunto", valor: "TEO" },
+      { id: "12b", texto: "Perceber que o projeto não vai gerar retorno financeiro", valor: "ECO" },
+      { id: "12c", texto: "Ter que entregar algo visualmente feio ou mal acabado", valor: "EST" },
+      { id: "12d", texto: "Ver que o projeto não vai ajudar ninguém de verdade", valor: "SOC" },
+      { id: "12e", texto: "Não ter autonomia para tomar decisões importantes", valor: "IND" },
+      { id: "12f", texto: "Ter que comprometer meus princípios para entregar", valor: "TRA" },
+    ],
+  },
+  {
+    id: 13,
+    contexto: "Se você pudesse escolher um mentor, quem escolheria?",
+    pergunta: "Se você pudesse escolher um mentor, quem escolheria?",
+    opcoes: [
+      { id: "13a", texto: "Um cientista ou pesquisador renomado", valor: "TEO" },
+      { id: "13b", texto: "Um empresário bilionário de sucesso", valor: "ECO" },
+      { id: "13c", texto: "Um artista ou designer mundialmente reconhecido", valor: "EST" },
+      { id: "13d", texto: "Um líder humanitário ou filantropo", valor: "SOC" },
+      { id: "13e", texto: "Um político ou executivo de grande influência", valor: "IND" },
+      { id: "13f", texto: "Um líder espiritual ou filósofo respeitado", valor: "TRA" },
+    ],
+  },
+  {
+    id: 14,
+    contexto: "O que você considera seu maior ativo pessoal?",
+    pergunta: "O que você considera seu maior ativo pessoal?",
+    opcoes: [
+      { id: "14a", texto: "Meu conhecimento e capacidade de aprender", valor: "TEO" },
+      { id: "14b", texto: "Minha capacidade de gerar riqueza e prosperidade", valor: "ECO" },
+      { id: "14c", texto: "Minha sensibilidade e percepção estética", valor: "EST" },
+      { id: "14d", texto: "Minha empatia e capacidade de ajudar os outros", valor: "SOC" },
+      { id: "14e", texto: "Minha capacidade de influenciar e liderar pessoas", valor: "IND" },
+      { id: "14f", texto: "Minha integridade e valores sólidos", valor: "TRA" },
+    ],
+  },
+  {
+    id: 15,
+    contexto: "Em uma situação de crise, o que você prioriza?",
+    pergunta: "Em uma situação de crise, o que você prioriza?",
+    opcoes: [
+      { id: "15a", texto: "Entender a fundo o que causou a crise", valor: "TEO" },
+      { id: "15b", texto: "Minimizar perdas financeiras e proteger recursos", valor: "ECO" },
+      { id: "15c", texto: "Manter a harmonia e o equilíbrio do ambiente", valor: "EST" },
+      { id: "15d", texto: "Garantir que as pessoas estejam bem e protegidas", valor: "SOC" },
+      { id: "15e", texto: "Assumir o controle e liderar a solução", valor: "IND" },
+      { id: "15f", texto: "Agir de acordo com meus princípios, mesmo sob pressão", valor: "TRA" },
+    ],
+  },
 ];
 
 // Informações sobre cada valor de Spranger para o relatório

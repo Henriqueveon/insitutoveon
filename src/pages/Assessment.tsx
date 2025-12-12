@@ -25,7 +25,7 @@ export default function Assessment() {
   const [currentStage, setCurrentStage] = useState<SelectionStage>('mais');
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const totalGlobalQuestions = 35; // 25 DISC + 10 Valores
+  const totalGlobalQuestions = 46; // 25 DISC + 6 Situacionais + 15 Valores
   const globalProgress = (currentQuestion / totalGlobalQuestions) * 100;
 
   // Initialize start time when component mounts
@@ -71,8 +71,8 @@ export default function Assessment() {
       setTimeout(() => {
         try {
           if (isLastQuestion) {
-            calculateProfiles();
-            navigate('/teste-valores');
+            // Don't calculate profiles yet - go to situational test first
+            navigate('/teste-situacional');
           } else {
             setCurrentQuestion((prev) => prev + 1);
           }

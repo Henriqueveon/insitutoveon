@@ -17,6 +17,13 @@ export interface Answer {
   timestamp: number;
 }
 
+// Resposta para perguntas situacionais (perfil adaptado)
+export interface SituationalAnswer {
+  questionId: number;
+  selected: 'D' | 'I' | 'S' | 'C';
+  timestamp: number;
+}
+
 export interface Profile {
   D: number;
   I: number;
@@ -55,6 +62,10 @@ interface AssessmentContextType {
   answers: Answer[];
   addAnswer: (answer: Answer) => void;
   clearAnswers: () => void;
+  // Situational answers (for adapted profile)
+  situationalAnswers: SituationalAnswer[];
+  addSituationalAnswer: (answer: SituationalAnswer) => void;
+  clearSituationalAnswers: () => void;
   naturalProfile: Profile | null;
   adaptedProfile: Profile | null;
   calculateProfiles: () => void;
@@ -81,6 +92,7 @@ const AssessmentContext = createContext<AssessmentContextType | undefined>(undef
 export function AssessmentProvider({ children }: { children: ReactNode }) {
   const [candidate, setCandidate] = useState<CandidateData | null>(null);
   const [answers, setAnswers] = useState<Answer[]>([]);
+  const [situationalAnswers, setSituationalAnswers] = useState<SituationalAnswer[]>([]);
   const [naturalProfile, setNaturalProfile] = useState<Profile | null>(null);
   const [adaptedProfile, setAdaptedProfile] = useState<Profile | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -100,6 +112,18 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
 
   const clearAnswers = () => {
     setAnswers([]);
+  };
+
+  // Situational answers (for adapted profile - measured directly)
+  const addSituationalAnswer = (answer: SituationalAnswer) => {
+    setSituationalAnswers((prev) => {
+      const filtered = prev.filter((a) => a.questionId !== answer.questionId);
+      return [...filtered, answer];
+    });
+  };
+
+  const clearSituationalAnswers = () => {
+    setSituationalAnswers([]);
   };
 
   const addSprangerAnswer = (answer: SprangerAnswer) => {
@@ -127,67 +151,81 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
     // Scale is now -50 to +50 (25 questions × 2 points each direction)
     setNaturalProfile(natural);
 
-    // Calculate Adapted Profile using deterministic algorithm based on DISC theory
+    // Calculate Adapted Profile - NOW MEASURED DIRECTLY from situational questions!
     // The adapted profile represents behavioral adjustments in professional environments
-    // Based on: Marston's DISC theory - people adapt their behavior to meet environmental demands
-
-    const adapted: Profile = { ...natural };
     const factors: Array<'D' | 'I' | 'S' | 'C'> = ['D', 'I', 'S', 'C'];
 
-    // Sort factors by score to identify dominant and lowest
-    const sortedFactors = [...factors].sort((a, b) => natural[b] - natural[a]);
-    const dominant = sortedFactors[0];
-    const lowest = sortedFactors[3];
+    if (situationalAnswers.length > 0) {
+      // NEW: Calculate adapted profile from situational answers (MEASURED, not estimated)
+      // Each situational question gives +8 points to the selected factor
+      // This creates a scale similar to natural profile for comparison
+      const adapted: Profile = { D: 0, I: 0, S: 0, C: 0 };
 
-    // Calculate intensity of adaptation based on profile extremity
-    // More extreme profiles tend to adapt more in professional settings
-    const dominantScore = natural[dominant];
-    const lowestScore = natural[lowest];
-    const profileSpread = dominantScore - lowestScore; // Range: 0-100 (with +2/-2 scoring)
+      situationalAnswers.forEach((answer) => {
+        adapted[answer.selected] += 8; // 6 questions × 8 = max 48 per factor
+      });
 
-    // Adaptation intensity: profiles with larger spread adapt more (regression to mean)
-    // Formula: base adjustment + spread-based adjustment
-    // Adjusted for new scale (-50 to +50)
-    const baseAdjustment = 4; // Doubled from 2 due to new scale
-    const spreadFactor = Math.round(profileSpread * 0.04); // 0-4 additional points
-    const totalAdjustment = baseAdjustment + spreadFactor;
+      // Normalize to -50 to +50 scale to match natural profile
+      // Shift from 0-48 to centered scale
+      const totalSituational = situationalAnswers.length * 8; // Total points distributed
+      const avgPerFactor = totalSituational / 4; // Expected average if evenly distributed
 
-    // Apply DISC-theory based adaptations:
-    // In professional environments, people typically:
-    // 1. Moderate their dominant trait (social pressure to conform)
-    // 2. Increase their opposite trait (environmental demands)
-    // 3. Secondary traits shift based on professional context
+      factors.forEach(factor => {
+        // Center the scale: subtract average, multiply by factor to get -50 to +50 range
+        adapted[factor] = Math.round((adapted[factor] - avgPerFactor) * (50 / avgPerFactor));
+        // Clamp to valid range
+        adapted[factor] = Math.max(-50, Math.min(50, adapted[factor]));
+      });
 
-    // Opposite pairs in DISC: D↔S (pace), I↔C (priority)
-    const opposites: Record<string, 'D' | 'I' | 'S' | 'C'> = {
-      D: 'S', S: 'D', I: 'C', C: 'I'
-    };
+      setAdaptedProfile(adapted);
+    } else {
+      // Fallback: Calculate Adapted Profile using deterministic algorithm based on DISC theory
+      // Used only if situational questions weren't answered (backward compatibility)
+      const adapted: Profile = { ...natural };
 
-    const oppositeFactor = opposites[dominant];
+      // Sort factors by score to identify dominant and lowest
+      const sortedFactors = [...factors].sort((a, b) => natural[b] - natural[a]);
+      const dominant = sortedFactors[0];
+      const lowest = sortedFactors[3];
 
-    // Primary adaptation: reduce dominant, increase opposite
-    adapted[dominant] -= totalAdjustment;
-    adapted[oppositeFactor] += Math.round(totalAdjustment * 0.6);
+      // Calculate intensity of adaptation based on profile extremity
+      const dominantScore = natural[dominant];
+      const lowestScore = natural[lowest];
+      const profileSpread = dominantScore - lowestScore;
 
-    // Secondary adaptation: slight regression toward center for all factors
-    // This represents the "professional mask" effect
-    // Thresholds adjusted for new scale (-50 to +50)
-    factors.forEach(factor => {
-      if (factor !== dominant && factor !== oppositeFactor) {
-        if (natural[factor] > 10) {
-          adapted[factor] -= 2; // Reduce high secondary traits
-        } else if (natural[factor] < -10) {
-          adapted[factor] += 2; // Increase low secondary traits
+      const baseAdjustment = 4;
+      const spreadFactor = Math.round(profileSpread * 0.04);
+      const totalAdjustment = baseAdjustment + spreadFactor;
+
+      // Opposite pairs in DISC: D↔S (pace), I↔C (priority)
+      const opposites: Record<string, 'D' | 'I' | 'S' | 'C'> = {
+        D: 'S', S: 'D', I: 'C', C: 'I'
+      };
+
+      const oppositeFactor = opposites[dominant];
+
+      // Primary adaptation: reduce dominant, increase opposite
+      adapted[dominant] -= totalAdjustment;
+      adapted[oppositeFactor] += Math.round(totalAdjustment * 0.6);
+
+      // Secondary adaptation
+      factors.forEach(factor => {
+        if (factor !== dominant && factor !== oppositeFactor) {
+          if (natural[factor] > 10) {
+            adapted[factor] -= 2;
+          } else if (natural[factor] < -10) {
+            adapted[factor] += 2;
+          }
         }
-      }
-    });
+      });
 
-    // Ensure adapted profile stays within valid range (-50 to +50)
-    factors.forEach(factor => {
-      adapted[factor] = Math.max(-50, Math.min(50, adapted[factor]));
-    });
+      // Ensure adapted profile stays within valid range
+      factors.forEach(factor => {
+        adapted[factor] = Math.max(-50, Math.min(50, adapted[factor]));
+      });
 
-    setAdaptedProfile(adapted);
+      setAdaptedProfile(adapted);
+    }
   };
 
   const calculateSprangerProfile = () => {
@@ -383,6 +421,7 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
   const resetAssessment = () => {
     setCandidate(null);
     setAnswers([]);
+    setSituationalAnswers([]);
     setNaturalProfile(null);
     setAdaptedProfile(null);
     setStartTime(null);
@@ -400,6 +439,10 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
         answers,
         addAnswer,
         clearAnswers,
+        // Situational answers
+        situationalAnswers,
+        addSituationalAnswer,
+        clearSituationalAnswers,
         naturalProfile,
         adaptedProfile,
         calculateProfiles,
