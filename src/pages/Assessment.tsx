@@ -55,7 +55,7 @@ export default function Assessment() {
 
   // Auto-advance when both selections are made
   const handleAutoAdvance = useCallback(() => {
-    if (selectedMais && selectedMenos && selectedMais !== selectedMenos && !isTransitioning) {
+    if (selectedMais && selectedMenos && selectedMais !== selectedMenos && !isTransitioning && currentStage !== 'complete') {
       setIsTransitioning(true);
       setCurrentStage('complete');
 
@@ -69,15 +69,20 @@ export default function Assessment() {
 
       // Auto advance after short delay for visual feedback
       setTimeout(() => {
-        if (isLastQuestion) {
-          calculateProfiles();
-          navigate('/teste-valores');
-        } else {
-          setCurrentQuestion((prev) => prev + 1);
+        try {
+          if (isLastQuestion) {
+            calculateProfiles();
+            navigate('/teste-valores');
+          } else {
+            setCurrentQuestion((prev) => prev + 1);
+          }
+        } catch (error) {
+          console.error('Error advancing to next question:', error);
+          setIsTransitioning(false);
         }
       }, 400);
     }
-  }, [selectedMais, selectedMenos, isTransitioning, question.id, isLastQuestion, addAnswer, calculateProfiles, navigate]);
+  }, [selectedMais, selectedMenos, isTransitioning, currentStage, question.id, isLastQuestion, addAnswer, calculateProfiles, navigate]);
 
   // Watch for complete selection
   useEffect(() => {

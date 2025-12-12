@@ -43,13 +43,17 @@ export function SprangerQuestion({
 
   // Initialize or reset when question changes
   useEffect(() => {
+    // Reset transitioning state first
+    setIsTransitioning(false);
+
     if (initialAnswer && initialAnswer.length === 4) {
+      // If we have a complete initial answer, just set the ranking
+      // The user can go back and change it
       setRanking(initialAnswer);
     } else {
       setRanking([]);
     }
-    setIsTransitioning(false);
-  }, [question.id, initialAnswer]);
+  }, [question.id]);
 
   // Get current stage info
   const getCurrentStageInfo = () => {
@@ -86,7 +90,12 @@ export function SprangerQuestion({
       setIsTransitioning(true);
       // Auto advance after short delay for visual feedback
       setTimeout(() => {
-        onAnswer(newRanking);
+        try {
+          onAnswer(newRanking);
+        } catch (error) {
+          console.error('Error advancing to next question:', error);
+          setIsTransitioning(false);
+        }
       }, 400);
     }
   };
