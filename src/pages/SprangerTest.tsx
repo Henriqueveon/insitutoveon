@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAssessment } from '@/context/AssessmentContext';
 import { sprangerQuestions } from '@/data/sprangerQuestions';
+import { discQuestions, discSituationalQuestions } from '@/data/discQuestions';
 import { SprangerInstructions } from '@/components/spranger/SprangerInstructions';
 import { SprangerQuestion } from '@/components/spranger/SprangerQuestion';
 import { Logo } from '@/components/Logo';
@@ -38,6 +39,8 @@ const CARGO_OPTIONS = [
 export default function SprangerTest() {
   const navigate = useNavigate();
   const {
+    answers,
+    situationalAnswers,
     naturalProfile,
     sprangerAnswers,
     addSprangerAnswer,
@@ -58,12 +61,19 @@ export default function SprangerTest() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Redirect if DISC test not completed
+  // Redirect if previous tests not completed
   useEffect(() => {
-    if (!naturalProfile) {
+    // Check if DISC test completed (25 questions)
+    if (answers.length < discQuestions.length) {
       navigate('/teste');
+      return;
     }
-  }, [naturalProfile, navigate]);
+    // Check if situational test completed (6 questions)
+    if (situationalAnswers.length < discSituationalQuestions.length) {
+      navigate('/teste-situacional');
+      return;
+    }
+  }, [answers, situationalAnswers, navigate]);
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');

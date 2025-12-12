@@ -4,14 +4,14 @@ import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useAssessment, SituationalAnswer } from '@/context/AssessmentContext';
-import { discSituationalQuestions } from '@/data/discQuestions';
+import { discSituationalQuestions, discQuestions } from '@/data/discQuestions';
 import { ArrowLeft, Briefcase, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function SituationalTest() {
   const navigate = useNavigate();
   const {
-    naturalProfile,
+    answers,
     situationalAnswers,
     addSituationalAnswer,
     calculateProfiles
@@ -25,12 +25,12 @@ export default function SituationalTest() {
   const totalGlobalQuestions = 46;
   const globalProgress = ((25 + currentQuestion) / totalGlobalQuestions) * 100;
 
-  // Redirect if DISC test not completed
+  // Redirect if DISC test not completed (check if all 25 DISC questions answered)
   useEffect(() => {
-    if (!naturalProfile) {
+    if (answers.length < discQuestions.length) {
       navigate('/teste');
     }
-  }, [naturalProfile, navigate]);
+  }, [answers, navigate]);
 
   // Load existing answer for current question
   useEffect(() => {
