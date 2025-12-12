@@ -960,7 +960,8 @@ export const discProfiles: Record<string, ProfileData> = {
   }
 };
 
-export function getProfileDescription(d: number, i: number, s: number, c: number): ProfileData {
+// Calcula o tipo de perfil (ex: "D", "DI", "SC", etc.)
+export function getProfileType(d: number, i: number, s: number, c: number): string {
   const scores = { D: d, I: i, S: s, C: c };
   const sorted = Object.entries(scores).sort(([, a], [, b]) => b - a);
 
@@ -978,16 +979,21 @@ export function getProfileDescription(d: number, i: number, s: number, c: number
     // Try primary+secondary combination first
     const compositeKey1 = `${primary}${secondary}`;
     if (discProfiles[compositeKey1]) {
-      return discProfiles[compositeKey1];
+      return compositeKey1;
     }
 
     // Try secondary+primary combination (e.g., if DI doesn't exist, try ID)
     const compositeKey2 = `${secondary}${primary}`;
     if (discProfiles[compositeKey2]) {
-      return discProfiles[compositeKey2];
+      return compositeKey2;
     }
   }
 
   // Fallback to pure profile
-  return discProfiles[primary] || discProfiles.D;
+  return primary;
+}
+
+export function getProfileDescription(d: number, i: number, s: number, c: number): ProfileData {
+  const profileType = getProfileType(d, i, s, c);
+  return discProfiles[profileType] || discProfiles.D;
 }

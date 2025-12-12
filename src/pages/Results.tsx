@@ -4,7 +4,7 @@ import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAssessment } from '@/context/AssessmentContext';
-import { getProfileDescription } from '@/data/discProfiles';
+import { getProfileDescription, getProfileType } from '@/data/discProfiles';
 import { supabase } from '@/integrations/supabase/client';
 import '@/styles/pdf-styles.css';
 import { toast } from 'sonner';
@@ -51,6 +51,7 @@ export default function Results() {
   const chartRef = useRef<HTMLDivElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const [notionSynced, setNotionSynced] = useState(false);
+  const [dbSynced, setDbSynced] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
@@ -58,6 +59,43 @@ export default function Results() {
       navigate('/');
     }
   }, [candidate, naturalProfile, adaptedProfile, sprangerProfile, navigate]);
+
+  // Sync DISC profile to Supabase database
+  useEffect(() => {
+    const syncToDatabase = async () => {
+      if (dbSynced || !naturalProfile || !adaptedProfile || !candidate?.id) return;
+
+      const perfilTipo = getProfileType(
+        naturalProfile.D,
+        naturalProfile.I,
+        naturalProfile.S,
+        naturalProfile.C
+      );
+
+      try {
+        const { error } = await supabase
+          .from('candidatos_disc')
+          .update({
+            perfil_natural: { D: naturalProfile.D, I: naturalProfile.I, S: naturalProfile.S, C: naturalProfile.C },
+            perfil_adaptado: { D: adaptedProfile.D, I: adaptedProfile.I, S: adaptedProfile.S, C: adaptedProfile.C },
+            perfil_tipo: perfilTipo,
+            status: 'completo',
+          })
+          .eq('id', candidate.id);
+
+        if (error) {
+          console.warn('Erro ao atualizar perfil no banco:', error);
+        } else {
+          console.log('✅ Perfil DISC salvo no banco de dados');
+          setDbSynced(true);
+        }
+      } catch (error) {
+        console.warn('Database sync error:', error);
+      }
+    };
+
+    syncToDatabase();
+  }, [naturalProfile, adaptedProfile, candidate?.id, dbSynced]);
 
   // Sync DISC profile result to Notion
   useEffect(() => {
@@ -184,6 +222,15 @@ export default function Results() {
 
           const pdfUrl = urlData.publicUrl;
           console.log('📤 PDF uploaded to:', pdfUrl);
+
+          // Update pdf_url in database
+          if (candidate?.id && pdfUrl) {
+            await supabase
+              .from('candidatos_disc')
+              .update({ pdf_url: pdfUrl })
+              .eq('id', candidate.id);
+            console.log('✅ PDF URL salvo no banco de dados');
+          }
 
           // Update Notion with PDF URL
           const notionPageId = localStorage.getItem('candidato_notion_id');
