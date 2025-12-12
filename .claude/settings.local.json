@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell.exe -Command \"cd ''C:\\Users\\insti\\Documents\\GitHub\\insitutoveon''; node node_modules\\typescript\\bin\\tsc --noEmit 2>&1 | Select -First 80\")",
+      "Bash(powershell.exe -Command \"cd ''C:\\Users\\insti\\Documents\\GitHub\\insitutoveon''; npm install; npm run build 2>&1 | Select -First 100\")"
+    ]
+  }
+}

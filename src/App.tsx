@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AssessmentProvider } from "@/context/AssessmentContext";
 import Index from "./pages/Index";
 import Assessment from "./pages/Assessment";
+import SprangerTest from "./pages/SprangerTest";
 import Results from "./pages/Results";
 import Admin from "./pages/Admin";
 import PDFPreview from "./pages/PDFPreview";
@@ -23,6 +24,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/teste" element={<Assessment />} />
+            <Route path="/teste-valores" element={<SprangerTest />} />
             <Route path="/resultado" element={<Results />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/pdf-preview" element={<PDFPreview />} />

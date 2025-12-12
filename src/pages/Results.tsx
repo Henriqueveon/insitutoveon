@@ -18,6 +18,7 @@ import { AmplitudeAnalysis } from '@/components/report/AmplitudeAnalysis';
 import { ProgressComparison } from '@/components/report/ProgressComparison';
 import { CompetenciesRadar } from '@/components/report/CompetenciesRadar';
 import { SprangerValuesChart } from '@/components/report/SprangerValuesChart';
+import { SprangerValuesReport } from '@/components/report/SprangerValuesReport';
 import { LeadershipPieChart } from '@/components/report/LeadershipPieChart';
 
 import {
@@ -42,7 +43,7 @@ import html2pdf from 'html2pdf.js';
 
 export default function Results() {
   const navigate = useNavigate();
-  const { candidate, naturalProfile, adaptedProfile, resetAssessment } = useAssessment();
+  const { candidate, naturalProfile, adaptedProfile, sprangerProfile, resetAssessment } = useAssessment();
   const chartRef = useRef<HTMLDivElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const [notionSynced, setNotionSynced] = useState(false);
@@ -50,10 +51,10 @@ export default function Results() {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
-    if (!candidate || !naturalProfile || !adaptedProfile) {
+    if (!candidate || !naturalProfile || !adaptedProfile || !sprangerProfile) {
       navigate('/');
     }
-  }, [candidate, naturalProfile, adaptedProfile, navigate]);
+  }, [candidate, naturalProfile, adaptedProfile, sprangerProfile, navigate]);
 
   // Sync DISC profile result to Notion
   useEffect(() => {
@@ -100,7 +101,7 @@ export default function Results() {
     syncToNotion();
   }, [naturalProfile, adaptedProfile, notionSynced]);
 
-  if (!candidate || !naturalProfile || !adaptedProfile) {
+  if (!candidate || !naturalProfile || !adaptedProfile || !sprangerProfile) {
     return null;
   }
 
@@ -295,7 +296,11 @@ export default function Results() {
 
         {/* Spranger Values */}
         <section id="valores">
-          <SprangerValuesChart naturalProfile={naturalProfile} />
+          {sprangerProfile ? (
+            <SprangerValuesReport sprangerProfile={sprangerProfile} />
+          ) : (
+            <SprangerValuesChart naturalProfile={naturalProfile} />
+          )}
         </section>
 
         {/* Leadership Pie Chart */}

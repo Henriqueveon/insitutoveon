@@ -29,8 +29,8 @@ serve(async (req) => {
 
     if (action === 'create_candidate') {
       // Create a new page in Notion with candidate data
-      const { nomeCompleto, telefoneWhatsApp, cargoAtual, instagram, candidatoId } = data;
-      
+      const { nomeCompleto, email, telefoneWhatsApp, cargoAtual, instagram, candidatoId } = data;
+
       const uniqueId = `DISC-${candidatoId.substring(0, 8).toUpperCase()}`;
       const today = new Date().toISOString().split('T')[0];
 
@@ -49,6 +49,9 @@ serve(async (req) => {
             },
             'Nome Completo': {
               rich_text: [{ text: { content: nomeCompleto } }],
+            },
+            'E-mail': {
+              email: email || '',
             },
             'Telefone / WhatsApp': {
               phone_number: telefoneWhatsApp,
