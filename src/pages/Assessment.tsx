@@ -235,9 +235,9 @@ export default function Assessment() {
   if (showControlQuestion && currentControlItem) {
     return <ControlQuestion controlItem={currentControlItem} questionNumber={currentQuestion + controlsShownSoFar + 1} totalQuestions={totalGlobalQuestions} globalProgress={globalProgress} onAnswer={handleControlAnswer} />;
   }
-  return <div className={cn("min-h-screen transition-opacity duration-300", isTransitioning ? "opacity-50" : "opacity-100")} style={{
+  return <div style={{
     backgroundColor: '#FFFFFF'
-  }}>
+  }} className="">
       {/* Header */}
       <header className="w-full py-4 px-4 sm:px-8 border-b border-slate-200 bg-white sticky top-0 z-10">
         
