@@ -10,22 +10,36 @@ import { ArrowLeft, Check, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Control questions inserted at specific positions
-const CONTROL_POSITIONS: { afterDiscQuestion: number; controlId: number }[] = [
-  { afterDiscQuestion: 10, controlId: 202 }, // Attention check after Q10
-  { afterDiscQuestion: 21, controlId: 201 }, // Social desirability after Q21
+const CONTROL_POSITIONS: {
+  afterDiscQuestion: number;
+  controlId: number;
+}[] = [{
+  afterDiscQuestion: 10,
+  controlId: 202
+},
+// Attention check after Q10
+{
+  afterDiscQuestion: 21,
+  controlId: 201
+} // Social desirability after Q21
 ];
 
 // Cores definidas (mais fortes)
 const COLORS = {
   green: '#16A34A',
-  red: '#DC2626',
+  red: '#DC2626'
 };
-
 type SelectionStage = 'mais' | 'menos' | 'complete';
-
 export default function Assessment() {
   const navigate = useNavigate();
-  const { addAnswer, answers, calculateProfiles, setStartTime, addControlAnswer, addQuestionTime } = useAssessment();
+  const {
+    addAnswer,
+    answers,
+    calculateProfiles,
+    setStartTime,
+    addControlAnswer,
+    addQuestionTime
+  } = useAssessment();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedMais, setSelectedMais] = useState<'D' | 'I' | 'S' | 'C' | null>(null);
   const [selectedMenos, setSelectedMenos] = useState<'D' | 'I' | 'S' | 'C' | null>(null);
@@ -38,11 +52,10 @@ export default function Assessment() {
 
   // Time tracking
   const questionStartTime = useRef<number>(Date.now());
-
   const totalGlobalQuestions = 47; // 25 DISC + 10 Situacionais + 8 Spranger + 4 Controles
   // Calculate progress including control questions
   const controlsShownSoFar = CONTROL_POSITIONS.filter(cp => currentQuestion >= cp.afterDiscQuestion).length;
-  const globalProgress = ((currentQuestion + controlsShownSoFar) / totalGlobalQuestions) * 100;
+  const globalProgress = (currentQuestion + controlsShownSoFar) / totalGlobalQuestions * 100;
 
   // Initialize start time when component mounts
   useEffect(() => {
@@ -58,9 +71,7 @@ export default function Assessment() {
   useEffect(() => {
     if (showControlQuestion) return; // Skip if showing control question
 
-    const existingAnswer = answers.find(
-      (a) => a.questionId === discQuestions[currentQuestion].id
-    );
+    const existingAnswer = answers.find(a => a.questionId === discQuestions[currentQuestion].id);
     if (existingAnswer) {
       setSelectedMais(existingAnswer.mais);
       setSelectedMenos(existingAnswer.menos);
@@ -75,10 +86,7 @@ export default function Assessment() {
 
   // Check if we need to show a control question after current question
   const checkForControlQuestion = useCallback((nextQuestionIndex: number) => {
-    const controlPosition = CONTROL_POSITIONS.find(
-      cp => cp.afterDiscQuestion === nextQuestionIndex
-    );
-
+    const controlPosition = CONTROL_POSITIONS.find(cp => cp.afterDiscQuestion === nextQuestionIndex);
     if (controlPosition) {
       const control = controlItems.find(c => c.id === controlPosition.controlId);
       if (control) {
@@ -97,14 +105,14 @@ export default function Assessment() {
     addQuestionTime({
       questionId: controlId,
       questionType: 'control',
-      timeSpentMs: timeSpent,
+      timeSpentMs: timeSpent
     });
 
     // Save control answer
     addControlAnswer({
       controlId,
       selectedFlag,
-      timestamp: Date.now(),
+      timestamp: Date.now()
     });
 
     // Hide control question and continue to next DISC question
@@ -118,7 +126,6 @@ export default function Assessment() {
       setCurrentQuestion(prev => prev + 1);
     }
   }, [addControlAnswer, addQuestionTime, currentQuestion, navigate]);
-
   const question = discQuestions[currentQuestion];
   const isLastQuestion = currentQuestion === discQuestions.length - 1;
 
@@ -133,14 +140,13 @@ export default function Assessment() {
       addQuestionTime({
         questionId: question.id,
         questionType: 'disc',
-        timeSpentMs: timeSpent,
+        timeSpentMs: timeSpent
       });
-
       const answer: Answer = {
         questionId: question.id,
         mais: selectedMais,
         menos: selectedMenos,
-        timestamp: Date.now(),
+        timestamp: Date.now()
       };
       addAnswer(answer);
 
@@ -150,17 +156,15 @@ export default function Assessment() {
           // Check if we need to show a control question before advancing
           // Note: currentQuestion is 0-indexed, so Q10 = index 9, Q21 = index 20
           const shouldShowControl = checkForControlQuestion(currentQuestion + 1);
-
           if (shouldShowControl) {
             setIsTransitioning(false);
             return;
           }
-
           if (isLastQuestion) {
             // Don't calculate profiles yet - go to situational test first
             navigate('/teste-situacional');
           } else {
-            setCurrentQuestion((prev) => prev + 1);
+            setCurrentQuestion(prev => prev + 1);
           }
         } catch (error) {
           console.error('Error advancing to next question:', error);
@@ -174,10 +178,8 @@ export default function Assessment() {
   useEffect(() => {
     handleAutoAdvance();
   }, [handleAutoAdvance]);
-
   const handleSelect = (fator: 'D' | 'I' | 'S' | 'C') => {
     if (isTransitioning) return;
-
     if (currentStage === 'mais') {
       setSelectedMais(fator);
       setCurrentStage('menos');
@@ -190,10 +192,9 @@ export default function Assessment() {
       // Auto-advance will trigger via useEffect
     }
   };
-
   const handlePrevious = () => {
     if (currentQuestion > 0) {
-      setCurrentQuestion((prev) => prev - 1);
+      setCurrentQuestion(prev => prev - 1);
     }
   };
 
@@ -211,56 +212,35 @@ export default function Assessment() {
       case 'mais':
         return {
           title: 'SELECIONE O QUE MAIS COMBINA COM VOCÊ',
-          color: COLORS.green,
+          color: COLORS.green
         };
       case 'menos':
         return {
           title: 'AGORA SELECIONE O QUE MENOS COMBINA',
-          color: COLORS.red,
+          color: COLORS.red
         };
       default:
         return {
           title: 'COMPLETO',
-          color: COLORS.green,
+          color: COLORS.green
         };
     }
   };
-
   const stageInfo = getStageInfo();
 
   // Shuffle descriptors for each question (but consistently)
-  const shuffledDescriptors = [...question.descritores].sort(
-    (a, b) => a.texto.localeCompare(b.texto)
-  );
+  const shuffledDescriptors = [...question.descritores].sort((a, b) => a.texto.localeCompare(b.texto));
 
   // Render control question if active
   if (showControlQuestion && currentControlItem) {
-    return (
-      <ControlQuestion
-        controlItem={currentControlItem}
-        questionNumber={currentQuestion + controlsShownSoFar + 1}
-        totalQuestions={totalGlobalQuestions}
-        globalProgress={globalProgress}
-        onAnswer={handleControlAnswer}
-      />
-    );
+    return <ControlQuestion controlItem={currentControlItem} questionNumber={currentQuestion + controlsShownSoFar + 1} totalQuestions={totalGlobalQuestions} globalProgress={globalProgress} onAnswer={handleControlAnswer} />;
   }
-
-  return (
-    <div
-      className={cn(
-        "min-h-screen transition-opacity duration-300",
-        isTransitioning ? "opacity-50" : "opacity-100"
-      )}
-      style={{
-        backgroundColor: '#FFFFFF',
-      }}
-    >
+  return <div className={cn("min-h-screen transition-opacity duration-300", isTransitioning ? "opacity-50" : "opacity-100")} style={{
+    backgroundColor: '#FFFFFF'
+  }}>
       {/* Header */}
       <header className="w-full py-4 px-4 sm:px-8 border-b border-slate-200 bg-white sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Logo showText={false} />
-        </div>
+        
       </header>
 
       {/* Main Content */}
@@ -282,106 +262,81 @@ export default function Assessment() {
         </div>
 
         {/* Stage indicator */}
-        <div
-          className="rounded-xl p-4 mb-6 text-center transition-all duration-300"
-          style={{
-            backgroundColor: `${stageInfo.color}10`,
-            borderLeft: `4px solid ${stageInfo.color}`,
-          }}
-        >
-          <h2
-            className="text-lg font-bold"
-            style={{ color: stageInfo.color }}
-          >
+        <div className="rounded-xl p-4 mb-6 text-center transition-all duration-300" style={{
+        backgroundColor: `${stageInfo.color}10`,
+        borderLeft: `4px solid ${stageInfo.color}`
+      }}>
+          <h2 className="text-lg font-bold" style={{
+          color: stageInfo.color
+        }}>
             {stageInfo.title}
           </h2>
         </div>
 
         {/* Descriptors Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-          {shuffledDescriptors.map((descriptor) => {
-            const isMais = selectedMais === descriptor.fator;
-            const isMenos = selectedMenos === descriptor.fator;
-            const isSelected = isMais || isMenos;
-            const isDisabled = (currentStage === 'menos' && isMais) || currentStage === 'complete';
+          {shuffledDescriptors.map(descriptor => {
+          const isMais = selectedMais === descriptor.fator;
+          const isMenos = selectedMenos === descriptor.fator;
+          const isSelected = isMais || isMenos;
+          const isDisabled = currentStage === 'menos' && isMais || currentStage === 'complete';
 
-            // Determine border color
-            let borderColor = '#E2E8F0';
-            let backgroundColor = '#F8FAFC';
-            let textColor = '#1E293B';
-
-            if (isMais) {
-              borderColor = COLORS.green;
-              backgroundColor = COLORS.green;
-              textColor = '#FFFFFF';
-            } else if (isMenos) {
-              borderColor = COLORS.red;
-              backgroundColor = COLORS.red;
-              textColor = '#FFFFFF';
-            } else if (currentStage === 'complete') {
-              borderColor = '#CBD5E1';
-              backgroundColor = '#F1F5F9';
-            } else {
-              // Hover state color hint
-              borderColor = stageInfo.color;
-            }
-
-            return (
-              <button
-                key={descriptor.fator}
-                onClick={() => handleSelect(descriptor.fator)}
-                disabled={isDisabled || isTransitioning}
-                className={cn(
-                  'relative p-5 rounded-xl text-center transition-all duration-200',
-                  'focus:outline-none focus:ring-2 focus:ring-offset-2',
-                  !isDisabled && !isSelected && 'hover:scale-[1.02] hover:shadow-md cursor-pointer',
-                  isDisabled && 'cursor-default opacity-60',
-                  isSelected && 'shadow-lg transform scale-[1.02]'
-                )}
-                style={{
-                  borderColor,
-                  backgroundColor,
-                  borderWidth: isSelected ? '3px' : '2px',
-                  borderStyle: 'solid',
-                  color: textColor,
-                  boxShadow: isSelected ? '0 4px 12px rgba(0, 0, 0, 0.15)' : '0 2px 4px rgba(0, 0, 0, 0.05)',
-                }}
-              >
+          // Determine border color
+          let borderColor = '#E2E8F0';
+          let backgroundColor = '#F8FAFC';
+          let textColor = '#1E293B';
+          if (isMais) {
+            borderColor = COLORS.green;
+            backgroundColor = COLORS.green;
+            textColor = '#FFFFFF';
+          } else if (isMenos) {
+            borderColor = COLORS.red;
+            backgroundColor = COLORS.red;
+            textColor = '#FFFFFF';
+          } else if (currentStage === 'complete') {
+            borderColor = '#CBD5E1';
+            backgroundColor = '#F1F5F9';
+          } else {
+            // Hover state color hint
+            borderColor = stageInfo.color;
+          }
+          return <button key={descriptor.fator} onClick={() => handleSelect(descriptor.fator)} disabled={isDisabled || isTransitioning} className={cn('relative p-5 rounded-xl text-center transition-all duration-200', 'focus:outline-none focus:ring-2 focus:ring-offset-2', !isDisabled && !isSelected && 'hover:scale-[1.02] hover:shadow-md cursor-pointer', isDisabled && 'cursor-default opacity-60', isSelected && 'shadow-lg transform scale-[1.02]')} style={{
+            borderColor,
+            backgroundColor,
+            borderWidth: isSelected ? '3px' : '2px',
+            borderStyle: 'solid',
+            color: textColor,
+            boxShadow: isSelected ? '0 4px 12px rgba(0, 0, 0, 0.15)' : '0 2px 4px rgba(0, 0, 0, 0.05)'
+          }}>
                 <span className="font-semibold text-lg">
                   {descriptor.texto}
                 </span>
 
                 {/* Selection indicator */}
-                {isSelected && (
-                  <div
-                    className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center text-white shadow-md animate-in zoom-in duration-200"
-                    style={{ backgroundColor: isMais ? '#15803D' : '#B91C1C' }}
-                  >
+                {isSelected && <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center text-white shadow-md animate-in zoom-in duration-200" style={{
+              backgroundColor: isMais ? '#15803D' : '#B91C1C'
+            }}>
                     <Check className="w-4 h-4" />
-                  </div>
-                )}
-              </button>
-            );
-          })}
+                  </div>}
+              </button>;
+        })}
         </div>
 
         {/* Selection summary */}
         <div className="bg-slate-50 rounded-xl p-4 shadow-sm mb-6 border border-slate-200">
           <div className="flex items-center justify-center gap-8">
             <div className="flex items-center gap-2">
-              <div
-                className="w-5 h-5 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: selectedMais ? COLORS.green : '#E2E8F0' }}
-              >
+              <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{
+              backgroundColor: selectedMais ? COLORS.green : '#E2E8F0'
+            }}>
                 {selectedMais && <Check className="w-3 h-3 text-white" />}
               </div>
               <span className="text-sm text-slate-600">Mais combina</span>
             </div>
             <div className="flex items-center gap-2">
-              <div
-                className="w-5 h-5 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: selectedMenos ? COLORS.red : '#E2E8F0' }}
-              >
+              <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{
+              backgroundColor: selectedMenos ? COLORS.red : '#E2E8F0'
+            }}>
                 {selectedMenos && <Check className="w-3 h-3 text-white" />}
               </div>
               <span className="text-sm text-slate-600">Menos combina</span>
@@ -392,32 +347,17 @@ export default function Assessment() {
         {/* Navigation buttons */}
         <div className="flex items-center justify-between gap-4">
           {/* Back button */}
-          {currentQuestion > 0 ? (
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              className="gap-2 border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-800"
-            >
+          {currentQuestion > 0 ? <Button variant="outline" onClick={handlePrevious} className="gap-2 border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-800">
               <ArrowLeft className="w-4 h-4" />
               Voltar
-            </Button>
-          ) : (
-            <div />
-          )}
+            </Button> : <div />}
 
           {/* Clear button - CORREÇÃO 1 */}
-          {(selectedMais || selectedMenos) && (
-            <Button
-              variant="ghost"
-              onClick={handleClearAnswers}
-              className="gap-2 text-slate-500 hover:text-red-600 hover:bg-red-50"
-            >
+          {(selectedMais || selectedMenos) && <Button variant="ghost" onClick={handleClearAnswers} className="gap-2 text-slate-500 hover:text-red-600 hover:bg-red-50">
               <RotateCcw className="w-4 h-4" />
               Limpar Respostas
-            </Button>
-          )}
+            </Button>}
         </div>
       </main>
-    </div>
-  );
+    </div>;
 }
