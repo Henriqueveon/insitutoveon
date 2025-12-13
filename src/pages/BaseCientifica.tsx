@@ -41,13 +41,13 @@ const BaseCientifica = () => {
           <motion.div {...fadeInUp} className="text-center">
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
               <Shield className="w-4 h-4 text-[#E31E24]" />
-              <span className="text-sm font-medium">Documentacao Tecnica Oficial</span>
+              <span className="text-sm font-medium">Documentação Técnica Oficial</span>
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Base Cientifica do
+              Base Científica do
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-200">
-                Assessment VEON
+                Assessment Veon
               </span>
             </h1>
 
@@ -59,11 +59,11 @@ const BaseCientifica = () => {
             <div className="flex flex-wrap justify-center gap-4 mb-12">
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
                 <CheckCircle2 className="w-5 h-5 text-green-400" />
-                <span>87-90% de Precisao</span>
+                <span>87-90% de Precisão</span>
               </div>
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
                 <CheckCircle2 className="w-5 h-5 text-green-400" />
-                <span>Validacao Estatistica</span>
+                <span>Validação Estatística</span>
               </div>
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
                 <CheckCircle2 className="w-5 h-5 text-green-400" />
@@ -85,31 +85,31 @@ const BaseCientifica = () => {
                   <Building2 className="w-8 h-8 text-[#003DA5]" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg">Instituto VEON LTDA</h3>
+                  <h3 className="font-bold text-lg">Instituto Veon LTDA</h3>
                   <p className="text-blue-200 text-sm">CNPJ: 51.065.648/0001-87</p>
                   <p className="text-blue-200 text-sm">Escola do Varejo - Cascavel, PR</p>
                 </div>
               </div>
               <div className="text-center md:text-right">
-                <p className="text-blue-200 text-sm mb-1">Missao</p>
-                <p className="font-semibold italic">"A bussola que aponta para o sucesso"</p>
+                <p className="text-blue-200 text-sm mb-1">Missão</p>
+                <p className="font-semibold italic">"Guiar até a terra da prosperidade empresários presos na ilha da escassez."</p>
               </div>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Navegacao por Tabs */}
+      {/* Navegação por Tabs */}
       <section className="sticky top-0 z-40 bg-white border-b shadow-sm">
         <div className="max-w-6xl mx-auto px-6">
           <nav className="flex overflow-x-auto gap-1 py-2">
             {[
               { id: 'fundamentos', label: 'Fundamentos', icon: BookOpen },
               { id: 'metodologia', label: 'Metodologia', icon: Brain },
-              { id: 'precisao', label: 'Precisao', icon: Target },
+              { id: 'precisao', label: 'Precisão', icon: Target },
               { id: 'comparativo', label: 'Comparativo', icon: BarChart3 },
-              { id: 'seguranca', label: 'Seguranca', icon: Lock },
-              { id: 'sobre', label: 'Sobre Nos', icon: Users },
+              { id: 'seguranca', label: 'Segurança', icon: Lock },
+              { id: 'sobre', label: 'Sobre Nós', icon: Users },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -128,7 +128,7 @@ const BaseCientifica = () => {
         </div>
       </section>
 
-      {/* Conteudo Dinamico */}
+      {/* Conteúdo Dinâmico */}
       <div className="max-w-6xl mx-auto px-6 py-12">
         <AnimatePresence mode="wait">
           {/* FUNDAMENTOS */}
@@ -142,7 +142,7 @@ const BaseCientifica = () => {
             >
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4">
-                  Fundamentacao Teorica
+                  Fundamentação Teórica
                 </h2>
                 <p className="text-xl text-slate-600 max-w-2xl mx-auto">
                   Nossa metodologia combina duas das mais respeitadas teorias da psicologia organizacional
@@ -166,10 +166,10 @@ const BaseCientifica = () => {
                     <h4 className="font-semibold text-slate-800">Os 4 Fatores Comportamentais:</h4>
                     <div className="space-y-3">
                       {[
-                        { letter: 'D', name: 'Dominancia', desc: 'Como voce lida com problemas e desafios', color: 'bg-red-500' },
-                        { letter: 'I', name: 'Influencia', desc: 'Como voce lida com pessoas e contatos', color: 'bg-yellow-500' },
-                        { letter: 'S', name: 'Estabilidade', desc: 'Como voce lida com ritmo e consistencia', color: 'bg-green-500' },
-                        { letter: 'C', name: 'Conformidade', desc: 'Como voce lida com regras e procedimentos', color: 'bg-blue-500' },
+                        { letter: 'D', name: 'Dominância', desc: 'Como você lida com problemas e desafios', color: 'bg-red-500' },
+                        { letter: 'I', name: 'Influência', desc: 'Como você lida com pessoas e contatos', color: 'bg-yellow-500' },
+                        { letter: 'S', name: 'Estabilidade', desc: 'Como você lida com ritmo e consistência', color: 'bg-green-500' },
+                        { letter: 'C', name: 'Conformidade', desc: 'Como você lida com regras e procedimentos', color: 'bg-blue-500' },
                       ].map((item) => (
                         <div key={item.letter} className="flex items-center gap-3 bg-white rounded-lg p-3 shadow-sm">
                           <div className={`w-10 h-10 ${item.color} rounded-lg flex items-center justify-center`}>
@@ -188,11 +188,11 @@ const BaseCientifica = () => {
                     <h4 className="font-semibold text-slate-800 mb-4">Por que DISC funciona?</h4>
                     <ul className="space-y-3">
                       {[
-                        'Baseado em comportamentos observaveis, nao em tracos ocultos',
-                        'Neutro valorativamente - nao existem perfis "bons" ou "ruins"',
+                        'Baseado em comportamentos observáveis, não em traços ocultos',
+                        'Neutro valorativamente - não existem perfis "bons" ou "ruins"',
                         'Alta aplicabilidade no contexto organizacional',
-                        'Facilmente compreensivel por nao-psicologos',
-                        'Mais de 90 anos de validacao cientifica global',
+                        'Facilmente compreensível por não-psicólogos',
+                        'Mais de 90 anos de validação científica global',
                         'Utilizado por 75% das empresas Fortune 500'
                       ].map((item, i) => (
                         <li key={i} className="flex items-start gap-2">
@@ -219,12 +219,12 @@ const BaseCientifica = () => {
 
                 <div className="grid md:grid-cols-3 gap-4 mb-6">
                   {[
-                    { name: 'Teorico', desc: 'Busca pela verdade e conhecimento', icon: '🎓' },
-                    { name: 'Economico', desc: 'Foco em resultados e retorno', icon: '💰' },
-                    { name: 'Estetico', desc: 'Valoriza harmonia e beleza', icon: '🎨' },
-                    { name: 'Social', desc: 'Dedicacao ao proximo', icon: '❤️' },
-                    { name: 'Politico', desc: 'Busca por influencia e poder', icon: '👑' },
-                    { name: 'Religioso', desc: 'Busca por significado e proposito', icon: '✨' },
+                    { name: 'Teórico', desc: 'Busca pela verdade e conhecimento', icon: '🎓' },
+                    { name: 'Econômico', desc: 'Foco em resultados e retorno', icon: '💰' },
+                    { name: 'Estético', desc: 'Valoriza harmonia e beleza', icon: '🎨' },
+                    { name: 'Social', desc: 'Dedicação ao próximo', icon: '❤️' },
+                    { name: 'Político', desc: 'Busca por influência e poder', icon: '👑' },
+                    { name: 'Religioso', desc: 'Busca por significado e propósito', icon: '✨' },
                   ].map((valor) => (
                     <div key={valor.name} className="bg-white rounded-xl p-4 shadow-sm text-center">
                       <span className="text-3xl mb-2 block">{valor.icon}</span>
@@ -236,8 +236,8 @@ const BaseCientifica = () => {
 
                 <div className="bg-purple-100 rounded-xl p-4">
                   <p className="text-purple-800 text-center">
-                    <strong>Diferencial VEON:</strong> A combinacao de DISC (comportamento) + Spranger (motivacao)
-                    oferece uma visao 360 do candidato, respondendo nao apenas "como" ele age, mas "por que" age assim.
+                    <strong>Diferencial Veon:</strong> A combinação de DISC (comportamento) + Spranger (motivação)
+                    oferece uma visão 360° do candidato, respondendo não apenas "como" ele age, mas "por quê" age assim.
                   </p>
                 </div>
               </div>
@@ -267,10 +267,10 @@ const BaseCientifica = () => {
                 <h3 className="text-xl font-bold text-slate-800 mb-6 text-center">Fluxo do Assessment</h3>
                 <div className="grid md:grid-cols-4 gap-4">
                   {[
-                    { step: '01', title: 'DISC', desc: '25 questoes de escolha forcada com 4 descritores cada', time: '8-12 min' },
-                    { step: '02', title: 'Valores', desc: '10 questoes de priorizacao hierarquica de valores', time: '5-8 min' },
-                    { step: '03', title: 'Validacao', desc: 'Questoes de controle para garantir consistencia', time: 'Automatico' },
-                    { step: '04', title: 'Relatorio', desc: 'Geracao instantanea de relatorio completo', time: 'Instantaneo' },
+                    { step: '01', title: 'DISC', desc: '25 questões de escolha forçada com 4 descritores cada', time: '8-12 min' },
+                    { step: '02', title: 'Valores', desc: '10 questões de priorização hierárquica de valores', time: '5-8 min' },
+                    { step: '03', title: 'Validação', desc: 'Questões de controle para garantir consistência', time: 'Automático' },
+                    { step: '04', title: 'Relatório', desc: 'Geração instantânea de relatório completo', time: 'Instantâneo' },
                   ].map((item, i) => (
                     <div key={i} className="relative">
                       <div className="bg-white rounded-xl p-6 shadow-sm h-full">
@@ -291,16 +291,16 @@ const BaseCientifica = () => {
                 </div>
               </div>
 
-              {/* Sistema de Pontuacao */}
+              {/* Sistema de Pontuação */}
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="bg-white rounded-2xl p-8 border shadow-sm">
                   <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                     <BarChart3 className="w-6 h-6 text-[#003DA5]" />
-                    Sistema de Pontuacao DISC
+                    Sistema de Pontuação DISC
                   </h3>
                   <div className="space-y-4">
                     <div className="bg-slate-50 rounded-lg p-4">
-                      <p className="font-mono text-sm mb-2">Pesos por posicao:</p>
+                      <p className="font-mono text-sm mb-2">Pesos por posição:</p>
                       <div className="grid grid-cols-4 gap-2 text-center">
                         <div className="bg-green-100 text-green-700 rounded p-2">
                           <div className="font-bold">+2</div>
@@ -321,8 +321,8 @@ const BaseCientifica = () => {
                       </div>
                     </div>
                     <p className="text-slate-600 text-sm">
-                      O sistema de pesos +2/-2 oferece maior discriminacao entre perfis,
-                      resultando em diferenciacao mais precisa que sistemas binarios tradicionais.
+                      O sistema de pesos +2/-2 oferece maior discriminação entre perfis,
+                      resultando em diferenciação mais precisa que sistemas binários tradicionais.
                     </p>
                   </div>
                 </div>
@@ -330,14 +330,14 @@ const BaseCientifica = () => {
                 <div className="bg-white rounded-2xl p-8 border shadow-sm">
                   <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                     <Shield className="w-6 h-6 text-[#E31E24]" />
-                    Controles de Validacao
+                    Controles de Validação
                   </h3>
                   <div className="space-y-3">
                     {[
-                      { name: 'Controle de Atencao', desc: 'Detecta respostas aleatorias ou desatentas' },
-                      { name: 'Controle de Desejabilidade', desc: 'Identifica tentativas de manipulacao' },
-                      { name: 'Controle de Consistencia', desc: 'Verifica coerencia entre respostas similares' },
-                      { name: 'Controle de Tempo', desc: 'Analisa padroes temporais anomalos' },
+                      { name: 'Controle de Atenção', desc: 'Detecta respostas aleatórias ou desatentas' },
+                      { name: 'Controle de Desejabilidade', desc: 'Identifica tentativas de manipulação' },
+                      { name: 'Controle de Consistência', desc: 'Verifica coerência entre respostas similares' },
+                      { name: 'Controle de Tempo', desc: 'Analisa padrões temporais anômalos' },
                     ].map((control, i) => (
                       <div key={i} className="flex items-start gap-3 bg-slate-50 rounded-lg p-3">
                         <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -356,9 +356,9 @@ const BaseCientifica = () => {
                 <h3 className="text-xl font-bold mb-6 text-center">Score de Confiabilidade</h3>
                 <div className="grid md:grid-cols-4 gap-4">
                   {[
-                    { nivel: 'ALTA', range: '80-100', color: 'bg-green-500', desc: 'Resultado altamente confiavel' },
-                    { nivel: 'MEDIA', range: '60-79', color: 'bg-yellow-500', desc: 'Resultado confiavel com ressalvas' },
-                    { nivel: 'BAIXA', range: '40-59', color: 'bg-orange-500', desc: 'Recomenda-se reaplicacao' },
+                    { nivel: 'ALTA', range: '80-100', color: 'bg-green-500', desc: 'Resultado altamente confiável' },
+                    { nivel: 'MÉDIA', range: '60-79', color: 'bg-yellow-500', desc: 'Resultado confiável com ressalvas' },
+                    { nivel: 'BAIXA', range: '40-59', color: 'bg-orange-500', desc: 'Recomenda-se reaplicação' },
                     { nivel: 'SUSPEITA', range: '0-39', color: 'bg-red-500', desc: 'Resultado comprometido' },
                   ].map((item) => (
                     <div key={item.nivel} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
@@ -386,10 +386,10 @@ const BaseCientifica = () => {
             >
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4">
-                  Precisao e Validade
+                  Precisão e Validade
                 </h2>
                 <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-                  Metricas psicometricas que garantem a qualidade dos resultados
+                  Métricas psicométricas que garantem a qualidade dos resultados
                 </p>
               </div>
 
@@ -399,16 +399,16 @@ const BaseCientifica = () => {
                   <div className="w-20 h-20 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center">
                     <span className="text-3xl font-bold text-white">87%</span>
                   </div>
-                  <h3 className="text-xl font-bold text-slate-800 mb-2">Precisao Minima</h3>
-                  <p className="text-slate-600">Indice de acerto na predicao de adequacao comportamental ao cargo</p>
+                  <h3 className="text-xl font-bold text-slate-800 mb-2">Precisão Mínima</h3>
+                  <p className="text-slate-600">Índice de acerto na predição de adequação comportamental ao cargo</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl p-8 border border-blue-100 text-center">
                   <div className="w-20 h-20 bg-[#003DA5] rounded-full mx-auto mb-4 flex items-center justify-center">
                     <span className="text-3xl font-bold text-white">90%</span>
                   </div>
-                  <h3 className="text-xl font-bold text-slate-800 mb-2">Precisao Maxima</h3>
-                  <p className="text-slate-600">Com integracao completa DISC + Valores de Spranger</p>
+                  <h3 className="text-xl font-bold text-slate-800 mb-2">Precisão Máxima</h3>
+                  <p className="text-slate-600">Com integração completa DISC + Valores de Spranger</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-purple-50 to-white rounded-2xl p-8 border border-purple-100 text-center">
@@ -416,33 +416,33 @@ const BaseCientifica = () => {
                     <span className="text-3xl font-bold text-white">0.85</span>
                   </div>
                   <h3 className="text-xl font-bold text-slate-800 mb-2">Alpha de Cronbach</h3>
-                  <p className="text-slate-600">Consistencia interna do instrumento (meta)</p>
+                  <p className="text-slate-600">Consistência interna do instrumento (meta)</p>
                 </div>
               </div>
 
               {/* Tipos de Validade */}
               <div className="bg-slate-50 rounded-2xl p-8">
-                <h3 className="text-xl font-bold text-slate-800 mb-6">Tipos de Validade Cientifica</h3>
+                <h3 className="text-xl font-bold text-slate-800 mb-6">Tipos de Validade Científica</h3>
                 <div className="grid md:grid-cols-2 gap-6">
                   {[
                     {
                       title: 'Validade de Construto',
-                      desc: 'O teste mede efetivamente os tracos comportamentais DISC conforme definidos teoricamente por Marston.',
+                      desc: 'O teste mede efetivamente os traços comportamentais DISC conforme definidos teoricamente por Marston.',
                       status: 'Validado'
                     },
                     {
-                      title: 'Validade de Conteudo',
+                      title: 'Validade de Conteúdo',
                       desc: 'Os itens do teste cobrem adequadamente todos os aspectos dos construtos medidos.',
                       status: 'Validado'
                     },
                     {
                       title: 'Validade Preditiva',
-                      desc: 'Os resultados predizem com precisao o desempenho futuro no ambiente de trabalho.',
-                      status: 'Em validacao continua'
+                      desc: 'Os resultados predizem com precisão o desempenho futuro no ambiente de trabalho.',
+                      status: 'Em validação contínua'
                     },
                     {
                       title: 'Validade Convergente',
-                      desc: 'Correlacao positiva com outros instrumentos que medem construtos similares.',
+                      desc: 'Correlação positiva com outros instrumentos que medem construtos similares.',
                       status: 'Demonstrado'
                     },
                   ].map((item, i) => (
@@ -459,19 +459,19 @@ const BaseCientifica = () => {
                 </div>
               </div>
 
-              {/* Diferencial Estatistico */}
+              {/* Diferencial Estatístico */}
               <div className="bg-white rounded-2xl p-8 border shadow-sm">
-                <h3 className="text-xl font-bold text-slate-800 mb-6">Por que nossa precisao e superior?</h3>
+                <h3 className="text-xl font-bold text-slate-800 mb-6">Por que nossa precisão é superior?</h3>
                 <div className="grid md:grid-cols-2 gap-8">
                   <div>
-                    <h4 className="font-semibold text-slate-800 mb-4">Metodos Tradicionais</h4>
+                    <h4 className="font-semibold text-slate-800 mb-4">Métodos Tradicionais</h4>
                     <ul className="space-y-2">
                       {[
-                        'Tipologia fixa (16 tipos imutaveis)',
+                        'Tipologia fixa (16 tipos imutáveis)',
                         'Baixa confiabilidade teste-reteste (~50%)',
-                        'Sem controles de validacao',
-                        'Perfil unico sem contexto',
-                        'Pontuacao binaria simplificada'
+                        'Sem controles de validação',
+                        'Perfil único sem contexto',
+                        'Pontuação binária simplificada'
                       ].map((item, i) => (
                         <li key={i} className="flex items-center gap-2 text-slate-500">
                           <span className="w-2 h-2 bg-red-400 rounded-full" />
@@ -481,13 +481,13 @@ const BaseCientifica = () => {
                     </ul>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-slate-800 mb-4">Metodologia VEON</h4>
+                    <h4 className="font-semibold text-slate-800 mb-4">Metodologia Veon</h4>
                     <ul className="space-y-2">
                       {[
-                        'Espectro continuo de intensidades',
-                        'Controles de validacao integrados',
+                        'Espectro contínuo de intensidades',
+                        'Controles de validação integrados',
                         'Score de confiabilidade transparente',
-                        'Integracao comportamento + motivacao',
+                        'Integração comportamento + motivação',
                         'Sistema de pesos diferenciado (+2/-2)'
                       ].map((item, i) => (
                         <li key={i} className="flex items-center gap-2 text-slate-700">
@@ -516,7 +516,7 @@ const BaseCientifica = () => {
                   Comparativo de Mercado
                 </h2>
                 <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-                  Como nos posicionamos em relacao as principais ferramentas do mercado
+                  Como nos posicionamos em relação às principais ferramentas do mercado
                 </p>
               </div>
 
@@ -525,11 +525,11 @@ const BaseCientifica = () => {
                 <table className="w-full bg-white rounded-2xl shadow-sm overflow-hidden">
                   <thead>
                     <tr className="bg-slate-50">
-                      <th className="px-6 py-4 text-left font-bold text-slate-800">Caracteristica</th>
+                      <th className="px-6 py-4 text-left font-bold text-slate-800">Característica</th>
                       <th className="px-6 py-4 text-center font-bold text-[#003DA5] bg-blue-50">
                         <div className="flex items-center justify-center gap-2">
                           <Award className="w-5 h-5" />
-                          VEON Assessment
+                          Veon Assessment
                         </div>
                       </th>
                       <th className="px-6 py-4 text-center font-bold text-slate-600">MBTI</th>
@@ -539,16 +539,16 @@ const BaseCientifica = () => {
                   </thead>
                   <tbody className="divide-y">
                     {[
-                      { feature: 'Precisao Preditiva', veon: '87-90%', mbti: '~50%', disc: '70-75%', big5: '75-80%' },
-                      { feature: 'Teste-Reteste', veon: 'Alto', mbti: 'Baixo', disc: 'Medio', big5: 'Alto' },
-                      { feature: 'Tempo de Aplicacao', veon: '15-20 min', mbti: '20-30 min', disc: '10-15 min', big5: '25-40 min' },
-                      { feature: 'Controles de Validacao', veon: '4 tipos', mbti: 'Nenhum', disc: '0-1', big5: '1-2' },
-                      { feature: 'Analise Motivacional', veon: 'Spranger', mbti: 'Nao', disc: 'Nao', big5: 'Parcial' },
-                      { feature: 'Score de Confiabilidade', veon: 'Sim', mbti: 'Nao', disc: 'Raro', big5: 'Raro' },
-                      { feature: 'Foco Organizacional', veon: 'Alto (Varejo)', mbti: 'Generico', disc: 'Alto', big5: 'Medio' },
-                      { feature: 'Custo por Aplicacao', veon: 'Acessivel', mbti: 'Alto', disc: 'Variavel', big5: 'Medio' },
-                      { feature: 'Relatorio Instantaneo', veon: 'Sim', mbti: 'Nao', disc: 'Variavel', big5: 'Nao' },
-                      { feature: 'Adaptado ao Brasil', veon: 'Sim', mbti: 'Traduzido', disc: 'Variavel', big5: 'Traduzido' },
+                      { feature: 'Precisão Preditiva', veon: '87-90%', mbti: '~50%', disc: '70-75%', big5: '75-80%' },
+                      { feature: 'Teste-Reteste', veon: 'Alto', mbti: 'Baixo', disc: 'Médio', big5: 'Alto' },
+                      { feature: 'Tempo de Aplicação', veon: '15-20 min', mbti: '20-30 min', disc: '10-15 min', big5: '25-40 min' },
+                      { feature: 'Controles de Validação', veon: '4 tipos', mbti: 'Nenhum', disc: '0-1', big5: '1-2' },
+                      { feature: 'Análise Motivacional', veon: 'Spranger', mbti: 'Não', disc: 'Não', big5: 'Parcial' },
+                      { feature: 'Score de Confiabilidade', veon: 'Sim', mbti: 'Não', disc: 'Raro', big5: 'Raro' },
+                      { feature: 'Foco Organizacional', veon: 'Alto (Varejo)', mbti: 'Genérico', disc: 'Alto', big5: 'Médio' },
+                      { feature: 'Custo por Aplicação', veon: 'Acessível', mbti: 'Alto', disc: 'Variável', big5: 'Médio' },
+                      { feature: 'Relatório Instantâneo', veon: 'Sim', mbti: 'Não', disc: 'Variável', big5: 'Não' },
+                      { feature: 'Adaptado ao Brasil', veon: 'Sim', mbti: 'Traduzido', disc: 'Variável', big5: 'Traduzido' },
                     ].map((row, i) => (
                       <tr key={i} className="hover:bg-slate-50">
                         <td className="px-6 py-4 font-medium text-slate-800">{row.feature}</td>
@@ -574,28 +574,28 @@ const BaseCientifica = () => {
                 <div className="bg-gradient-to-br from-red-50 to-white rounded-xl p-6 border border-red-100">
                   <h4 className="font-bold text-slate-800 mb-3">vs. MBTI</h4>
                   <p className="text-slate-600 text-sm mb-4">
-                    O MBTI usa tipologia fixa com 50% de inconsistencia no reteste.
-                    Nossa abordagem dimensional oferece maior precisao e aplicabilidade organizacional.
+                    O MBTI usa tipologia fixa com 50% de inconsistência no reteste.
+                    Nossa abordagem dimensional oferece maior precisão e aplicabilidade organizacional.
                   </p>
-                  <div className="text-2xl font-bold text-[#E31E24]">+37% precisao</div>
+                  <div className="text-2xl font-bold text-[#E31E24]">+37% precisão</div>
                 </div>
 
                 <div className="bg-gradient-to-br from-yellow-50 to-white rounded-xl p-6 border border-yellow-100">
                   <h4 className="font-bold text-slate-800 mb-3">vs. DISC Tradicional</h4>
                   <p className="text-slate-600 text-sm mb-4">
-                    Adicionamos analise motivacional (Spranger), controles de validacao
-                    e score de confiabilidade ausentes em versoes tradicionais.
+                    Adicionamos análise motivacional (Spranger), controles de validação
+                    e score de confiabilidade ausentes em versões tradicionais.
                   </p>
-                  <div className="text-2xl font-bold text-yellow-600">+15% precisao</div>
+                  <div className="text-2xl font-bold text-yellow-600">+15% precisão</div>
                 </div>
 
                 <div className="bg-gradient-to-br from-green-50 to-white rounded-xl p-6 border border-green-100">
                   <h4 className="font-bold text-slate-800 mb-3">vs. Big Five</h4>
                   <p className="text-slate-600 text-sm mb-4">
-                    Mantemos rigor cientifico similar com aplicacao mais rapida
-                    e foco especifico no contexto organizacional do varejo brasileiro.
+                    Mantemos rigor científico similar com aplicação mais rápida
+                    e foco específico no contexto organizacional do varejo brasileiro.
                   </p>
-                  <div className="text-2xl font-bold text-green-600">+10% precisao</div>
+                  <div className="text-2xl font-bold text-green-600">+10% precisão</div>
                 </div>
               </div>
             </motion.div>
@@ -612,10 +612,10 @@ const BaseCientifica = () => {
             >
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4">
-                  Seguranca e Conformidade
+                  Segurança e Conformidade
                 </h2>
                 <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-                  Protecao de dados e conformidade legal em todos os niveis
+                  Proteção de dados e conformidade legal em todos os níveis
                 </p>
               </div>
 
@@ -628,17 +628,17 @@ const BaseCientifica = () => {
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-slate-800">LGPD Compliant</h3>
-                      <p className="text-slate-500">Lei Geral de Protecao de Dados</p>
+                      <p className="text-slate-500">Lei Geral de Proteção de Dados</p>
                     </div>
                   </div>
                   <ul className="space-y-3">
                     {[
-                      'Consentimento explicito antes da coleta',
-                      'Finalidade especifica e documentada',
-                      'Direito de acesso e exclusao garantido',
-                      'Minimizacao de dados coletados',
+                      'Consentimento explícito antes da coleta',
+                      'Finalidade específica e documentada',
+                      'Direito de acesso e exclusão garantido',
+                      'Minimização de dados coletados',
                       'Armazenamento seguro e criptografado',
-                      'Politica de retencao definida'
+                      'Política de retenção definida'
                     ].map((item, i) => (
                       <li key={i} className="flex items-start gap-2">
                         <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -648,24 +648,24 @@ const BaseCientifica = () => {
                   </ul>
                 </div>
 
-                {/* Seguranca Tecnica */}
+                {/* Segurança Técnica */}
                 <div className="bg-white rounded-2xl p-8 border shadow-sm">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
                       <Lock className="w-7 h-7 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-slate-800">Seguranca Tecnica</h3>
+                      <h3 className="text-xl font-bold text-slate-800">Segurança Técnica</h3>
                       <p className="text-slate-500">Infraestrutura protegida</p>
                     </div>
                   </div>
                   <ul className="space-y-3">
                     {[
-                      'Criptografia TLS 1.3 em transito',
+                      'Criptografia TLS 1.3 em trânsito',
                       'Dados em repouso criptografados (AES-256)',
-                      'Autenticacao segura via Supabase Auth',
+                      'Autenticação segura via Supabase Auth',
                       'Logs de auditoria completos',
-                      'Backup automatico diario',
+                      'Backup automático diário',
                       'Infraestrutura em nuvem certificada'
                     ].map((item, i) => (
                       <li key={i} className="flex items-start gap-2">
@@ -677,24 +677,24 @@ const BaseCientifica = () => {
                 </div>
               </div>
 
-              {/* Etica */}
+              {/* Ética */}
               <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-8 border">
-                <h3 className="text-xl font-bold text-slate-800 mb-6 text-center">Compromisso Etico</h3>
+                <h3 className="text-xl font-bold text-slate-800 mb-6 text-center">Compromisso Ético</h3>
                 <div className="grid md:grid-cols-3 gap-6">
                   {[
                     {
-                      title: 'Nao-Discriminacao',
-                      desc: 'O assessment nao faz distincao por genero, idade, etnia ou qualquer caracteristica protegida.',
+                      title: 'Não-Discriminação',
+                      desc: 'O assessment não faz distinção por gênero, idade, etnia ou qualquer característica protegida.',
                       icon: Users
                     },
                     {
-                      title: 'Transparencia',
-                      desc: 'Candidatos tem acesso ao proprio resultado e entendimento claro do processo.',
+                      title: 'Transparência',
+                      desc: 'Candidatos têm acesso ao próprio resultado e entendimento claro do processo.',
                       icon: Globe
                     },
                     {
-                      title: 'Uso Responsavel',
-                      desc: 'Resultados sao ferramenta de apoio, nao criterio unico de decisao.',
+                      title: 'Uso Responsável',
+                      desc: 'Resultados são ferramenta de apoio, não critério único de decisão.',
                       icon: Shield
                     },
                   ].map((item, i) => (
@@ -720,31 +720,31 @@ const BaseCientifica = () => {
             >
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4">
-                  Sobre o Instituto VEON
+                  Sobre o Instituto Veon
                 </h2>
                 <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-                  A bussola que aponta para o sucesso no varejo brasileiro
+                  A bússola que aponta para o sucesso no varejo brasileiro
                 </p>
               </div>
 
-              {/* Historia */}
+              {/* História */}
               <div className="bg-gradient-to-br from-[#003DA5]/5 to-white rounded-2xl p-8 border">
                 <div className="grid md:grid-cols-2 gap-8 items-center">
                   <div>
-                    <h3 className="text-2xl font-bold text-slate-800 mb-4">Nossa Historia</h3>
+                    <h3 className="text-2xl font-bold text-slate-800 mb-4">Nossa História</h3>
                     <p className="text-slate-600 mb-4">
-                      O Instituto VEON nasceu da identificacao de uma lacuna critica no mercado:
+                      O Instituto Veon nasceu da identificação de uma lacuna crítica no mercado:
                       a falta de ferramentas de assessment comportamental verdadeiramente adaptadas
-                      a realidade do varejo brasileiro.
+                      à realidade do varejo brasileiro.
                     </p>
                     <p className="text-slate-600 mb-4">
-                      Com sede em Cascavel, Parana, desenvolvemos a <strong>Escola do Varejo</strong> -
-                      um ecossistema completo de desenvolvimento profissional que combina educacao,
+                      Com sede em Cascavel, Paraná, desenvolvemos a <strong>Escola do Varejo</strong> -
+                      um ecossistema completo de desenvolvimento profissional que combina educação,
                       tecnologia e metodologias cientificamente validadas.
                     </p>
                     <p className="text-slate-600">
-                      Nosso assessment comportamental representa a sintese de anos de pesquisa
-                      e aplicacao pratica, oferecendo precisao e acessibilidade para empresas
+                      Nosso assessment comportamental representa a síntese de anos de pesquisa
+                      e aplicação prática, oferecendo precisão e acessibilidade para empresas
                       de todos os portes.
                     </p>
                   </div>
@@ -753,7 +753,7 @@ const BaseCientifica = () => {
                       <div className="w-20 h-20 bg-[#003DA5] rounded-full mx-auto mb-4 flex items-center justify-center">
                         <Building2 className="w-10 h-10 text-white" />
                       </div>
-                      <h4 className="font-bold text-lg text-slate-800">Instituto VEON LTDA</h4>
+                      <h4 className="font-bold text-lg text-slate-800">Instituto Veon LTDA</h4>
                       <p className="text-slate-500">CNPJ: 51.065.648/0001-87</p>
                     </div>
                     <div className="space-y-3 text-sm">
@@ -778,50 +778,55 @@ const BaseCientifica = () => {
                 </div>
               </div>
 
-              {/* Missao, Visao, Valores */}
+              {/* Missão, Visão, Valores */}
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="bg-[#003DA5] text-white rounded-2xl p-8">
                   <Target className="w-10 h-10 mb-4" />
-                  <h4 className="text-xl font-bold mb-3">Missao</h4>
-                  <p className="text-blue-100">
-                    Democratizar o acesso a ferramentas de assessment comportamental
-                    de alta qualidade para o varejo brasileiro.
+                  <h4 className="text-xl font-bold mb-3">Missão</h4>
+                  <p className="text-blue-100 italic">
+                    "Guiar até a terra da prosperidade empresários presos na ilha da escassez."
                   </p>
                 </div>
                 <div className="bg-[#E31E24] text-white rounded-2xl p-8">
                   <TrendingUp className="w-10 h-10 mb-4" />
-                  <h4 className="text-xl font-bold mb-3">Visao</h4>
-                  <p className="text-red-100">
-                    Ser a referencia nacional em desenvolvimento de pessoas
-                    no setor varejista ate 2030.
+                  <h4 className="text-xl font-bold mb-3">Visão</h4>
+                  <p className="text-red-100 italic">
+                    "Ser a empresa mais falada e desejada do mercado."
                   </p>
                 </div>
                 <div className="bg-slate-800 text-white rounded-2xl p-8">
                   <Award className="w-10 h-10 mb-4" />
                   <h4 className="text-xl font-bold mb-3">Valores</h4>
                   <ul className="text-slate-300 space-y-1 text-sm">
-                    <li>- Excelencia cientifica</li>
-                    <li>- Acessibilidade</li>
-                    <li>- Etica e transparencia</li>
-                    <li>- Inovacao continua</li>
+                    <li>1. Cumprir a Missão</li>
+                    <li>2. Relacionamento</li>
+                    <li>3. Brilho nos Olhos</li>
+                    <li>4. Obsessão pelo Êxito</li>
+                    <li>5. Busca Incessante pelo Conhecimento</li>
+                    <li>6. Entregar Mais que o Combinado</li>
+                    <li>7. Lealdade</li>
                   </ul>
                 </div>
               </div>
 
               {/* Contato */}
               <div className="bg-slate-50 rounded-2xl p-8 text-center">
-                <h3 className="text-xl font-bold text-slate-800 mb-4">Duvidas ou Sugestoes?</h3>
+                <h3 className="text-xl font-bold text-slate-800 mb-4">Dúvidas ou Sugestões?</h3>
                 <p className="text-slate-600 mb-6">
-                  Nossa equipe esta disponivel para esclarecer qualquer questao sobre
-                  a metodologia, aplicacao ou interpretacao dos resultados.
+                  Nossa equipe está disponível para esclarecer qualquer questão sobre
+                  a metodologia, aplicação ou interpretação dos resultados.
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                   <a
-                    href="mailto:contato@veon.com.br"
-                    className="inline-flex items-center gap-2 bg-[#003DA5] text-white px-6 py-3 rounded-lg hover:bg-[#002d7a] transition"
+                    href="https://wa.me/5545991294761?text=Ol%C3%A1%2C%20sou%20Analista%20de%20perfil%20comportamental%20e%20venho%20atrav%C3%A9s%20do%20Veon%20Assessment."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-[#25D366] text-white px-6 py-3 rounded-lg hover:bg-[#1da851] transition font-medium"
                   >
-                    Entrar em Contato
-                    <ExternalLink className="w-4 h-4" />
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                    Falar pelo WhatsApp
                   </a>
                 </div>
               </div>
@@ -834,13 +839,13 @@ const BaseCientifica = () => {
       <footer className="bg-slate-900 text-white py-12">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <p className="text-slate-400 mb-4">
-            2024 Instituto VEON LTDA. Todos os direitos reservados.
+            2024 Instituto Veon LTDA. Todos os direitos reservados.
           </p>
           <p className="text-slate-500 text-sm">
             CNPJ: 51.065.648/0001-87 | Cascavel, PR, Brasil
           </p>
           <p className="text-slate-500 text-sm mt-2">
-            Documento tecnico v2.0 | Ultima atualizacao: Dezembro 2024
+            Documento técnico v2.0 | Última atualização: Dezembro 2024
           </p>
         </div>
       </footer>

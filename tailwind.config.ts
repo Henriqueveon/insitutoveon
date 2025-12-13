@@ -69,6 +69,8 @@ export default {
       fontFamily: {
         sans: ["Inter", "sans-serif"],
         display: ["Montserrat", "sans-serif"],
+        'veon-primary': ['Swis721 Ex BT', 'Oswald', 'Arial Black', 'sans-serif'],
+        'veon-secondary': ['Sweet Sans Pro', 'Nunito', 'Helvetica Neue', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",

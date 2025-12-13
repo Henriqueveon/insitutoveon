@@ -3,7 +3,35 @@
 @tailwind utilities;
 
 /* Optimized: Load only weights actually used in the app */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;500;600&family=Oswald:wght@500;600;700&family=Nunito:wght@400;500;600;700&display=swap');
+
+/* Fontes personalizadas Veon - com fallbacks do Google Fonts */
+@font-face {
+  font-family: 'Swis721 Ex BT';
+  src: url('/fonts/Swis721-Ex-BT.woff2') format('woff2'),
+       url('/fonts/Swis721-Ex-BT.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sweet Sans Pro';
+  src: url('/fonts/SweetSansPro-Regular.woff2') format('woff2'),
+       url('/fonts/SweetSansPro-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Classes para tipografia Veon */
+.font-veon-primary {
+  font-family: 'Swis721 Ex BT', 'Oswald', 'Arial Black', sans-serif;
+}
+
+.font-veon-secondary {
+  font-family: 'Sweet Sans Pro', 'Nunito', 'Helvetica Neue', sans-serif;
+}
 
 @layer base {
   :root {

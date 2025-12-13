@@ -71,7 +71,7 @@ export default function Index() {
               size="lg"
               className="h-14 px-10 text-lg font-semibold gradient-veon hover:opacity-90 transition-all shadow-lg hover:shadow-xl hover:scale-105"
             >
-              Iniciar Avaliação Gratuita
+              Iniciar Avaliação
               <ArrowRight className="w-6 h-6 ml-2" />
             </Button>
             <p className="text-sm text-muted-foreground mt-3">
