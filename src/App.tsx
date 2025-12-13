@@ -52,6 +52,14 @@ import EmpresaLogin from "./recrutamento/empresa/Login";
 import EmpresaCadastro from "./recrutamento/empresa/Cadastro";
 import EmpresaDashboard from "./recrutamento/empresa/Dashboard";
 
+// Área de Recrutamento - Candidato
+import CandidatoBemVindo from "./recrutamento/candidato/BemVindo";
+import CandidatoCadastro from "./recrutamento/candidato/Cadastro";
+import CandidatoSelfie from "./recrutamento/candidato/Selfie";
+import CandidatoVideo from "./recrutamento/candidato/Video";
+import CandidatoDocumento from "./recrutamento/candidato/Documento";
+import CandidatoTermos from "./recrutamento/candidato/Termos";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -134,6 +142,14 @@ const App = () => (
                 <Route path="/recrutamento/empresa/login" element={<EmpresaLogin />} />
                 <Route path="/recrutamento/empresa/cadastro" element={<EmpresaCadastro />} />
                 <Route path="/recrutamento/empresa/dashboard" element={<EmpresaDashboard />} />
+
+                {/* Área de Recrutamento - Candidato */}
+                <Route path="/recrutamento/candidato/bem-vindo" element={<CandidatoBemVindo />} />
+                <Route path="/recrutamento/candidato/cadastro" element={<CandidatoCadastro />} />
+                <Route path="/recrutamento/candidato/selfie" element={<CandidatoSelfie />} />
+                <Route path="/recrutamento/candidato/video" element={<CandidatoVideo />} />
+                <Route path="/recrutamento/candidato/documento" element={<CandidatoDocumento />} />
+                <Route path="/recrutamento/candidato/termos" element={<CandidatoTermos />} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
