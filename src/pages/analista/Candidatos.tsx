@@ -147,24 +147,27 @@ export default function AnalistaCandidatos() {
 
     setIsDeleting(true);
     try {
-      const { error } = await supabase
-        .from('candidatos_disc')
-        .delete()
-        .eq('id', candidatoToDelete.id);
+      const { data, error } = await supabase
+        .rpc('delete_candidato', { p_candidato_id: candidatoToDelete.id });
 
       if (error) throw error;
 
-      setCandidatos((prev) => prev.filter((c) => c.id !== candidatoToDelete.id));
+      const result = data as { success: boolean; nome?: string; error?: string } | null;
 
-      toast({
-        title: 'Candidato excluído',
-        description: 'O candidato foi removido com sucesso.',
-      });
+      if (result?.success) {
+        setCandidatos((prev) => prev.filter((c) => c.id !== candidatoToDelete.id));
+        toast({
+          title: 'Candidato excluído',
+          description: `${result.nome} foi removido com sucesso.`,
+        });
+      } else {
+        throw new Error(result?.error || 'Falha ao excluir candidato');
+      }
     } catch (error) {
       console.error('Erro ao excluir candidato:', error);
       toast({
         title: 'Erro ao excluir',
-        description: 'Não foi possível excluir o candidato.',
+        description: error instanceof Error ? error.message : 'Não foi possível excluir o candidato.',
         variant: 'destructive',
       });
     } finally {
