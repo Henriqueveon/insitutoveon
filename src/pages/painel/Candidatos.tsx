@@ -328,8 +328,9 @@ export default function PainelCandidatos() {
 
     setIsDeleting(true);
     try {
-      const { data, error } = await supabase
-        .rpc('delete_candidato', { p_candidato_id: candidatoToDelete.id });
+      const { data, error } = await supabase.rpc('delete_candidato', {
+        p_candidato_id: candidatoToDelete.id,
+      });
 
       if (error) throw error;
 
