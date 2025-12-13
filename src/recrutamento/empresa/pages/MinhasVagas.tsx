@@ -73,16 +73,16 @@ interface Empresa {
 interface Vaga {
   id: string;
   titulo: string;
-  descricao: string;
-  requisitos: string;
-  beneficios: string;
-  faixa_salarial: string;
-  regime: string;
-  cidade: string;
-  estado: string;
-  modalidade: string;
-  status: 'ativa' | 'pausada' | 'encerrada';
-  created_at: string;
+  descricao: string | null;
+  requisitos: string[] | null;
+  beneficios: string[] | null;
+  faixa_salarial: string | null;
+  regime: string | null;
+  cidade: string | null;
+  estado: string | null;
+  modalidade: string | null;
+  status: string | null;
+  created_at: string | null;
   _count?: {
     propostas: number;
   };
@@ -199,7 +199,7 @@ export default function MinhasVagas() {
         })
       );
 
-      setVagas(vagasComContagem);
+      setVagas(vagasComContagem as Vaga[]);
     } catch (error) {
       console.error('Erro ao carregar vagas:', error);
       toast({
@@ -234,14 +234,14 @@ export default function MinhasVagas() {
     setVagaEditando(vaga);
     setForm({
       titulo: vaga.titulo,
-      descricao: vaga.descricao,
-      requisitos: vaga.requisitos,
-      beneficios: vaga.beneficios,
-      faixa_salarial: vaga.faixa_salarial,
-      regime: vaga.regime,
-      cidade: vaga.cidade,
-      estado: vaga.estado,
-      modalidade: vaga.modalidade,
+      descricao: vaga.descricao || '',
+      requisitos: Array.isArray(vaga.requisitos) ? vaga.requisitos.join(', ') : (vaga.requisitos || ''),
+      beneficios: Array.isArray(vaga.beneficios) ? vaga.beneficios.join(', ') : (vaga.beneficios || ''),
+      faixa_salarial: vaga.faixa_salarial || '',
+      regime: vaga.regime || '',
+      cidade: vaga.cidade || '',
+      estado: vaga.estado || '',
+      modalidade: vaga.modalidade || '',
     });
     setModalAberto(true);
   };
@@ -261,11 +261,21 @@ export default function MinhasVagas() {
     setIsSaving(true);
 
     try {
+      const vagaData = {
+        titulo: form.titulo,
+        descricao: form.descricao,
+        faixa_salarial: form.faixa_salarial,
+        regime: form.regime,
+        cidade: form.cidade,
+        estado: form.estado,
+        modalidade: form.modalidade,
+      };
+
       if (vagaEditando) {
         // Atualizar vaga existente
         const { error } = await supabase
           .from('vagas_recrutamento')
-          .update(form)
+          .update(vagaData)
           .eq('id', vagaEditando.id);
 
         if (error) throw error;
@@ -279,7 +289,7 @@ export default function MinhasVagas() {
         const { error } = await supabase
           .from('vagas_recrutamento')
           .insert({
-            ...form,
+            ...vagaData,
             empresa_id: empresa.id,
             status: 'ativa',
           });

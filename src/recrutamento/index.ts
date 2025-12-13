@@ -10,12 +10,3 @@ export * from './components';
 
 // Hooks
 export * from './hooks';
-
-// Services
-export * from './services';
-
-// Empresa
-export * from './empresa';
-
-// Candidato
-export * from './candidato';

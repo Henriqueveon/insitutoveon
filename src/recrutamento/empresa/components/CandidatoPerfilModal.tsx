@@ -269,7 +269,7 @@ export default function CandidatoPerfilModal({
           destinatario_id: candidato.id,
           titulo: 'Nova proposta recebida!',
           mensagem: `${empresa.nome_fantasia} enviou uma proposta para você.`,
-          tipo: 'proposta',
+          tipo_notificacao: 'proposta',
         });
 
       toast({

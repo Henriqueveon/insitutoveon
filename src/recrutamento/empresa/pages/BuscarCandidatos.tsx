@@ -70,16 +70,16 @@ interface Candidato {
   video_url: string | null;
   cidade: string;
   estado: string;
-  areas_experiencia: string[];
-  anos_experiencia: string;
-  pretensao_salarial: string;
-  escolaridade: string;
+  areas_experiencia: string[] | null;
+  anos_experiencia: number | null;
+  pretensao_salarial: string | null;
+  escolaridade: string | null;
   perfil_disc: string | null;
-  disponibilidade_inicio: string;
-  possui_cnh: boolean;
-  possui_veiculo: boolean;
-  regime_preferido: string;
-  objetivo_profissional: string;
+  disponibilidade_inicio: string | null;
+  possui_cnh: string | null;
+  possui_veiculo: string | null;
+  regime_preferido: string | null;
+  objetivo_profissional: string | null;
 }
 
 interface Filtros {
@@ -255,7 +255,7 @@ export default function BuscarCandidatos() {
         query = query.eq('cidade', filtros.cidade);
       }
       if (filtros.anosExperiencia) {
-        query = query.eq('anos_experiencia', filtros.anosExperiencia);
+        query = query.eq('anos_experiencia', parseInt(filtros.anosExperiencia) || 0);
       }
       if (filtros.escolaridade) {
         query = query.eq('escolaridade', filtros.escolaridade);
@@ -270,10 +270,10 @@ export default function BuscarCandidatos() {
         query = query.eq('disponibilidade_inicio', filtros.disponibilidade);
       }
       if (filtros.possuiCNH !== null) {
-        query = query.eq('possui_cnh', filtros.possuiCNH);
+        query = query.eq('possui_cnh', filtros.possuiCNH ? 'sim' : 'nao');
       }
       if (filtros.possuiVeiculo !== null) {
-        query = query.eq('possui_veiculo', filtros.possuiVeiculo);
+        query = query.eq('possui_veiculo', filtros.possuiVeiculo ? 'sim' : 'nao');
       }
       if (filtros.regime) {
         query = query.eq('regime_preferido', filtros.regime);
@@ -292,7 +292,7 @@ export default function BuscarCandidatos() {
 
       if (error) throw error;
 
-      setCandidatos(data || []);
+      setCandidatos((data as unknown as Candidato[]) || []);
       setTotalCandidatos(count || 0);
     } catch (error) {
       console.error('Erro ao carregar candidatos:', error);
@@ -742,7 +742,7 @@ export default function BuscarCandidatos() {
                     <div className="space-y-1.5 text-sm">
                       <div className="flex items-center text-slate-400">
                         <Briefcase className="w-4 h-4 mr-2 text-slate-500" />
-                        {ANOS_EXPERIENCIA_OPTIONS.find(a => a.value === candidato.anos_experiencia)?.label || candidato.anos_experiencia}
+                        {candidato.anos_experiencia || 0} anos de experiência
                       </div>
                       <div className="flex items-center text-slate-400">
                         <GraduationCap className="w-4 h-4 mr-2 text-slate-500" />
@@ -934,7 +934,7 @@ export default function BuscarCandidatos() {
 
       {/* Modal de Perfil */}
       <CandidatoPerfilModal
-        candidato={candidatoSelecionado}
+        candidato={candidatoSelecionado as any}
         isOpen={modalAberto}
         onClose={fecharModal}
         empresa={empresa}

@@ -62,10 +62,10 @@ interface Pacote {
 
 interface Transacao {
   id: string;
-  tipo: 'credito' | 'debito';
+  tipo: string;
   valor: number;
-  descricao: string;
-  status: 'pendente' | 'aprovado' | 'cancelado';
+  tipo_transacao: string | null;
+  status: string | null;
   created_at: string;
 }
 
@@ -135,13 +135,13 @@ export default function Creditos() {
       const { data, error } = await supabase
         .from('transacoes_recrutamento')
         .select('*')
-        .eq('empresa_id', empresa?.id)
+        .eq('usuario_id', empresa?.id)
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
 
-      setTransacoes(data || []);
+      setTransacoes((data as Transacao[]) || []);
     } catch (error) {
       console.error('Erro ao carregar transações:', error);
     } finally {
@@ -185,11 +185,10 @@ export default function Creditos() {
       const { error: transacaoError } = await supabase
         .from('transacoes_recrutamento')
         .insert({
-          empresa_id: empresa.id,
-          tipo: 'credito',
+          usuario_id: empresa.id,
+          tipo: 'empresa',
           valor: pacoteSelecionado.valor,
-          creditos: totalCreditos,
-          descricao: `Compra pacote ${pacoteSelecionado.nome}`,
+          tipo_transacao: 'credito',
           status: 'aprovado',
         });
 
@@ -402,18 +401,18 @@ export default function Creditos() {
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        transacao.tipo === 'credito'
+                        transacao.tipo_transacao === 'credito'
                           ? 'bg-green-500/20'
                           : 'bg-red-500/20'
                       }`}>
-                        {transacao.tipo === 'credito' ? (
+                        {transacao.tipo_transacao === 'credito' ? (
                           <ArrowDownRight className="w-5 h-5 text-green-400" />
                         ) : (
                           <ArrowUpRight className="w-5 h-5 text-red-400" />
                         )}
                       </div>
                       <div>
-                        <p className="text-white font-medium">{transacao.descricao}</p>
+                        <p className="text-white font-medium">{transacao.tipo_transacao || 'Transação'}</p>
                         <p className="text-sm text-slate-400">
                           {formatarData(transacao.created_at)}
                         </p>
@@ -421,11 +420,11 @@ export default function Creditos() {
                     </div>
                     <div className="text-right">
                       <p className={`font-bold ${
-                        transacao.tipo === 'credito' ? 'text-green-400' : 'text-red-400'
+                        transacao.tipo_transacao === 'credito' ? 'text-green-400' : 'text-red-400'
                       }`}>
-                        {transacao.tipo === 'credito' ? '+' : '-'}{formatarMoeda(transacao.valor)}
+                        {transacao.tipo_transacao === 'credito' ? '+' : '-'}{formatarMoeda(transacao.valor)}
                       </p>
-                      {getStatusBadge(transacao.status)}
+                      {getStatusBadge(transacao.status || '')}
                     </div>
                   </CardContent>
                 </Card>

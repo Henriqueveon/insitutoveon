@@ -123,17 +123,19 @@ interface NotificacaoParams {
  * Salva notificação no banco de dados
  */
 export async function salvarNotificacao(params: NotificacaoParams) {
+  const insertData = {
+    tipo_destinatario: params.tipo_destinatario,
+    destinatario_id: params.destinatario_id,
+    titulo: params.titulo,
+    mensagem: params.mensagem,
+    tipo_notificacao: params.tipo,
+    dados: params.dados_extras,
+    lida: false,
+  };
+  
   const { error } = await supabase
     .from('notificacoes_recrutamento')
-    .insert({
-      tipo_destinatario: params.tipo_destinatario,
-      destinatario_id: params.destinatario_id,
-      titulo: params.titulo,
-      mensagem: params.mensagem,
-      tipo: params.tipo,
-      dados_extras: params.dados_extras,
-      lida: false,
-    });
+    .insert(insertData as any);
 
   if (error) {
     console.error('Erro ao salvar notificação:', error);

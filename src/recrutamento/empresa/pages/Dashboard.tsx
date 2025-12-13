@@ -39,8 +39,8 @@ interface CandidatoMatch {
   foto_url: string | null;
   cidade: string;
   estado: string;
-  areas_experiencia: string[];
-  anos_experiencia: string;
+  areas_experiencia: string[] | null;
+  anos_experiencia: number | null;
   perfil_disc: string | null;
   match_score: number;
 }
@@ -57,7 +57,7 @@ interface Notificacao {
   id: string;
   titulo: string;
   mensagem: string;
-  tipo: string;
+  tipo_notificacao: string;
   lida: boolean;
   created_at: string;
 }
@@ -147,11 +147,11 @@ export default function EmpresaDashboard() {
 
     if (data) {
       // Simular score de match (em produção seria calculado baseado nas vagas da empresa)
-      const candidatosComMatch = data.map((c) => ({
+      const candidatosComMatch = data.map((c: any) => ({
         ...c,
         match_score: Math.floor(Math.random() * 30) + 70, // 70-100%
       }));
-      setCandidatosMatch(candidatosComMatch.sort((a, b) => b.match_score - a.match_score));
+      setCandidatosMatch(candidatosComMatch as CandidatoMatch[]);
     }
   };
 
@@ -204,7 +204,7 @@ export default function EmpresaDashboard() {
       .limit(5);
 
     if (data) {
-      setNotificacoes(data);
+      setNotificacoes(data as Notificacao[]);
     }
   };
 

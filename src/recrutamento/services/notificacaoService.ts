@@ -19,16 +19,18 @@ export async function criarNotificacao(
   dados?: Record<string, unknown>
 ): Promise<NotificacaoRecrutamento | null> {
   try {
+    const insertData = {
+      tipo_destinatario: tipoDestinatario,
+      destinatario_id: destinatarioId,
+      tipo_notificacao: tipoNotificacao,
+      titulo,
+      mensagem,
+      dados,
+    };
+    
     const { data, error } = await supabase
       .from('notificacoes_recrutamento')
-      .insert({
-        tipo_destinatario: tipoDestinatario,
-        destinatario_id: destinatarioId,
-        tipo_notificacao: tipoNotificacao,
-        titulo,
-        mensagem,
-        dados,
-      })
+      .insert(insertData as any)
       .select()
       .single();
 
