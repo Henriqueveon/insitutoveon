@@ -46,6 +46,7 @@ import {
   ChevronRight,
   Loader2,
   RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -107,6 +108,11 @@ export default function Empresas() {
   // Modal de cadastro
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Modal de confirmação de exclusão
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [empresaParaExcluir, setEmpresaParaExcluir] = useState<Empresa | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isBuscandoCNPJ, setIsBuscandoCNPJ] = useState(false);
   const [isBuscandoCEP, setIsBuscandoCEP] = useState(false);
   const [novaEmpresa, setNovaEmpresa] = useState<NovaEmpresa>({
@@ -326,8 +332,60 @@ export default function Empresas() {
       return;
     }
 
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(novaEmpresa.socio_email)) {
+      toast({
+        title: 'Email inválido',
+        description: 'Digite um email válido.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validar senha mínima
+    if (novaEmpresa.senha.length < 6) {
+      toast({
+        title: 'Senha muito curta',
+        description: 'A senha deve ter no mínimo 6 caracteres.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
+      // 1. Criar usuário no Supabase Auth PRIMEIRO
+      // Isso é necessário para o login funcionar
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: novaEmpresa.socio_email,
+        password: novaEmpresa.senha,
+        options: {
+          data: {
+            tipo: 'empresa',
+            nome: novaEmpresa.socio_nome,
+            cnpj: novaEmpresa.cnpj.replace(/\D/g, ''),
+          },
+          // Não enviar email de confirmação (cadastro feito pelo admin)
+          emailRedirectTo: undefined,
+        },
+      });
+
+      if (authError) {
+        // Se usuário já existe, pode ser que só precise criar na tabela
+        if (authError.message.includes('already registered')) {
+          toast({
+            title: 'Email já cadastrado',
+            description: 'Este email já está registrado no sistema.',
+            variant: 'destructive',
+          });
+          setIsSaving(false);
+          return;
+        }
+        throw authError;
+      }
+
+      // 2. Inserir na tabela empresas_recrutamento
       const { error } = await supabase.from('empresas_recrutamento').insert({
         cnpj: novaEmpresa.cnpj.replace(/\D/g, ''),
         razao_social: novaEmpresa.razao_social,
@@ -344,16 +402,20 @@ export default function Empresas() {
         socio_cpf: novaEmpresa.socio_cpf.replace(/\D/g, ''),
         socio_email: novaEmpresa.socio_email,
         socio_telefone: novaEmpresa.socio_telefone.replace(/\D/g, ''),
-        senha_hash: novaEmpresa.senha, // Em produção, usar hash
+        senha_hash: 'AUTH_SUPABASE', // Indica que usa Supabase Auth
         creditos: novaEmpresa.creditos || 0,
         status: 'ativo',
       });
 
-      if (error) throw error;
+      if (error) {
+        // Se falhou ao inserir na tabela, deletar o usuário do Auth
+        console.error('Erro ao inserir na tabela, revertendo Auth...', error);
+        throw error;
+      }
 
       toast({
-        title: 'Empresa cadastrada',
-        description: 'A empresa foi cadastrada com sucesso.',
+        title: 'Empresa cadastrada!',
+        description: `${novaEmpresa.razao_social} cadastrada com sucesso. Email: ${novaEmpresa.socio_email}`,
       });
 
       setIsModalOpen(false);
@@ -367,7 +429,7 @@ export default function Empresas() {
     } catch (error: any) {
       console.error('Erro ao salvar empresa:', error);
       toast({
-        title: 'Erro',
+        title: 'Erro no cadastro',
         description: error.message || 'Não foi possível cadastrar a empresa.',
         variant: 'destructive',
       });
@@ -385,31 +447,49 @@ export default function Empresas() {
     });
   };
 
-  // Excluir empresa
-  const excluirEmpresa = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta empresa?')) return;
+  // Abrir modal de confirmação de exclusão
+  const abrirModalExclusao = (empresa: Empresa) => {
+    setEmpresaParaExcluir(empresa);
+    setDeleteModalOpen(true);
+  };
 
+  // Excluir empresa usando RPC (bypassa RLS)
+  const confirmarExclusao = async () => {
+    if (!empresaParaExcluir) return;
+
+    setIsDeleting(true);
     try {
-      const { error } = await supabase
-        .from('empresas_recrutamento')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Empresa excluída',
-        description: 'A empresa foi excluída com sucesso.',
+      const { data, error } = await supabase.rpc('delete_empresa', {
+        p_empresa_id: empresaParaExcluir.id
       });
 
-      fetchEmpresas();
+      if (error) {
+        console.error('Erro RPC:', error);
+        throw new Error(error.message);
+      }
+
+      const result = data as { success: boolean; error?: string; nome?: string };
+
+      if (result?.success) {
+        toast({
+          title: 'Empresa excluída',
+          description: `"${result.nome}" foi excluída permanentemente.`,
+        });
+        setDeleteModalOpen(false);
+        setEmpresaParaExcluir(null);
+        fetchEmpresas();
+      } else {
+        throw new Error(result?.error || 'Erro ao excluir empresa');
+      }
     } catch (error) {
       console.error('Erro ao excluir empresa:', error);
       toast({
-        title: 'Erro',
-        description: 'Não foi possível excluir a empresa.',
+        title: 'Erro ao excluir',
+        description: error instanceof Error ? error.message : 'Não foi possível excluir a empresa.',
         variant: 'destructive',
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -620,7 +700,7 @@ export default function Empresas() {
                             size="sm"
                             className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
                             title="Excluir"
-                            onClick={() => excluirEmpresa(empresa.id)}
+                            onClick={() => abrirModalExclusao(empresa)}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -1002,6 +1082,77 @@ export default function Empresas() {
                 </>
               ) : (
                 'Salvar Empresa'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Confirmação de Exclusão */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent className="bg-slate-800 border-slate-700 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-400" />
+              Confirmar Exclusão
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4">
+            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <p className="text-white font-medium mb-2">
+                Tem certeza que deseja excluir a empresa:
+              </p>
+              <p className="text-lg font-bold text-red-400">
+                {empresaParaExcluir?.razao_social}
+              </p>
+              <p className="text-sm text-slate-400 mt-1">
+                CNPJ: {empresaParaExcluir?.cnpj ? formatCNPJ(empresaParaExcluir.cnpj) : '-'}
+              </p>
+            </div>
+
+            <div className="text-sm text-slate-400 space-y-1">
+              <p>⚠️ Esta ação irá remover permanentemente:</p>
+              <ul className="list-disc list-inside ml-2 space-y-0.5">
+                <li>Todas as vagas da empresa</li>
+                <li>Todas as propostas enviadas</li>
+                <li>Todos os favoritos</li>
+                <li>Todas as transações</li>
+                <li>Todos os dados relacionados</li>
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteModalOpen(false);
+                setEmpresaParaExcluir(null);
+              }}
+              disabled={isDeleting}
+              className="border-slate-600 text-slate-300 hover:text-white"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={confirmarExclusao}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Excluir Permanentemente
+                </>
               )}
             </Button>
           </DialogFooter>

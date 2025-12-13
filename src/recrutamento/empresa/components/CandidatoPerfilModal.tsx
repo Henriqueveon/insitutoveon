@@ -236,30 +236,70 @@ export default function CandidatoPerfilModal({
       return;
     }
 
+    // Converter salário corretamente (valor está em centavos como string de dígitos)
+    const salarioEmCentavos = parseInt(salarioOferecido, 10) || 0;
+    const salarioEmReais = salarioEmCentavos / 100;
+
+    if (salarioEmReais <= 0) {
+      toast({
+        title: 'Salário inválido',
+        description: 'Informe um valor de salário válido.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
+      // Verificar créditos novamente (pode ter mudado)
+      const { data: empresaAtual } = await supabase
+        .from('empresas_recrutamento')
+        .select('creditos')
+        .eq('id', empresa.id)
+        .single();
+
+      const creditosAtuais = Number(empresaAtual?.creditos) || 0;
+
+      if (creditosAtuais < CUSTO_PROPOSTA) {
+        toast({
+          title: 'Créditos insuficientes',
+          description: `Você precisa de R$ ${CUSTO_PROPOSTA} em créditos.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Primeiro debitar créditos (mais importante)
+      const { error: creditoError } = await supabase
+        .from('empresas_recrutamento')
+        .update({ creditos: creditosAtuais - CUSTO_PROPOSTA })
+        .eq('id', empresa.id);
+
+      if (creditoError) throw creditoError;
+
       // Criar proposta
-      const { error: propostaError } = await supabase
+      const { data: propostaData, error: propostaError } = await supabase
         .from('propostas_recrutamento')
         .insert({
           empresa_id: empresa.id,
           candidato_id: candidato.id,
           vaga_id: vagaSelecionada,
-          salario_oferecido: parseFloat(salarioOferecido.replace(/\D/g, '')) / 100,
+          salario_oferecido: salarioEmReais,
           mensagem: mensagem,
           status: 'pendente',
-        });
+        })
+        .select('id')
+        .single();
 
-      if (propostaError) throw propostaError;
-
-      // Debitar créditos
-      const { error: creditoError } = await supabase
-        .from('empresas_recrutamento')
-        .update({ creditos: empresa.creditos - CUSTO_PROPOSTA })
-        .eq('id', empresa.id);
-
-      if (creditoError) throw creditoError;
+      if (propostaError) {
+        // Reverter créditos se proposta falhar
+        await supabase
+          .from('empresas_recrutamento')
+          .update({ creditos: creditosAtuais })
+          .eq('id', empresa.id);
+        throw propostaError;
+      }
 
       // Criar notificação para o candidato
       await supabase
@@ -268,7 +308,7 @@ export default function CandidatoPerfilModal({
           tipo_destinatario: 'candidato',
           destinatario_id: candidato.id,
           titulo: 'Nova proposta recebida!',
-          mensagem: `${empresa.nome_fantasia} enviou uma proposta para você.`,
+          mensagem: `${empresa.nome_fantasia || empresa.razao_social} enviou uma proposta para você.`,
           tipo_notificacao: 'proposta',
         });
 

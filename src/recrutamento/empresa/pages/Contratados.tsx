@@ -157,24 +157,37 @@ export default function Contratados() {
       const hoje = new Date();
       return data.getMonth() === hoje.getMonth() && data.getFullYear() === hoje.getFullYear();
     }).length,
-    investimentoTotal: contratacoes.reduce((acc, c) => acc + c.salario_oferecido, 0),
+    investimentoTotal: contratacoes.reduce((acc, c) => acc + (Number(c.salario_oferecido) || 0), 0),
   };
 
   const exportarCSV = () => {
+    // Função para escapar valores CSV (RFC 4180)
+    const escapeCSV = (value: string | number | null | undefined): string => {
+      if (value === null || value === undefined) return '';
+      const str = String(value);
+      // Se contém vírgula, aspas ou quebra de linha, envolver em aspas
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
     const headers = ['Nome', 'Vaga', 'Salário', 'Data Contratação', 'Cidade', 'Estado', 'Telefone', 'Email'];
     const rows = contratacoesFiltradas.map(c => [
-      c.candidato.nome_completo,
-      c.vaga.titulo,
-      formatarMoeda(c.salario_oferecido),
-      formatarData(c.updated_at),
-      c.candidato.cidade,
-      c.candidato.estado,
-      c.candidato.telefone,
-      c.candidato.email,
+      escapeCSV(c.candidato?.nome_completo),
+      escapeCSV(c.vaga?.titulo),
+      escapeCSV(formatarMoeda(c.salario_oferecido)),
+      escapeCSV(formatarData(c.updated_at)),
+      escapeCSV(c.candidato?.cidade),
+      escapeCSV(c.candidato?.estado),
+      escapeCSV(c.candidato?.telefone),
+      escapeCSV(c.candidato?.email),
     ]);
 
-    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    // BOM para Excel reconhecer UTF-8 corretamente
+    const BOM = '\uFEFF';
+    const csv = BOM + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

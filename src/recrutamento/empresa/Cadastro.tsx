@@ -65,6 +65,36 @@ const aplicarMascaraCPF = (value: string) => {
     .slice(0, 14);
 };
 
+// Validação de CPF com dígitos verificadores
+const validarCPF = (cpf: string): boolean => {
+  const cpfLimpo = cpf.replace(/\D/g, '');
+
+  if (cpfLimpo.length !== 11) return false;
+
+  // Rejeita CPFs com todos dígitos iguais (111.111.111-11, etc)
+  if (/^(\d)\1{10}$/.test(cpfLimpo)) return false;
+
+  // Calcula primeiro dígito verificador
+  let soma = 0;
+  for (let i = 0; i < 9; i++) {
+    soma += parseInt(cpfLimpo.charAt(i)) * (10 - i);
+  }
+  let resto = (soma * 10) % 11;
+  if (resto === 10 || resto === 11) resto = 0;
+  if (resto !== parseInt(cpfLimpo.charAt(9))) return false;
+
+  // Calcula segundo dígito verificador
+  soma = 0;
+  for (let i = 0; i < 10; i++) {
+    soma += parseInt(cpfLimpo.charAt(i)) * (11 - i);
+  }
+  resto = (soma * 10) % 11;
+  if (resto === 10 || resto === 11) resto = 0;
+  if (resto !== parseInt(cpfLimpo.charAt(10))) return false;
+
+  return true;
+};
+
 const aplicarMascaraTelefone = (value: string) => {
   return value
     .replace(/\D/g, '')
@@ -206,6 +236,8 @@ export default function EmpresaCadastro() {
     }
 
     setEnviandoOtp(true);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/send-otp`, {
@@ -218,8 +250,10 @@ export default function EmpresaCadastro() {
           tipo: 'cadastro_empresa',
           nome: socioNome,
         }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       const data = await response.json();
 
       if (data.success) {
@@ -233,10 +267,14 @@ export default function EmpresaCadastro() {
         throw new Error(data.error || 'Erro ao enviar código');
       }
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error('Erro ao enviar OTP:', error);
+      const isTimeout = error instanceof Error && error.name === 'AbortError';
       toast({
-        title: 'Erro ao enviar código',
-        description: error instanceof Error ? error.message : 'Tente novamente em alguns instantes.',
+        title: isTimeout ? 'Tempo esgotado' : 'Erro ao enviar código',
+        description: isTimeout
+          ? 'O servidor demorou muito para responder. Tente novamente.'
+          : error instanceof Error ? error.message : 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
     } finally {
@@ -255,6 +293,8 @@ export default function EmpresaCadastro() {
     }
 
     setVerificandoOtp(true);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-otp`, {
@@ -267,8 +307,10 @@ export default function EmpresaCadastro() {
           codigo: codigoOtp,
           tipo: 'cadastro_empresa',
         }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       const data = await response.json();
 
       if (data.success) {
@@ -287,10 +329,14 @@ export default function EmpresaCadastro() {
         });
       }
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error('Erro ao verificar OTP:', error);
+      const isTimeout = error instanceof Error && error.name === 'AbortError';
       toast({
-        title: 'Erro na verificação',
-        description: 'Não foi possível verificar o código. Tente novamente.',
+        title: isTimeout ? 'Tempo esgotado' : 'Erro na verificação',
+        description: isTimeout
+          ? 'O servidor demorou muito para responder. Tente novamente.'
+          : 'Não foi possível verificar o código. Tente novamente.',
         variant: 'destructive',
       });
     } finally {
@@ -524,7 +570,9 @@ export default function EmpresaCadastro() {
       case 1:
         return dadosCNPJ !== null;
       case 2:
-        return socioNome && socioCpf.length === 14 && socioEmail && socioTelefone.length >= 14;
+        // Valida CPF com dígitos verificadores, email e telefone
+        const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(socioEmail);
+        return socioNome.trim().length >= 3 && validarCPF(socioCpf) && emailValido && socioTelefone.length >= 14;
       case 3:
         return emailVerificado;
       case 4:
@@ -734,8 +782,20 @@ export default function EmpresaCadastro() {
                       placeholder="000.000.000-00"
                       value={socioCpf}
                       onChange={(e) => setSocioCpf(aplicarMascaraCPF(e.target.value))}
-                      className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500"
+                      className={`bg-slate-900/50 text-white placeholder:text-slate-500 ${
+                        socioCpf.length === 14
+                          ? validarCPF(socioCpf)
+                            ? 'border-green-500'
+                            : 'border-red-500'
+                          : 'border-slate-600'
+                      }`}
                     />
+                    {socioCpf.length === 14 && !validarCPF(socioCpf) && (
+                      <p className="text-red-400 text-xs">CPF inválido. Verifique os dígitos.</p>
+                    )}
+                    {socioCpf.length === 14 && validarCPF(socioCpf) && (
+                      <p className="text-green-400 text-xs">✓ CPF válido</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">

@@ -212,7 +212,12 @@ export default function BuscarCandidatos() {
     }
   }, [filtros.estado]);
 
-  // Carregar candidatos quando filtros mudarem
+  // Resetar paginação quando filtros mudarem
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [filtros]);
+
+  // Carregar candidatos quando filtros ou página mudarem
   useEffect(() => {
     carregarCandidatos();
   }, [filtros, paginaAtual]);
@@ -255,7 +260,27 @@ export default function BuscarCandidatos() {
         query = query.eq('cidade', filtros.cidade);
       }
       if (filtros.anosExperiencia) {
-        query = query.eq('anos_experiencia', parseInt(filtros.anosExperiencia) || 0);
+        // Mapear string de filtro para range numérico
+        switch (filtros.anosExperiencia) {
+          case 'primeiro_emprego':
+            query = query.eq('anos_experiencia', 0);
+            break;
+          case 'menos_1':
+            query = query.lt('anos_experiencia', 1);
+            break;
+          case '1_2':
+            query = query.gte('anos_experiencia', 1).lte('anos_experiencia', 2);
+            break;
+          case '3_5':
+            query = query.gte('anos_experiencia', 3).lte('anos_experiencia', 5);
+            break;
+          case '5_10':
+            query = query.gte('anos_experiencia', 5).lte('anos_experiencia', 10);
+            break;
+          case 'mais_10':
+            query = query.gt('anos_experiencia', 10);
+            break;
+        }
       }
       if (filtros.escolaridade) {
         query = query.eq('escolaridade', filtros.escolaridade);
@@ -746,18 +771,18 @@ export default function BuscarCandidatos() {
                       </div>
                       <div className="flex items-center text-slate-400">
                         <GraduationCap className="w-4 h-4 mr-2 text-slate-500" />
-                        {candidato.escolaridade}
+                        {candidato.escolaridade || 'Não informado'}
                       </div>
                       <div className="flex items-center text-slate-400">
                         <Clock className="w-4 h-4 mr-2 text-slate-500" />
-                        {getDisponibilidadeLabel(candidato.disponibilidade_inicio)}
+                        {getDisponibilidadeLabel(candidato.disponibilidade_inicio || 'a_combinar')}
                       </div>
                     </div>
 
                     {/* Footer */}
                     <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-700">
                       <div className="flex items-center space-x-2">
-                        {candidato.possui_cnh && (
+                        {candidato.possui_cnh === 'sim' && (
                           <Badge variant="outline" className="border-slate-600 text-slate-400 text-xs">
                             <Car className="w-3 h-3 mr-1" />
                             CNH

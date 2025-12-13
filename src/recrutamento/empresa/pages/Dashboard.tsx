@@ -371,7 +371,7 @@ export default function EmpresaDashboard() {
                         {candidato.nome_completo}
                       </p>
                       <p className="text-xs text-slate-400">
-                        {candidato.cidade}, {candidato.estado} • {candidato.anos_experiencia}
+                        {candidato.cidade}, {candidato.estado} • {candidato.anos_experiencia || 0} anos exp.
                       </p>
                     </div>
                   </div>

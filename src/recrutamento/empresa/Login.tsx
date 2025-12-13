@@ -36,31 +36,80 @@ export default function EmpresaLogin() {
     setIsLoading(true);
 
     try {
-      // Login com Supabase Auth
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: senha,
-      });
-
-      if (error) throw error;
-
-      // Verificar se é uma empresa cadastrada
+      // 1. Primeiro verificar se a empresa existe na tabela
       const { data: empresa, error: empresaError } = await supabase
         .from('empresas_recrutamento')
-        .select('id, razao_social, status')
-        .eq('socio_email', email)
+        .select('id, razao_social, status, senha_hash')
+        .eq('socio_email', email.toLowerCase().trim())
         .single();
 
       if (empresaError || !empresa) {
-        await supabase.auth.signOut();
-        throw new Error('Empresa não encontrada. Verifique suas credenciais.');
+        throw new Error('E-mail não encontrado. Verifique ou cadastre sua empresa.');
       }
 
       if (empresa.status !== 'ativo') {
-        await supabase.auth.signOut();
         throw new Error('Sua conta está suspensa. Entre em contato com o suporte.');
       }
 
+      // 2. Tentar login com Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.toLowerCase().trim(),
+        password: senha,
+      });
+
+      if (authError) {
+        // Se o erro for de credenciais inválidas, verificar se a empresa foi cadastrada antes do Auth
+        if (authError.message.includes('Invalid login credentials')) {
+          // Verificar se senha_hash não é AUTH_SUPABASE (empresa cadastrada sem Auth)
+          if (empresa.senha_hash && empresa.senha_hash !== 'AUTH_SUPABASE') {
+            // Empresa foi cadastrada antes do sistema usar Auth
+            // Tentar verificar senha diretamente (apenas para migração)
+            if (empresa.senha_hash === senha) {
+              // Senha correta! Criar usuário no Auth para próximos logins
+              const { error: signUpError } = await supabase.auth.signUp({
+                email: email.toLowerCase().trim(),
+                password: senha,
+                options: {
+                  data: { tipo: 'empresa' },
+                },
+              });
+
+              if (!signUpError) {
+                // Atualizar senha_hash para indicar que agora usa Auth
+                await supabase
+                  .from('empresas_recrutamento')
+                  .update({ senha_hash: 'AUTH_SUPABASE' })
+                  .eq('id', empresa.id);
+
+                // Fazer login novamente com Auth
+                const { error: loginError } = await supabase.auth.signInWithPassword({
+                  email: email.toLowerCase().trim(),
+                  password: senha,
+                });
+
+                if (!loginError) {
+                  toast({
+                    title: 'Bem-vindo!',
+                    description: `Olá, ${empresa.razao_social}. Sua conta foi atualizada.`,
+                  });
+                  navigate('/recrutamento/empresa/dashboard');
+                  return;
+                }
+              }
+            }
+          }
+          throw new Error('Senha incorreta. Verifique e tente novamente.');
+        }
+
+        // Outros erros do Auth
+        if (authError.message.includes('Email not confirmed')) {
+          throw new Error('E-mail não confirmado. Verifique sua caixa de entrada.');
+        }
+
+        throw authError;
+      }
+
+      // 3. Login bem-sucedido
       toast({
         title: 'Bem-vindo!',
         description: `Olá, ${empresa.razao_social}`,

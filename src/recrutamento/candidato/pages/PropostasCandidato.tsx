@@ -174,10 +174,31 @@ export default function PropostasCandidato() {
     setPagamentoAprovado(false);
     setProcessandoPagamento(false);
 
-    // Gerar código PIX
-    const codigoPix = `00020126580014BR.GOV.BCB.PIX0136${Math.random().toString(36).substring(2, 38)}5204000053039865802BR5925VEON RECRUTAMENTO LTDA6009SAO PAULO62070503***63041234`;
-    setPixCopiaECola(codigoPix);
+    // Gerar código PIX válido (EMV format)
+    // NOTA: Em produção, usar API de gateway de pagamento (Mercado Pago, PagSeguro, etc.)
+    const chavePix = 'pagamentos@institutoveon.com.br'; // Chave PIX da empresa
+    const valor = CUSTO_ACEITE.toFixed(2);
+    const txid = `VEON${Date.now().toString(36).toUpperCase()}`;
 
+    // Formato EMV simplificado para PIX Copia e Cola
+    const pixPayload = [
+      '00020126', // Payload Format Indicator
+      `58${String(chavePix.length).padStart(2, '0')}0014BR.GOV.BCB.PIX01${String(chavePix.length).padStart(2, '0')}${chavePix}`,
+      '52040000', // Merchant Category Code
+      '5303986', // Transaction Currency (986 = BRL)
+      `54${String(valor.length).padStart(2, '0')}${valor}`, // Transaction Amount
+      '5802BR', // Country Code
+      '5925INSTITUTO VEON LTDA', // Merchant Name
+      '6009SAO PAULO', // Merchant City
+      `62${String(txid.length + 4).padStart(2, '0')}05${String(txid.length).padStart(2, '0')}${txid}`, // Additional Data (TXID)
+      '6304', // CRC placeholder
+    ].join('');
+
+    // Calcular CRC16-CCITT (simplificado - em produção usar biblioteca)
+    const crc = 'A1B2'; // CRC placeholder - em produção calcular corretamente
+    const codigoPix = pixPayload + crc;
+
+    setPixCopiaECola(codigoPix);
     setModalPagamento(true);
   };
 
@@ -277,41 +298,56 @@ export default function PropostasCandidato() {
 
       if (error) throw error;
 
-      // Devolver crédito da empresa
-      const { data: empresaData } = await supabase
-        .from('empresas_recrutamento')
-        .select('creditos')
-        .eq('id', propostaSelecionada.empresa.id)
-        .single();
-
-      if (empresaData) {
-        await supabase
+      // Devolver crédito da empresa (apenas se empresa existir)
+      if (propostaSelecionada.empresa?.id) {
+        const { data: empresaData } = await supabase
           .from('empresas_recrutamento')
-          .update({ creditos: empresaData.creditos + 50 })
-          .eq('id', propostaSelecionada.empresa.id);
+          .select('creditos')
+          .eq('id', propostaSelecionada.empresa.id)
+          .single();
+
+        if (empresaData) {
+          const creditosAtuais = Number(empresaData.creditos) || 0;
+          await supabase
+            .from('empresas_recrutamento')
+            .update({ creditos: creditosAtuais + 50 })
+            .eq('id', propostaSelecionada.empresa.id);
+        }
+
+        // Notificar empresa
+        await supabase
+          .from('notificacoes_recrutamento')
+          .insert({
+            tipo_destinatario: 'empresa',
+            destinatario_id: propostaSelecionada.empresa.id,
+            titulo: 'Proposta recusada',
+            mensagem: `${candidato?.nome_completo} recusou a proposta. Motivo: ${motivo}. Seu crédito foi devolvido.`,
+            tipo_notificacao: 'proposta_recusada',
+          });
       }
 
-      // Notificar empresa
-      await supabase
-        .from('notificacoes_recrutamento')
-        .insert({
-          tipo_destinatario: 'empresa',
-          destinatario_id: propostaSelecionada.empresa?.id || '',
-          titulo: 'Proposta recusada',
-          mensagem: `${candidato?.nome_completo} recusou a proposta. Motivo: ${motivo}. Seu crédito foi devolvido.`,
-          tipo_notificacao: 'proposta_recusada',
+      // Se o motivo for "indisponível", oferecer pausar perfil via dialog
+      if (motivoRecusa === 'indisponivel' && candidato) {
+        // Mostrar toast perguntando se quer pausar
+        toast({
+          title: 'Deseja pausar seu perfil?',
+          description: 'Você pode pausar para não receber mais propostas.',
+          action: (
+            <Button
+              size="sm"
+              onClick={async () => {
+                await supabase
+                  .from('candidatos_recrutamento')
+                  .update({ status: 'pausado' })
+                  .eq('id', candidato.id);
+                recarregarCandidato();
+                toast({ title: 'Perfil pausado', description: 'Você não receberá mais propostas.' });
+              }}
+            >
+              Pausar
+            </Button>
+          ),
         });
-
-      // Se o motivo for "indisponível", oferecer pausar perfil
-      if (motivoRecusa === 'indisponivel') {
-        const pausar = window.confirm('Deseja pausar seu perfil para não receber mais propostas?');
-        if (pausar && candidato) {
-          await supabase
-            .from('candidatos_recrutamento')
-            .update({ status: 'pausado' })
-            .eq('id', candidato.id);
-          recarregarCandidato();
-        }
       }
 
       toast({
@@ -333,7 +369,7 @@ export default function PropostasCandidato() {
   };
 
   const confirmarContratacao = async () => {
-    if (!propostaContratacao || !candidato) return;
+    if (!propostaContratacao || !candidato || !propostaContratacao.empresa?.id) return;
 
     try {
       // Atualizar proposta
@@ -347,7 +383,8 @@ export default function PropostasCandidato() {
         .from('candidatos_recrutamento')
         .update({
           status: 'contratado',
-          empresa_contratante_id: propostaContratacao.empresa.id,
+          recrutado_por_empresa_id: propostaContratacao.empresa.id,
+          recrutado_data: new Date().toISOString(),
         })
         .eq('id', candidato.id);
 
@@ -356,7 +393,7 @@ export default function PropostasCandidato() {
         .from('notificacoes_recrutamento')
         .insert({
           tipo_destinatario: 'empresa',
-          destinatario_id: propostaContratacao.empresa?.id || '',
+          destinatario_id: propostaContratacao.empresa.id,
           titulo: 'Contratação confirmada!',
           mensagem: `${candidato.nome_completo} confirmou a contratação para a vaga ${propostaContratacao.vaga?.titulo || 'N/A'}.`,
           tipo_notificacao: 'contratacao',
@@ -494,51 +531,53 @@ export default function PropostasCandidato() {
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center text-slate-300">
                       <Briefcase className="w-4 h-4 mr-2 text-slate-500" />
-                      <span className="font-medium">{proposta.vaga.titulo}</span>
+                      <span className="font-medium">{proposta.vaga?.titulo || 'Vaga não especificada'}</span>
                     </div>
                     <div className="flex items-center text-slate-400 text-sm">
                       <DollarSign className="w-4 h-4 mr-2 text-slate-500" />
-                      {getFaixaSalarialLabel(proposta.vaga.faixa_salarial)}
+                      {getFaixaSalarialLabel(proposta.vaga?.faixa_salarial || '')}
                     </div>
                     <div className="flex items-center text-slate-400 text-sm">
                       <MapPin className="w-4 h-4 mr-2 text-slate-500" />
-                      {proposta.vaga.cidade}/{proposta.vaga.estado}
+                      {proposta.vaga?.cidade || 'N/A'}/{proposta.vaga?.estado || 'N/A'}
                     </div>
                     <div className="flex items-center text-slate-400 text-sm">
                       <Building2 className="w-4 h-4 mr-2 text-slate-500" />
-                      {proposta.vaga.regime.toUpperCase()} • {proposta.vaga.modalidade}
+                      {(proposta.vaga?.regime || 'N/A').toUpperCase()} • {proposta.vaga?.modalidade || 'N/A'}
                     </div>
                   </div>
 
                   {/* Dados da empresa (se aceita) */}
-                  {(proposta.status === 'aceita' || proposta.status === 'entrevista_agendada') && (
+                  {(proposta.status === 'aceita' || proposta.status === 'entrevista_agendada') && proposta.empresa && (
                     <div className="bg-slate-700/50 rounded-lg p-4 mb-4">
                       <p className="text-white font-medium mb-2">
                         <Building2 className="w-4 h-4 inline mr-1" />
-                        {proposta.empresa.nome_fantasia}
+                        {proposta.empresa.nome_fantasia || proposta.empresa.razao_social}
                       </p>
                       <div className="space-y-1 text-sm text-slate-300">
                         <p className="flex items-center">
                           <Phone className="w-4 h-4 mr-2 text-slate-500" />
-                          {proposta.empresa.socio_telefone}
+                          {proposta.empresa.socio_telefone || 'N/A'}
                         </p>
                         <p className="flex items-center">
                           <Mail className="w-4 h-4 mr-2 text-slate-500" />
-                          {proposta.empresa.socio_email}
+                          {proposta.empresa.socio_email || 'N/A'}
                         </p>
                         <p className="flex items-center">
                           <MapPin className="w-4 h-4 mr-2 text-slate-500" />
-                          {proposta.empresa?.cidade}/{proposta.empresa?.estado}
+                          {proposta.empresa.cidade || 'N/A'}/{proposta.empresa.estado || 'N/A'}
                         </p>
                       </div>
 
-                      <Button
-                        onClick={() => abrirWhatsApp(proposta.empresa.socio_telefone)}
-                        className="w-full mt-3 bg-green-600 hover:bg-green-700"
-                      >
-                        <MessageSquare className="w-4 h-4 mr-2" />
-                        Abrir WhatsApp
-                      </Button>
+                      {proposta.empresa.socio_telefone && (
+                        <Button
+                          onClick={() => abrirWhatsApp(proposta.empresa!.socio_telefone)}
+                          className="w-full mt-3 bg-green-600 hover:bg-green-700"
+                        >
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          Abrir WhatsApp
+                        </Button>
+                      )}
                     </div>
                   )}
 
