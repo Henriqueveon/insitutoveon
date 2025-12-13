@@ -21,6 +21,7 @@ import {
   TrendingUp,
   Lightbulb,
 } from 'lucide-react';
+import SecaoIndicacaoCandidato from '../components/SecaoIndicacaoCandidato';
 
 interface Candidato {
   id: string;
@@ -357,6 +358,11 @@ export default function InicioCandidato() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Seção de Indicação */}
+      {candidato && (
+        <SecaoIndicacaoCandidato candidato={candidato} />
       )}
     </div>
   );

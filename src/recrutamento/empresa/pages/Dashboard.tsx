@@ -25,6 +25,8 @@ import {
   Sparkles,
   Bell,
 } from 'lucide-react';
+import SecaoIndicacao from '../components/SecaoIndicacao';
+import LinkRecrutamento from '../components/LinkRecrutamento';
 
 interface Empresa {
   id: string;
@@ -476,6 +478,9 @@ export default function EmpresaDashboard() {
             </CardContent>
           </Card>
 
+          {/* Link de Recrutamento */}
+          {empresa && <LinkRecrutamento empresa={empresa} />}
+
           {/* CTA Créditos */}
           <Card className="bg-gradient-to-br from-[#E31E24]/20 to-[#003DA5]/20 border-[#E31E24]/30">
             <CardContent className="p-4 text-center">
@@ -497,6 +502,13 @@ export default function EmpresaDashboard() {
           </Card>
         </div>
       </div>
+
+      {/* Seção de Indicação - Full Width */}
+      {empresa && (
+        <div className="mt-8">
+          <SecaoIndicacao empresa={empresa} />
+        </div>
+      )}
     </div>
   );
 }
