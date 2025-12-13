@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
-import { Slider } from '@/components/ui/slider';
 import {
   Select,
   SelectContent,
@@ -47,7 +46,6 @@ import {
   AREAS_EXPERIENCIA,
   ESCOLARIDADES,
   VEICULOS,
-  CNH_CATEGORIAS,
   DISPONIBILIDADE_HORARIO,
   OPCOES_VIAGEM_MUDANCA,
   OPCOES_MUDANCA,
@@ -58,6 +56,14 @@ import {
 } from './dadosFormulario';
 
 import { validarCPF } from '../services/cnpjService';
+
+// Componentes melhorados de formulário
+import CidadeAutocomplete from '@/components/recrutamento/CidadeAutocomplete';
+import DataNascimentoInput from '@/components/recrutamento/DataNascimentoInput';
+import ExperienciaSelector from '@/components/recrutamento/ExperienciaSelector';
+import CNHSelector from '@/components/recrutamento/CNHSelector';
+import InstagramInput from '@/components/recrutamento/InstagramInput';
+import SecaoFormulario from '@/components/recrutamento/SecaoFormulario';
 
 const STORAGE_KEY = 'veon_candidato_cadastro';
 
@@ -91,7 +97,6 @@ export default function CadastroCandidato() {
   const [etapaAtual, setEtapaAtual] = useState(1);
   const [perguntaAtual, setPerguntaAtual] = useState(1);
   const [form, setForm] = useState<FormularioCandidato>(VALORES_INICIAIS);
-  const [cidades, setCidades] = useState<{ value: string; label: string }[]>([]);
   const [cargoSugestoes, setCargoSugestoes] = useState<string[]>([]);
   const [showCargoSugestoes, setShowCargoSugestoes] = useState(false);
 
@@ -115,29 +120,6 @@ export default function CadastroCandidato() {
     const data = { form, etapa: etapaAtual, pergunta: perguntaAtual };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [form, etapaAtual, perguntaAtual]);
-
-  // Buscar cidades quando estado muda
-  useEffect(() => {
-    if (form.estado) {
-      buscarCidades(form.estado);
-    }
-  }, [form.estado]);
-
-  const buscarCidades = async (uf: string) => {
-    try {
-      const response = await fetch(
-        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`
-      );
-      const data = await response.json();
-      const cidadesFormatadas = data
-        .map((c: { nome: string }) => ({ value: c.nome, label: c.nome }))
-        .sort((a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label));
-      setCidades(cidadesFormatadas);
-    } catch (error) {
-      console.error('Erro ao buscar cidades:', error);
-      setCidades([]);
-    }
-  };
 
   // Atualizar campo do formulário
   const updateForm = useCallback((field: keyof FormularioCandidato, value: any) => {
@@ -236,7 +218,7 @@ export default function CadastroCandidato() {
     if (etapaAtual === 5) {
       switch (perguntaAtual) {
         case 1: return !!form.veiculo;
-        case 2: return !!form.cnh;
+        case 2: return form.cnh.length > 0; // CNH agora é array
         case 3: return form.disponibilidade_horario.length > 0;
         case 4: return !!form.aceita_viajar;
         case 5: return !!form.aceita_mudanca;
@@ -303,32 +285,31 @@ export default function CadastroCandidato() {
       switch (perguntaAtual) {
         case 1:
           return (
-            <PerguntaWrapper titulo="Qual é o seu nome completo?">
-              <Input
-                placeholder="Digite seu nome completo"
-                value={form.nome_completo}
-                onChange={(e) => updateForm('nome_completo', e.target.value)}
-                className="text-lg py-6 bg-slate-900/50 border-slate-600 text-white"
-                autoFocus
-              />
-            </PerguntaWrapper>
+            <SecaoFormulario
+              titulo="Dados Pessoais"
+              subtitulo="Informações básicas sobre você"
+              icon={User}
+              iconColor="text-blue-400"
+            >
+              <PerguntaWrapper titulo="Qual é o seu nome completo?">
+                <Input
+                  placeholder="Digite seu nome completo"
+                  value={form.nome_completo}
+                  onChange={(e) => updateForm('nome_completo', e.target.value)}
+                  className="text-lg py-6 bg-slate-900/50 border-slate-600 text-white"
+                  autoFocus
+                />
+              </PerguntaWrapper>
+            </SecaoFormulario>
           );
 
         case 2:
           return (
             <PerguntaWrapper titulo="Qual sua data de nascimento?">
-              <Input
-                type="date"
+              <DataNascimentoInput
                 value={form.data_nascimento}
-                onChange={(e) => updateForm('data_nascimento', e.target.value)}
-                className="text-lg py-6 bg-slate-900/50 border-slate-600 text-white"
-                max={new Date().toISOString().split('T')[0]}
+                onChange={(value) => updateForm('data_nascimento', value)}
               />
-              {form.data_nascimento && (
-                <p className="text-slate-400 mt-2">
-                  Idade: {calcularIdade(form.data_nascimento)} anos
-                </p>
-              )}
             </PerguntaWrapper>
           );
 
@@ -400,18 +381,17 @@ export default function CadastroCandidato() {
         case 7:
           return (
             <PerguntaWrapper titulo="Em qual cidade você mora?">
-              <Select value={form.cidade} onValueChange={(v) => updateForm('cidade', v)}>
-                <SelectTrigger className="text-lg py-6 bg-slate-900/50 border-slate-600 text-white">
-                  <SelectValue placeholder="Selecione a cidade" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 max-h-60">
-                  {cidades.map((c) => (
-                    <SelectItem key={c.value} value={c.value} className="text-white">
-                      {c.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CidadeAutocomplete
+                value={form.cidade}
+                estado={form.estado}
+                onChange={(cidade, uf) => {
+                  updateForm('cidade', cidade);
+                  if (uf && uf !== form.estado) {
+                    updateForm('estado', uf);
+                  }
+                }}
+                placeholder="Digite o nome da sua cidade"
+              />
             </PerguntaWrapper>
           );
 
@@ -434,22 +414,29 @@ export default function CadastroCandidato() {
       switch (perguntaAtual) {
         case 1:
           return (
-            <PerguntaWrapper titulo="Você está trabalhando atualmente?">
-              <div className="grid grid-cols-2 gap-4">
-                <BotaoOpcao
-                  selecionado={form.esta_trabalhando === true}
-                  onClick={() => updateForm('esta_trabalhando', true)}
-                >
-                  SIM
-                </BotaoOpcao>
-                <BotaoOpcao
-                  selecionado={form.esta_trabalhando === false}
-                  onClick={() => updateForm('esta_trabalhando', false)}
-                >
-                  NÃO
-                </BotaoOpcao>
-              </div>
-            </PerguntaWrapper>
+            <SecaoFormulario
+              titulo="Situação Profissional"
+              subtitulo="Seu momento atual no mercado"
+              icon={Briefcase}
+              iconColor="text-green-400"
+            >
+              <PerguntaWrapper titulo="Você está trabalhando atualmente?">
+                <div className="grid grid-cols-2 gap-4">
+                  <BotaoOpcao
+                    selecionado={form.esta_trabalhando === true}
+                    onClick={() => updateForm('esta_trabalhando', true)}
+                  >
+                    SIM
+                  </BotaoOpcao>
+                  <BotaoOpcao
+                    selecionado={form.esta_trabalhando === false}
+                    onClick={() => updateForm('esta_trabalhando', false)}
+                  >
+                    NÃO
+                  </BotaoOpcao>
+                </div>
+              </PerguntaWrapper>
+            </SecaoFormulario>
           );
 
         case 2:
@@ -549,14 +536,21 @@ export default function CadastroCandidato() {
       switch (perguntaAtual) {
         case 1:
           return (
-            <PerguntaWrapper titulo="Qual a última empresa em que trabalhou?" subtitulo="Este dado só será revelado após match">
-              <Input
-                placeholder="Nome da empresa"
-                value={form.ultima_empresa}
-                onChange={(e) => updateForm('ultima_empresa', e.target.value)}
-                className="text-lg py-6 bg-slate-900/50 border-slate-600 text-white"
-              />
-            </PerguntaWrapper>
+            <SecaoFormulario
+              titulo="Experiência Profissional"
+              subtitulo="Sua trajetória no mercado de trabalho"
+              icon={FileText}
+              iconColor="text-orange-400"
+            >
+              <PerguntaWrapper titulo="Qual a última empresa em que trabalhou?" subtitulo="Este dado só será revelado após match">
+                <Input
+                  placeholder="Nome da empresa"
+                  value={form.ultima_empresa}
+                  onChange={(e) => updateForm('ultima_empresa', e.target.value)}
+                  className="text-lg py-6 bg-slate-900/50 border-slate-600 text-white"
+                />
+              </PerguntaWrapper>
+            </SecaoFormulario>
           );
 
         case 2:
@@ -655,27 +649,11 @@ export default function CadastroCandidato() {
 
         case 6:
           return (
-            <PerguntaWrapper titulo="Quantos anos de experiência profissional você tem?">
-              <div className="space-y-6">
-                <div className="text-center">
-                  <span className="text-5xl font-bold text-white">
-                    {form.anos_experiencia}
-                  </span>
-                  <span className="text-xl text-slate-400 ml-2">anos</span>
-                </div>
-                <Slider
-                  value={[form.anos_experiencia]}
-                  onValueChange={([v]) => updateForm('anos_experiencia', v)}
-                  min={0}
-                  max={30}
-                  step={1}
-                  className="py-4"
-                />
-                <div className="flex justify-between text-sm text-slate-500">
-                  <span>0 anos</span>
-                  <span>30+ anos</span>
-                </div>
-              </div>
+            <PerguntaWrapper titulo="">
+              <ExperienciaSelector
+                value={form.anos_experiencia}
+                onChange={(value) => updateForm('anos_experiencia', value)}
+              />
             </PerguntaWrapper>
           );
       }
@@ -686,20 +664,27 @@ export default function CadastroCandidato() {
       switch (perguntaAtual) {
         case 1:
           return (
-            <PerguntaWrapper titulo="Qual sua escolaridade?">
-              <div className="grid grid-cols-1 gap-2">
-                {ESCOLARIDADES.map((e) => (
-                  <BotaoOpcao
-                    key={e.value}
-                    selecionado={form.escolaridade === e.value}
-                    onClick={() => updateForm('escolaridade', e.value)}
-                    small
-                  >
-                    {e.label}
-                  </BotaoOpcao>
-                ))}
-              </div>
-            </PerguntaWrapper>
+            <SecaoFormulario
+              titulo="Formação Acadêmica"
+              subtitulo="Sua educação e qualificações"
+              icon={GraduationCap}
+              iconColor="text-purple-400"
+            >
+              <PerguntaWrapper titulo="Qual sua escolaridade?">
+                <div className="grid grid-cols-1 gap-2">
+                  {ESCOLARIDADES.map((e) => (
+                    <BotaoOpcao
+                      key={e.value}
+                      selecionado={form.escolaridade === e.value}
+                      onClick={() => updateForm('escolaridade', e.value)}
+                      small
+                    >
+                      {e.label}
+                    </BotaoOpcao>
+                  ))}
+                </div>
+              </PerguntaWrapper>
+            </SecaoFormulario>
           );
 
         case 2:
@@ -733,36 +718,38 @@ export default function CadastroCandidato() {
       switch (perguntaAtual) {
         case 1:
           return (
-            <PerguntaWrapper titulo="Possui veículo próprio?">
-              <div className="grid grid-cols-2 gap-3">
-                {VEICULOS.map((v) => (
-                  <BotaoOpcao
-                    key={v.value}
-                    selecionado={form.veiculo === v.value}
-                    onClick={() => updateForm('veiculo', v.value)}
-                  >
-                    <span className="text-2xl mr-2">{v.icon}</span>
-                    {v.label}
-                  </BotaoOpcao>
-                ))}
-              </div>
-            </PerguntaWrapper>
+            <SecaoFormulario
+              titulo="Mobilidade"
+              subtitulo="Transporte e disponibilidade"
+              icon={Car}
+              iconColor="text-cyan-400"
+            >
+              <PerguntaWrapper titulo="Possui veículo próprio?">
+                <div className="grid grid-cols-2 gap-3">
+                  {VEICULOS.map((v) => (
+                    <BotaoOpcao
+                      key={v.value}
+                      selecionado={form.veiculo === v.value}
+                      onClick={() => updateForm('veiculo', v.value)}
+                    >
+                      <span className="text-2xl mr-2">{v.icon}</span>
+                      {v.label}
+                    </BotaoOpcao>
+                  ))}
+                </div>
+              </PerguntaWrapper>
+            </SecaoFormulario>
           );
 
         case 2:
           return (
-            <PerguntaWrapper titulo="Possui CNH?">
-              <div className="grid grid-cols-2 gap-3">
-                {CNH_CATEGORIAS.map((c) => (
-                  <BotaoOpcao
-                    key={c.value}
-                    selecionado={form.cnh === c.value}
-                    onClick={() => updateForm('cnh', c.value)}
-                  >
-                    {c.label}
-                  </BotaoOpcao>
-                ))}
-              </div>
+            <PerguntaWrapper titulo="Você possui habilitação (CNH)?">
+              <CNHSelector
+                value={form.cnh}
+                onChange={(value) => updateForm('cnh', value)}
+                emProcesso={form.cnh_em_processo}
+                onEmProcessoChange={(value) => updateForm('cnh_em_processo', value)}
+              />
             </PerguntaWrapper>
           );
 
@@ -825,19 +812,26 @@ export default function CadastroCandidato() {
       switch (perguntaAtual) {
         case 1:
           return (
-            <PerguntaWrapper titulo="Qual seu estado civil?">
-              <div className="grid grid-cols-2 gap-3">
-                {ESTADOS_CIVIS.map((e) => (
-                  <BotaoOpcao
-                    key={e.value}
-                    selecionado={form.estado_civil === e.value}
-                    onClick={() => updateForm('estado_civil', e.value)}
-                  >
-                    {e.label}
-                  </BotaoOpcao>
-                ))}
-              </div>
-            </PerguntaWrapper>
+            <SecaoFormulario
+              titulo="Vida Pessoal"
+              subtitulo="Informações sobre você"
+              icon={Users}
+              iconColor="text-pink-400"
+            >
+              <PerguntaWrapper titulo="Qual seu estado civil?">
+                <div className="grid grid-cols-2 gap-3">
+                  {ESTADOS_CIVIS.map((e) => (
+                    <BotaoOpcao
+                      key={e.value}
+                      selecionado={form.estado_civil === e.value}
+                      onClick={() => updateForm('estado_civil', e.value)}
+                    >
+                      {e.label}
+                    </BotaoOpcao>
+                  ))}
+                </div>
+              </PerguntaWrapper>
+            </SecaoFormulario>
           );
 
         case 2:
@@ -891,16 +885,11 @@ export default function CadastroCandidato() {
 
         case 5:
           return (
-            <PerguntaWrapper titulo="Qual seu Instagram?" subtitulo="Para verificação de perfil (opcional)">
-              <div className="relative">
-                <Input
-                  placeholder="seuinstagram"
-                  value={form.instagram}
-                  onChange={(e) => updateForm('instagram', e.target.value.replace('@', ''))}
-                  className="text-lg py-6 bg-slate-900/50 border-slate-600 text-white pl-10"
-                />
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">@</span>
-              </div>
+            <PerguntaWrapper titulo="">
+              <InstagramInput
+                value={form.instagram}
+                onChange={(value) => updateForm('instagram', value)}
+              />
             </PerguntaWrapper>
           );
       }
@@ -911,20 +900,27 @@ export default function CadastroCandidato() {
       switch (perguntaAtual) {
         case 1:
           return (
-            <PerguntaWrapper titulo="Qual sua pretensão salarial?">
-              <Select value={form.pretensao_salarial} onValueChange={(v) => updateForm('pretensao_salarial', v)}>
-                <SelectTrigger className="text-lg py-6 bg-slate-900/50 border-slate-600 text-white">
-                  <SelectValue placeholder="Selecione a faixa" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 max-h-60">
-                  {FAIXAS_SALARIAIS.map((f) => (
-                    <SelectItem key={f.value} value={f.value} className="text-white">
-                      {f.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </PerguntaWrapper>
+            <SecaoFormulario
+              titulo="Expectativas"
+              subtitulo="O que você busca na carreira"
+              icon={Target}
+              iconColor="text-yellow-400"
+            >
+              <PerguntaWrapper titulo="Qual sua pretensão salarial?">
+                <Select value={form.pretensao_salarial} onValueChange={(v) => updateForm('pretensao_salarial', v)}>
+                  <SelectTrigger className="text-lg py-6 bg-slate-900/50 border-slate-600 text-white">
+                    <SelectValue placeholder="Selecione a faixa" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700 max-h-60">
+                    {FAIXAS_SALARIAIS.map((f) => (
+                      <SelectItem key={f.value} value={f.value} className="text-white">
+                        {f.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </PerguntaWrapper>
+            </SecaoFormulario>
           );
 
         case 2:
@@ -1137,15 +1133,4 @@ function BotaoOpcao({ children, selecionado, onClick, small, disabled }: BotaoOp
       {children}
     </button>
   );
-}
-
-function calcularIdade(dataNascimento: string): number {
-  const hoje = new Date();
-  const nascimento = new Date(dataNascimento);
-  let idade = hoje.getFullYear() - nascimento.getFullYear();
-  const mes = hoje.getMonth() - nascimento.getMonth();
-  if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
-    idade--;
-  }
-  return idade;
 }

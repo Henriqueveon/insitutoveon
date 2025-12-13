@@ -146,12 +146,24 @@ export const VEICULOS = [
   { value: 'nenhum', label: 'Não possuo', icon: '❌' },
 ];
 
-// CNH
+// CNH - Todas as categorias
 export const CNH_CATEGORIAS = [
-  { value: 'a', label: 'Categoria A (moto)' },
-  { value: 'b', label: 'Categoria B (carro)' },
-  { value: 'ab', label: 'Categoria AB' },
-  { value: 'nenhuma', label: 'Não possuo' },
+  { value: 'A', label: 'Categoria A', descricao: 'Motos e triciclos' },
+  { value: 'B', label: 'Categoria B', descricao: 'Carros e utilitários' },
+  { value: 'C', label: 'Categoria C', descricao: 'Caminhões e tratores' },
+  { value: 'D', label: 'Categoria D', descricao: 'Ônibus e micro-ônibus' },
+  { value: 'E', label: 'Categoria E', descricao: 'Carretas e articulados' },
+  { value: 'nenhuma', label: 'Não possuo CNH', descricao: '' },
+];
+
+// Faixas de experiência profissional
+export const FAIXAS_EXPERIENCIA = [
+  { value: 0, label: 'Primeiro emprego', sublabel: 'Sem experiência' },
+  { value: 1, label: 'Menos de 1 ano', sublabel: 'Iniciante' },
+  { value: 2, label: '1 a 2 anos', sublabel: 'Júnior' },
+  { value: 4, label: '3 a 5 anos', sublabel: 'Pleno' },
+  { value: 8, label: '6 a 10 anos', sublabel: 'Sênior' },
+  { value: 15, label: 'Mais de 10 anos', sublabel: 'Especialista' },
 ];
 
 // Disponibilidade de horário
@@ -296,7 +308,8 @@ export interface FormularioCandidato {
 
   // Etapa 5 - Logística
   veiculo: string;
-  cnh: string;
+  cnh: string[]; // Array para múltiplas categorias
+  cnh_em_processo: boolean;
   disponibilidade_horario: string[];
   aceita_viajar: string;
   aceita_mudanca: string;
@@ -341,7 +354,8 @@ export const VALORES_INICIAIS: FormularioCandidato = {
   curso: '',
   certificacoes: '',
   veiculo: '',
-  cnh: '',
+  cnh: [],
+  cnh_em_processo: false,
   disponibilidade_horario: [],
   aceita_viajar: '',
   aceita_mudanca: '',
