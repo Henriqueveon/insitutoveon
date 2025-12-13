@@ -54,7 +54,12 @@ import {
   AlertCircle,
   Calendar,
   MessageSquare,
+  Eye,
+  Heart,
+  GraduationCap,
+  Sparkles,
 } from 'lucide-react';
+import EmpresaPerfilCard from '@/components/recrutamento/EmpresaPerfilCard';
 
 interface Candidato {
   id: string;
@@ -81,6 +86,16 @@ interface Proposta {
     socio_email: string;
     cidade: string | null;
     estado: string | null;
+    logo_url?: string | null;
+    segmento?: string | null;
+    tempo_mercado?: string | null;
+    num_colaboradores?: string | null;
+    site_url?: string | null;
+    instagram_empresa?: string | null;
+    sobre_empresa?: string | null;
+    diferenciais?: string[] | null;
+    porque_trabalhar?: string | null;
+    fotos_ambiente?: string[] | null;
   } | null;
   vaga: {
     id: string;
@@ -131,6 +146,10 @@ export default function PropostasCandidato() {
   const [dialogContratacao, setDialogContratacao] = useState(false);
   const [propostaContratacao, setPropostaContratacao] = useState<Proposta | null>(null);
 
+  // Modal de perfil da empresa
+  const [modalEmpresa, setModalEmpresa] = useState(false);
+  const [empresaSelecionada, setEmpresaSelecionada] = useState<Proposta['empresa'] | null>(null);
+
   useEffect(() => {
     if (candidato?.id) {
       carregarPropostas();
@@ -145,7 +164,9 @@ export default function PropostasCandidato() {
         .select(`
           *,
           empresa:empresas_recrutamento (
-            id, nome_fantasia, razao_social, socio_telefone, socio_email, cidade, estado
+            id, nome_fantasia, razao_social, socio_telefone, socio_email, cidade, estado,
+            logo_url, segmento, tempo_mercado, num_colaboradores, site_url,
+            instagram_empresa, sobre_empresa, diferenciais, porque_trabalhar, fotos_ambiente
           ),
           vaga:vagas_recrutamento (
             id, titulo, faixa_salarial, regime, modalidade, cidade, estado
@@ -547,6 +568,22 @@ export default function PropostasCandidato() {
                     </div>
                   </div>
 
+                  {/* Botão Ver Empresa - mostra antes de aceitar para ajudar na decisão */}
+                  {proposta.status === 'pendente' && proposta.empresa && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEmpresaSelecionada(proposta.empresa);
+                        setModalEmpresa(true);
+                      }}
+                      className="w-full mb-4 border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Ver perfil da empresa
+                    </Button>
+                  )}
+
                   {/* Dados da empresa (se aceita) */}
                   {(proposta.status === 'aceita' || proposta.status === 'entrevista_agendada') && proposta.empresa && (
                     <div className="bg-slate-700/50 rounded-lg p-4 mb-4">
@@ -859,6 +896,30 @@ export default function PropostasCandidato() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal de Perfil da Empresa */}
+      <Dialog open={modalEmpresa} onOpenChange={setModalEmpresa}>
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center">
+              <Building2 className="w-5 h-5 mr-2 text-blue-400" />
+              Conheça a empresa
+            </DialogTitle>
+          </DialogHeader>
+          {empresaSelecionada && (
+            <EmpresaPerfilCard empresa={empresaSelecionada} />
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setModalEmpresa(false)}
+              className="border-slate-600 text-slate-300"
+            >
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -49,6 +49,7 @@ const menuItems = [
   { path: '/recrutamento/empresa/em-processo', label: 'Em Processo', icon: Briefcase },
   { path: '/recrutamento/empresa/contratados', label: 'Contratados', icon: CheckCircle },
   { path: '/recrutamento/empresa/creditos', label: 'Créditos', icon: CreditCard },
+  { path: '/recrutamento/empresa/sobre-empresa', label: 'Sobre a Empresa', icon: Building2 },
   { path: '/recrutamento/empresa/configuracoes', label: 'Configurações', icon: Settings },
 ];
 
