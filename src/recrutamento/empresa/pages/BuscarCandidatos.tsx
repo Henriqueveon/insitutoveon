@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Select,
@@ -53,6 +55,10 @@ import {
   SlidersHorizontal,
   Eye,
   Star,
+  Plane,
+  Baby,
+  ArrowUpDown,
+  Navigation,
 } from 'lucide-react';
 import CandidatoPerfilModal from '../components/CandidatoPerfilModal';
 
@@ -80,12 +86,15 @@ interface Candidato {
   possui_veiculo: string | null;
   regime_preferido: string | null;
   objetivo_profissional: string | null;
+  distancia_km?: number | null;
 }
 
 interface Filtros {
   busca: string;
   estado: string;
   cidade: string;
+  buscaProximidade: boolean;
+  raioKm: number;
   areaExperiencia: string[];
   anosExperiencia: string;
   escolaridade: string;
@@ -94,7 +103,19 @@ interface Filtros {
   disponibilidade: string;
   possuiCNH: boolean | null;
   possuiVeiculo: boolean | null;
+  aceitaViajar: boolean | null;
   regime: string;
+  idadeMin: number | null;
+  idadeMax: number | null;
+  estadoCivil: string;
+  temFilhos: boolean | null;
+}
+
+type OrdenacaoOption = 'recentes' | 'proximidade' | 'experiencia' | 'salario' | 'match';
+
+interface CidadeSugestao {
+  cidade: string;
+  estado: string;
 }
 
 const ESTADOS_BR = [
@@ -159,6 +180,21 @@ const REGIMES = [
   { value: 'freelancer', label: 'Freelancer' },
 ];
 
+const ESTADOS_CIVIS = [
+  { value: 'solteiro', label: 'Solteiro(a)' },
+  { value: 'casado', label: 'Casado(a)' },
+  { value: 'divorciado', label: 'Divorciado(a)' },
+  { value: 'viuvo', label: 'Viúvo(a)' },
+  { value: 'uniao_estavel', label: 'União Estável' },
+];
+
+const ORDENACAO_OPTIONS = [
+  { value: 'recentes', label: 'Mais recentes', icon: Clock },
+  { value: 'proximidade', label: 'Mais próximos', icon: MapPin },
+  { value: 'experiencia', label: 'Maior experiência', icon: Briefcase },
+  { value: 'salario', label: 'Menor pretensão salarial', icon: DollarSign },
+];
+
 export default function BuscarCandidatos() {
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -180,6 +216,8 @@ export default function BuscarCandidatos() {
     busca: '',
     estado: '',
     cidade: '',
+    buscaProximidade: false,
+    raioKm: 30,
     areaExperiencia: [],
     anosExperiencia: '',
     escolaridade: '',
@@ -188,8 +226,18 @@ export default function BuscarCandidatos() {
     disponibilidade: '',
     possuiCNH: null,
     possuiVeiculo: null,
+    aceitaViajar: null,
     regime: '',
+    idadeMin: null,
+    idadeMax: null,
+    estadoCivil: '',
+    temFilhos: null,
   });
+
+  const [ordenacao, setOrdenacao] = useState<OrdenacaoOption>('recentes');
+  const [cidadesSugestoes, setCidadesSugestoes] = useState<CidadeSugestao[]>([]);
+  const [buscaCidade, setBuscaCidade] = useState('');
+  const [showSugestoes, setShowSugestoes] = useState(false);
 
   // Verificar se há candidato selecionado na URL
   useEffect(() => {
@@ -217,10 +265,10 @@ export default function BuscarCandidatos() {
     setPaginaAtual(1);
   }, [filtros]);
 
-  // Carregar candidatos quando filtros ou página mudarem
+  // Carregar candidatos quando filtros, ordenação ou página mudarem
   useEffect(() => {
     carregarCandidatos();
-  }, [filtros, paginaAtual]);
+  }, [filtros, paginaAtual, ordenacao]);
 
   // Carregar favoritos
   useEffect(() => {
@@ -241,84 +289,139 @@ export default function BuscarCandidatos() {
     }
   };
 
-  const carregarCandidatos = async () => {
-    setIsLoading(true);
+  // Buscar cidades com coordenadas para autocomplete
+  const buscarCidadesAutocomplete = async (termo: string) => {
+    if (termo.length < 2) {
+      setCidadesSugestoes([]);
+      return;
+    }
+
     try {
       let query = supabase
-        .from('candidatos_recrutamento')
-        .select('*', { count: 'exact' })
-        .eq('status', 'disponivel');
+        .from('cidades_coordenadas')
+        .select('cidade, estado')
+        .ilike('cidade', `${termo}%`)
+        .order('populacao', { ascending: false })
+        .limit(10);
 
-      // Aplicar filtros
-      if (filtros.busca) {
-        query = query.or(`nome_completo.ilike.%${filtros.busca}%,objetivo_profissional.ilike.%${filtros.busca}%`);
-      }
       if (filtros.estado) {
         query = query.eq('estado', filtros.estado);
       }
-      if (filtros.cidade) {
-        query = query.eq('cidade', filtros.cidade);
-      }
-      if (filtros.anosExperiencia) {
-        // Mapear string de filtro para range numérico
-        switch (filtros.anosExperiencia) {
-          case 'primeiro_emprego':
-            query = query.eq('anos_experiencia', 0);
-            break;
-          case 'menos_1':
-            query = query.lt('anos_experiencia', 1);
-            break;
-          case '1_2':
-            query = query.gte('anos_experiencia', 1).lte('anos_experiencia', 2);
-            break;
-          case '3_5':
-            query = query.gte('anos_experiencia', 3).lte('anos_experiencia', 5);
-            break;
-          case '5_10':
-            query = query.gte('anos_experiencia', 5).lte('anos_experiencia', 10);
-            break;
-          case 'mais_10':
-            query = query.gt('anos_experiencia', 10);
-            break;
-        }
-      }
-      if (filtros.escolaridade) {
-        query = query.eq('escolaridade', filtros.escolaridade);
-      }
-      if (filtros.faixaSalarial) {
-        query = query.eq('pretensao_salarial', filtros.faixaSalarial);
-      }
-      if (filtros.perfilDisc.length > 0) {
-        query = query.in('perfil_disc', filtros.perfilDisc);
-      }
-      if (filtros.disponibilidade) {
-        query = query.eq('disponibilidade_inicio', filtros.disponibilidade);
-      }
-      if (filtros.possuiCNH !== null) {
-        query = query.eq('possui_cnh', filtros.possuiCNH ? 'sim' : 'nao');
-      }
-      if (filtros.possuiVeiculo !== null) {
-        query = query.eq('possui_veiculo', filtros.possuiVeiculo ? 'sim' : 'nao');
-      }
-      if (filtros.regime) {
-        query = query.eq('regime_preferido', filtros.regime);
-      }
-      if (filtros.areaExperiencia.length > 0) {
-        query = query.overlaps('areas_experiencia', filtros.areaExperiencia);
-      }
 
-      // Paginação
-      const from = (paginaAtual - 1) * ITENS_POR_PAGINA;
-      const to = from + ITENS_POR_PAGINA - 1;
-      query = query.range(from, to);
-      query = query.order('created_at', { ascending: false });
-
-      const { data, count, error } = await query;
+      const { data, error } = await query;
 
       if (error) throw error;
+      setCidadesSugestoes((data as CidadeSugestao[]) || []);
+    } catch (error) {
+      console.error('Erro ao buscar cidades:', error);
+    }
+  };
 
-      setCandidatos((data as unknown as Candidato[]) || []);
-      setTotalCandidatos(count || 0);
+  // Debounce para busca de cidades
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (buscaCidade) {
+        buscarCidadesAutocomplete(buscaCidade);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [buscaCidade, filtros.estado]);
+
+  const carregarCandidatos = async () => {
+    setIsLoading(true);
+    try {
+      // Se busca por proximidade está ativa e tem cidade selecionada, usar função RPC
+      if (filtros.buscaProximidade && filtros.cidade && filtros.estado) {
+        const { data: proximosData, error: proximosError } = await supabase.rpc(
+          'buscar_candidatos_proximos',
+          {
+            p_cidade_origem: filtros.cidade,
+            p_estado_origem: filtros.estado,
+            p_raio_km: filtros.raioKm,
+          }
+        );
+
+        if (proximosError) throw proximosError;
+
+        // Buscar detalhes dos candidatos encontrados
+        const candidatoIds = (proximosData as any[])?.map(c => c.candidato_id) || [];
+
+        if (candidatoIds.length === 0) {
+          setCandidatos([]);
+          setTotalCandidatos(0);
+          setIsLoading(false);
+          return;
+        }
+
+        let query = supabase
+          .from('candidatos_recrutamento')
+          .select('*', { count: 'exact' })
+          .in('id', candidatoIds);
+
+        // Aplicar outros filtros
+        query = aplicarFiltrosExtras(query);
+
+        const { data, count, error } = await query;
+
+        if (error) throw error;
+
+        // Adicionar distância aos candidatos
+        const candidatosComDistancia = (data || []).map(candidato => {
+          const info = (proximosData as any[])?.find(p => p.candidato_id === candidato.id);
+          return { ...candidato, distancia_km: info?.distancia_km };
+        });
+
+        // Ordenar por distância se for proximidade
+        if (ordenacao === 'proximidade') {
+          candidatosComDistancia.sort((a, b) =>
+            (a.distancia_km || 999) - (b.distancia_km || 999)
+          );
+        }
+
+        setCandidatos(candidatosComDistancia as unknown as Candidato[]);
+        setTotalCandidatos(count || 0);
+      } else {
+        // Busca normal sem proximidade
+        let query = supabase
+          .from('candidatos_recrutamento')
+          .select('*', { count: 'exact' })
+          .eq('status', 'disponivel');
+
+        // Aplicar filtros de localização
+        if (filtros.estado) {
+          query = query.eq('estado', filtros.estado);
+        }
+        if (filtros.cidade) {
+          query = query.ilike('cidade', filtros.cidade);
+        }
+
+        // Aplicar outros filtros
+        query = aplicarFiltrosExtras(query);
+
+        // Paginação
+        const from = (paginaAtual - 1) * ITENS_POR_PAGINA;
+        const to = from + ITENS_POR_PAGINA - 1;
+        query = query.range(from, to);
+
+        // Ordenação
+        switch (ordenacao) {
+          case 'experiencia':
+            query = query.order('anos_experiencia', { ascending: false, nullsFirst: false });
+            break;
+          case 'salario':
+            query = query.order('pretensao_salarial', { ascending: true, nullsFirst: false });
+            break;
+          default:
+            query = query.order('created_at', { ascending: false });
+        }
+
+        const { data, count, error } = await query;
+
+        if (error) throw error;
+
+        setCandidatos((data as unknown as Candidato[]) || []);
+        setTotalCandidatos(count || 0);
+      }
     } catch (error) {
       console.error('Erro ao carregar candidatos:', error);
       toast({
@@ -329,6 +432,69 @@ export default function BuscarCandidatos() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Função auxiliar para aplicar filtros extras
+  const aplicarFiltrosExtras = (query: any) => {
+    if (filtros.busca) {
+      query = query.or(`nome_completo.ilike.%${filtros.busca}%,objetivo_profissional.ilike.%${filtros.busca}%`);
+    }
+    if (filtros.anosExperiencia) {
+      switch (filtros.anosExperiencia) {
+        case 'primeiro_emprego':
+          query = query.eq('anos_experiencia', 0);
+          break;
+        case 'menos_1':
+          query = query.lt('anos_experiencia', 1);
+          break;
+        case '1_2':
+          query = query.gte('anos_experiencia', 1).lte('anos_experiencia', 2);
+          break;
+        case '3_5':
+          query = query.gte('anos_experiencia', 3).lte('anos_experiencia', 5);
+          break;
+        case '5_10':
+          query = query.gte('anos_experiencia', 5).lte('anos_experiencia', 10);
+          break;
+        case 'mais_10':
+          query = query.gt('anos_experiencia', 10);
+          break;
+      }
+    }
+    if (filtros.escolaridade) {
+      query = query.eq('escolaridade', filtros.escolaridade);
+    }
+    if (filtros.faixaSalarial) {
+      query = query.eq('pretensao_salarial', filtros.faixaSalarial);
+    }
+    if (filtros.perfilDisc.length > 0) {
+      query = query.in('perfil_disc', filtros.perfilDisc);
+    }
+    if (filtros.disponibilidade) {
+      query = query.eq('disponibilidade_inicio', filtros.disponibilidade);
+    }
+    if (filtros.possuiCNH !== null) {
+      query = query.eq('possui_cnh', filtros.possuiCNH ? 'sim' : 'nao');
+    }
+    if (filtros.possuiVeiculo !== null) {
+      query = query.eq('possui_veiculo', filtros.possuiVeiculo ? 'sim' : 'nao');
+    }
+    if (filtros.aceitaViajar !== null) {
+      query = query.eq('aceita_viajar', filtros.aceitaViajar ? 'sim' : 'nao');
+    }
+    if (filtros.regime) {
+      query = query.eq('regime_preferido', filtros.regime);
+    }
+    if (filtros.areaExperiencia.length > 0) {
+      query = query.overlaps('areas_experiencia', filtros.areaExperiencia);
+    }
+    if (filtros.estadoCivil) {
+      query = query.eq('estado_civil', filtros.estadoCivil);
+    }
+    if (filtros.temFilhos !== null) {
+      query = query.eq('tem_filhos', filtros.temFilhos);
+    }
+    return query;
   };
 
   const carregarFavoritos = async () => {
@@ -379,6 +545,8 @@ export default function BuscarCandidatos() {
       busca: '',
       estado: '',
       cidade: '',
+      buscaProximidade: false,
+      raioKm: 30,
       areaExperiencia: [],
       anosExperiencia: '',
       escolaridade: '',
@@ -387,9 +555,22 @@ export default function BuscarCandidatos() {
       disponibilidade: '',
       possuiCNH: null,
       possuiVeiculo: null,
+      aceitaViajar: null,
       regime: '',
+      idadeMin: null,
+      idadeMax: null,
+      estadoCivil: '',
+      temFilhos: null,
     });
+    setBuscaCidade('');
+    setOrdenacao('recentes');
     setPaginaAtual(1);
+  };
+
+  const selecionarCidade = (cidade: string, estado: string) => {
+    setFiltros(prev => ({ ...prev, cidade, estado }));
+    setBuscaCidade(cidade);
+    setShowSugestoes(false);
   };
 
   const totalPaginas = Math.ceil(totalCandidatos / ITENS_POR_PAGINA);
@@ -435,12 +616,41 @@ export default function BuscarCandidatos() {
             )}
           </CardHeader>
           <CardContent className="space-y-4 max-h-[calc(100vh-12rem)] overflow-y-auto">
+            {/* Ordenação */}
+            <div className="space-y-2">
+              <Label className="text-slate-300 flex items-center gap-2">
+                <ArrowUpDown className="w-4 h-4" />
+                Ordenar por
+              </Label>
+              <Select
+                value={ordenacao}
+                onValueChange={(v) => setOrdenacao(v as OrdenacaoOption)}
+              >
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ORDENACAO_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      <span className="flex items-center gap-2">
+                        <opt.icon className="w-4 h-4" />
+                        {opt.label}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Localização */}
             <div className="space-y-2">
               <Label className="text-slate-300">Estado</Label>
               <Select
                 value={filtros.estado}
-                onValueChange={(v) => setFiltros(prev => ({ ...prev, estado: v, cidade: '' }))}
+                onValueChange={(v) => {
+                  setFiltros(prev => ({ ...prev, estado: v, cidade: '' }));
+                  setBuscaCidade('');
+                }}
               >
                 <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                   <SelectValue placeholder="Todos os estados" />
@@ -453,22 +663,88 @@ export default function BuscarCandidatos() {
               </Select>
             </div>
 
-            {filtros.estado && cidades.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-slate-300">Cidade</Label>
-                <Select
-                  value={filtros.cidade}
-                  onValueChange={(v) => setFiltros(prev => ({ ...prev, cidade: v }))}
-                >
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                    <SelectValue placeholder="Todas as cidades" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    {cidades.map((cidade) => (
-                      <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {/* Cidade com Autocomplete */}
+            <div className="space-y-2 relative">
+              <Label className="text-slate-300">Cidade</Label>
+              <div className="relative">
+                <Input
+                  placeholder="Digite para buscar..."
+                  value={buscaCidade}
+                  onChange={(e) => {
+                    setBuscaCidade(e.target.value);
+                    setShowSugestoes(true);
+                    if (e.target.value.length < 2) {
+                      setFiltros(prev => ({ ...prev, cidade: '' }));
+                    }
+                  }}
+                  onFocus={() => setShowSugestoes(true)}
+                  className="bg-slate-700 border-slate-600 text-white"
+                />
+                {buscaCidade && (
+                  <button
+                    onClick={() => {
+                      setBuscaCidade('');
+                      setFiltros(prev => ({ ...prev, cidade: '' }));
+                      setCidadesSugestoes([]);
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              {showSugestoes && cidadesSugestoes.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-600 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                  {cidadesSugestoes.map((cidade, i) => (
+                    <button
+                      key={i}
+                      onClick={() => selecionarCidade(cidade.cidade, cidade.estado)}
+                      className="w-full px-3 py-2 text-left text-sm text-white hover:bg-slate-700 flex items-center justify-between"
+                    >
+                      <span>{cidade.cidade}</span>
+                      <span className="text-slate-400 text-xs">{cidade.estado}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Toggle de Proximidade */}
+            {filtros.cidade && (
+              <div className="space-y-3 p-3 bg-slate-700/50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <Label className="text-slate-300 flex items-center gap-2">
+                    <Navigation className="w-4 h-4 text-green-400" />
+                    Buscar por proximidade
+                  </Label>
+                  <Switch
+                    checked={filtros.buscaProximidade}
+                    onCheckedChange={(checked) =>
+                      setFiltros(prev => ({ ...prev, buscaProximidade: checked }))
+                    }
+                  />
+                </div>
+                {filtros.buscaProximidade && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-400">Raio de busca:</span>
+                      <span className="text-white font-medium">{filtros.raioKm} km</span>
+                    </div>
+                    <Slider
+                      value={[filtros.raioKm]}
+                      onValueChange={([value]) =>
+                        setFiltros(prev => ({ ...prev, raioKm: value }))
+                      }
+                      min={10}
+                      max={100}
+                      step={5}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-slate-500">
+                      Mostra candidatos até {filtros.raioKm}km de {filtros.cidade}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -631,29 +907,109 @@ export default function BuscarCandidatos() {
               </Select>
             </div>
 
-            {/* CNH e Veículo */}
-            <div className="space-y-3 pt-2">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <Checkbox
-                  checked={filtros.possuiCNH === true}
-                  onCheckedChange={(checked) => {
-                    setFiltros(prev => ({ ...prev, possuiCNH: checked ? true : null }));
-                  }}
-                  className="border-slate-500"
-                />
-                <span className="text-sm text-slate-300">Possui CNH</span>
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <Checkbox
-                  checked={filtros.possuiVeiculo === true}
-                  onCheckedChange={(checked) => {
-                    setFiltros(prev => ({ ...prev, possuiVeiculo: checked ? true : null }));
-                  }}
-                  className="border-slate-500"
-                />
-                <span className="text-sm text-slate-300">Possui Veículo</span>
-              </label>
-            </div>
+            {/* Mobilidade */}
+            <Accordion type="single" collapsible>
+              <AccordionItem value="mobilidade" className="border-slate-700">
+                <AccordionTrigger className="text-slate-300 hover:text-white py-2">
+                  <span className="flex items-center gap-2">
+                    <Car className="w-4 h-4" />
+                    Mobilidade
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-3">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox
+                        checked={filtros.possuiCNH === true}
+                        onCheckedChange={(checked) => {
+                          setFiltros(prev => ({ ...prev, possuiCNH: checked ? true : null }));
+                        }}
+                        className="border-slate-500"
+                      />
+                      <span className="text-sm text-slate-300">Possui CNH</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox
+                        checked={filtros.possuiVeiculo === true}
+                        onCheckedChange={(checked) => {
+                          setFiltros(prev => ({ ...prev, possuiVeiculo: checked ? true : null }));
+                        }}
+                        className="border-slate-500"
+                      />
+                      <span className="text-sm text-slate-300">Possui Veículo</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox
+                        checked={filtros.aceitaViajar === true}
+                        onCheckedChange={(checked) => {
+                          setFiltros(prev => ({ ...prev, aceitaViajar: checked ? true : null }));
+                        }}
+                        className="border-slate-500"
+                      />
+                      <span className="text-sm text-slate-300 flex items-center gap-1">
+                        <Plane className="w-3 h-3" />
+                        Aceita Viajar
+                      </span>
+                    </label>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            {/* Perfil Pessoal */}
+            <Accordion type="single" collapsible>
+              <AccordionItem value="pessoal" className="border-slate-700">
+                <AccordionTrigger className="text-slate-300 hover:text-white py-2">
+                  <span className="flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Perfil Pessoal
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-slate-400 text-xs">Estado Civil</Label>
+                      <Select
+                        value={filtros.estadoCivil}
+                        onValueChange={(v) => setFiltros(prev => ({ ...prev, estadoCivil: v }))}
+                      >
+                        <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-9">
+                          <SelectValue placeholder="Qualquer" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ESTADOS_CIVIS.map((ec) => (
+                            <SelectItem key={ec.value} value={ec.value}>{ec.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox
+                        checked={filtros.temFilhos === true}
+                        onCheckedChange={(checked) => {
+                          setFiltros(prev => ({ ...prev, temFilhos: checked ? true : null }));
+                        }}
+                        className="border-slate-500"
+                      />
+                      <span className="text-sm text-slate-300 flex items-center gap-1">
+                        <Baby className="w-3 h-3" />
+                        Tem Filhos
+                      </span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox
+                        checked={filtros.temFilhos === false}
+                        onCheckedChange={(checked) => {
+                          setFiltros(prev => ({ ...prev, temFilhos: checked ? false : null }));
+                        }}
+                        className="border-slate-500"
+                      />
+                      <span className="text-sm text-slate-300">Não tem filhos</span>
+                    </label>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </CardContent>
         </Card>
       </aside>
@@ -731,6 +1087,11 @@ export default function BuscarCandidatos() {
                           <p className="text-xs text-slate-400 flex items-center">
                             <MapPin className="w-3 h-3 mr-1" />
                             {candidato.cidade}, {candidato.estado}
+                            {candidato.distancia_km !== undefined && candidato.distancia_km !== null && (
+                              <span className="ml-2 text-green-400">
+                                ({candidato.distancia_km} km)
+                              </span>
+                            )}
                           </p>
                         </div>
                       </div>
