@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,13 @@ import {
   Menu,
   X,
   ChevronDown,
+  ChevronRight,
+  Briefcase,
+  Building2,
+  UserSearch,
+  FileText,
+  Calendar,
+  DollarSign,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -30,13 +37,25 @@ const navigation = [
   { name: 'Meus Analistas', href: '/painel/analistas', icon: Users },
   { name: 'Todos os Candidatos', href: '/painel/candidatos', icon: ClipboardList },
   { name: 'Novo Analista', href: '/painel/novo-analista', icon: UserPlus },
-  { name: 'Configurações', href: '/painel/configuracoes', icon: Settings },
+];
+
+const recrutamentoSubmenu = [
+  { name: 'Dashboard', href: '/painel/recrutamento', icon: LayoutDashboard },
+  { name: 'Empresas', href: '/painel/recrutamento/empresas', icon: Building2 },
+  { name: 'Candidatos', href: '/painel/recrutamento/candidatos', icon: UserSearch },
+  { name: 'Vagas', href: '/painel/recrutamento/vagas', icon: FileText },
+  { name: 'Entrevistas', href: '/painel/recrutamento/entrevistas', icon: Calendar },
+  { name: 'Financeiro', href: '/painel/recrutamento/financeiro', icon: DollarSign },
 ];
 
 export default function PainelLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile, user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [recrutamentoOpen, setRecrutamentoOpen] = useState(
+    location.pathname.includes('/painel/recrutamento')
+  );
 
   const handleSignOut = async () => {
     await signOut();
@@ -102,6 +121,77 @@ export default function PainelLayout() {
               {item.name}
             </NavLink>
           ))}
+
+          {/* Área de Recrutamento - Submenu expansível */}
+          <div className="pt-2">
+            <button
+              onClick={() => setRecrutamentoOpen(!recrutamentoOpen)}
+              className={cn(
+                'w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                location.pathname.includes('/painel/recrutamento')
+                  ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <Briefcase className="w-5 h-5" />
+                Área de Recrutamento
+              </div>
+              <ChevronRight
+                className={cn(
+                  'w-4 h-4 transition-transform duration-200',
+                  recrutamentoOpen && 'rotate-90'
+                )}
+              />
+            </button>
+
+            {/* Submenu */}
+            <div
+              className={cn(
+                'overflow-hidden transition-all duration-200',
+                recrutamentoOpen ? 'max-h-96 mt-1' : 'max-h-0'
+              )}
+            >
+              <div className="ml-4 pl-4 border-l border-slate-700 space-y-1">
+                {recrutamentoSubmenu.map((item) => (
+                  <NavLink
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    end={item.href === '/painel/recrutamento'}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
+                        isActive
+                          ? 'bg-amber-500/10 text-amber-400'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                      )
+                    }
+                  >
+                    <item.icon className="w-4 h-4" />
+                    {item.name}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Configurações */}
+          <NavLink
+            to="/painel/configuracoes"
+            onClick={() => setSidebarOpen(false)}
+            className={({ isActive }) =>
+              cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mt-2',
+                isActive
+                  ? 'bg-gradient-to-r from-[#00D9FF]/20 to-[#0099CC]/20 text-[#00D9FF] border border-[#00D9FF]/30'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+              )
+            }
+          >
+            <Settings className="w-5 h-5" />
+            Configurações
+          </NavLink>
         </nav>
 
         {/* Sidebar footer */}

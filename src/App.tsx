@@ -31,6 +31,16 @@ import PainelNovoAnalista from "./pages/painel/NovoAnalista";
 import PainelAnalistaDetalhes from "./pages/painel/AnalistaDetalhes";
 import PainelConfiguracoes from "./pages/painel/Configuracoes";
 
+// Painel do Gestor - Área de Recrutamento
+import {
+  RecrutamentoDashboard,
+  RecrutamentoEmpresas,
+  RecrutamentoCandidatos,
+  RecrutamentoVagas,
+  RecrutamentoEntrevistas,
+  RecrutamentoFinanceiro,
+} from "./pages/painel/recrutamento";
+
 // Painel do Fundador
 import FundadorLayout from "./components/fundador/FundadorLayout";
 import ProtectedRouteFundador from "./components/auth/ProtectedRouteFundador";
@@ -50,15 +60,33 @@ import BaseCientifica from "./pages/BaseCientifica";
 // Área de Recrutamento - Empresa
 import EmpresaLogin from "./recrutamento/empresa/Login";
 import EmpresaCadastro from "./recrutamento/empresa/Cadastro";
-import EmpresaDashboard from "./recrutamento/empresa/Dashboard";
+import EmpresaLayout from "./recrutamento/empresa/components/EmpresaLayout";
+import {
+  EmpresaDashboard,
+  BuscarCandidatos,
+  MinhasVagas,
+  EmProcesso,
+  Contratados,
+  Creditos,
+  Configuracoes as EmpresaConfiguracoes,
+} from "./recrutamento/empresa/pages";
 
-// Área de Recrutamento - Candidato
+// Área de Recrutamento - Candidato (Cadastro)
 import CandidatoBemVindo from "./recrutamento/candidato/BemVindo";
 import CandidatoCadastro from "./recrutamento/candidato/Cadastro";
 import CandidatoSelfie from "./recrutamento/candidato/Selfie";
 import CandidatoVideo from "./recrutamento/candidato/Video";
 import CandidatoDocumento from "./recrutamento/candidato/Documento";
 import CandidatoTermos from "./recrutamento/candidato/Termos";
+
+// Área de Recrutamento - Candidato (Painel)
+import CandidatoLayout from "./recrutamento/candidato/components/CandidatoLayout";
+import {
+  Inicio as CandidatoInicio,
+  PropostasCandidato,
+  MeuCurriculoCandidato,
+  ConfiguracoesCandidato,
+} from "./recrutamento/candidato/pages";
 
 const queryClient = new QueryClient();
 
@@ -136,20 +164,45 @@ const App = () => (
                   <Route path="candidatos" element={<PainelCandidatos />} />
                   <Route path="novo-analista" element={<PainelNovoAnalista />} />
                   <Route path="configuracoes" element={<PainelConfiguracoes />} />
+                  {/* Área de Recrutamento no Painel do Gestor */}
+                  <Route path="recrutamento" element={<RecrutamentoDashboard />} />
+                  <Route path="recrutamento/empresas" element={<RecrutamentoEmpresas />} />
+                  <Route path="recrutamento/candidatos" element={<RecrutamentoCandidatos />} />
+                  <Route path="recrutamento/vagas" element={<RecrutamentoVagas />} />
+                  <Route path="recrutamento/entrevistas" element={<RecrutamentoEntrevistas />} />
+                  <Route path="recrutamento/financeiro" element={<RecrutamentoFinanceiro />} />
                 </Route>
 
                 {/* Área de Recrutamento - Empresa */}
                 <Route path="/recrutamento/empresa/login" element={<EmpresaLogin />} />
                 <Route path="/recrutamento/empresa/cadastro" element={<EmpresaCadastro />} />
-                <Route path="/recrutamento/empresa/dashboard" element={<EmpresaDashboard />} />
+                <Route path="/recrutamento/empresa" element={<EmpresaLayout />}>
+                  <Route index element={<Navigate to="/recrutamento/empresa/dashboard" replace />} />
+                  <Route path="dashboard" element={<EmpresaDashboard />} />
+                  <Route path="buscar-candidatos" element={<BuscarCandidatos />} />
+                  <Route path="minhas-vagas" element={<MinhasVagas />} />
+                  <Route path="em-processo" element={<EmProcesso />} />
+                  <Route path="contratados" element={<Contratados />} />
+                  <Route path="creditos" element={<Creditos />} />
+                  <Route path="configuracoes" element={<EmpresaConfiguracoes />} />
+                </Route>
 
-                {/* Área de Recrutamento - Candidato */}
+                {/* Área de Recrutamento - Candidato (Cadastro) */}
                 <Route path="/recrutamento/candidato/bem-vindo" element={<CandidatoBemVindo />} />
                 <Route path="/recrutamento/candidato/cadastro" element={<CandidatoCadastro />} />
                 <Route path="/recrutamento/candidato/selfie" element={<CandidatoSelfie />} />
                 <Route path="/recrutamento/candidato/video" element={<CandidatoVideo />} />
                 <Route path="/recrutamento/candidato/documento" element={<CandidatoDocumento />} />
                 <Route path="/recrutamento/candidato/termos" element={<CandidatoTermos />} />
+
+                {/* Área de Recrutamento - Candidato (Painel) */}
+                <Route path="/recrutamento/candidato" element={<CandidatoLayout />}>
+                  <Route index element={<Navigate to="/recrutamento/candidato/inicio" replace />} />
+                  <Route path="inicio" element={<CandidatoInicio />} />
+                  <Route path="propostas" element={<PropostasCandidato />} />
+                  <Route path="meu-curriculo" element={<MeuCurriculoCandidato />} />
+                  <Route path="configuracoes" element={<ConfiguracoesCandidato />} />
+                </Route>
 
                 <Route path="*" element={<NotFound />} />
               </Routes>

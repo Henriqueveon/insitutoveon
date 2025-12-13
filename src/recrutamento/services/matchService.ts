@@ -9,6 +9,75 @@ import {
   MatchResult,
 } from '../types/recrutamento.types';
 
+// =====================================================
+// DICIONÁRIO DE PALAVRAS PARA PERFIL DISC
+// =====================================================
+
+const DICIONARIO_DISC: Record<string, string> = {
+  // DOMINANTE (D)
+  competitivo: 'D', líder: 'D', decidido: 'D', direto: 'D', assertivo: 'D',
+  determinado: 'D', ambicioso: 'D', focado: 'D', resultados: 'D', desafiador: 'D',
+  rápido: 'D', prático: 'D', objetivo: 'D', independente: 'D', audacioso: 'D',
+  empreendedor: 'D', proativo: 'D', dinâmico: 'D',
+
+  // INFLUENTE (I)
+  comunicativo: 'I', entusiasta: 'I', carismático: 'I', social: 'I', otimista: 'I',
+  persuasivo: 'I', criativo: 'I', espontâneo: 'I', animado: 'I', inspirador: 'I',
+  expressivo: 'I', popular: 'I', extrovertido: 'I', motivador: 'I', entusiasmado: 'I',
+  alegre: 'I', empolgado: 'I', sociável: 'I',
+
+  // ESTÁVEL (S)
+  calmo: 'S', paciente: 'S', confiável: 'S', leal: 'S', cooperativo: 'S',
+  estável: 'S', consistente: 'S', tranquilo: 'S', ouvinte: 'S', harmonioso: 'S',
+  persistente: 'S', dedicado: 'S', equilibrado: 'S', compreensivo: 'S', acolhedor: 'S',
+  gentil: 'S', sereno: 'S', conciliador: 'S',
+
+  // CONFORME (C)
+  analítico: 'C', preciso: 'C', organizado: 'C', detalhista: 'C', cuidadoso: 'C',
+  metódico: 'C', sistemático: 'C', perfeccionista: 'C', lógico: 'C', criterioso: 'C',
+  qualidade: 'C', correto: 'C', técnico: 'C', minucioso: 'C', cauteloso: 'C',
+  disciplinado: 'C', rigoroso: 'C', meticuloso: 'C',
+};
+
+/**
+ * Converte palavras-chave para perfil DISC
+ */
+export function palavrasParaDISC(palavras: string[]): string {
+  const contagem: Record<string, number> = { D: 0, I: 0, S: 0, C: 0 };
+
+  palavras.forEach(palavra => {
+    const palavraLower = palavra.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    Object.entries(DICIONARIO_DISC).forEach(([key, perfil]) => {
+      const keyNormalized = key.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      if (palavraLower.includes(keyNormalized) || keyNormalized.includes(palavraLower)) {
+        contagem[perfil]++;
+      }
+    });
+  });
+
+  const maxPontos = Math.max(...Object.values(contagem));
+  const perfisPredominantes = Object.entries(contagem)
+    .filter(([_, pontos]) => pontos === maxPontos && pontos > 0)
+    .map(([perfil]) => perfil);
+
+  if (perfisPredominantes.length === 0) return 'S';
+  if (perfisPredominantes.length === 1) return perfisPredominantes[0];
+  return perfisPredominantes.slice(0, 2).join('');
+}
+
+/**
+ * Matriz de compatibilidade DISC
+ */
+function getCompatibilidadeDISC(perfil1: string, perfil2: string): number {
+  const compatibilidade: Record<string, Record<string, number>> = {
+    D: { D: 100, I: 70, S: 40, C: 50 },
+    I: { D: 70, I: 100, S: 60, C: 40 },
+    S: { D: 40, I: 60, S: 100, C: 70 },
+    C: { D: 50, I: 40, S: 70, C: 100 },
+  };
+  return compatibilidade[perfil1]?.[perfil2] ?? 50;
+}
+
 /**
  * Calcula compatibilidade DISC entre candidato e vaga
  */
@@ -18,19 +87,23 @@ function calcularMatchDISC(
 ): number {
   if (!perfilCandidato || !perfilVaga) return 50;
 
-  // Conta quantas letras coincidem na ordem
-  let match = 0;
-  const minLen = Math.min(perfilCandidato.length, perfilVaga.length);
+  const candidato = perfilCandidato.toUpperCase();
+  const vaga = perfilVaga.toUpperCase();
 
-  for (let i = 0; i < minLen; i++) {
-    if (perfilCandidato[i] === perfilVaga[i]) {
-      match += 25; // 25% por letra na mesma posição
-    } else if (perfilVaga.includes(perfilCandidato[i])) {
-      match += 10; // 10% se a letra existe em outra posição
-    }
+  // Match perfeito
+  if (candidato === vaga) return 100;
+
+  // Match parcial (compartilha uma letra)
+  const candidatoLetras = candidato.split('');
+  const vagaLetras = vaga.split('');
+  const compartilhadas = candidatoLetras.filter(l => vagaLetras.includes(l)).length;
+
+  if (compartilhadas > 0) {
+    return 70 + (compartilhadas * 10);
   }
 
-  return Math.min(match, 100);
+  // Usar matriz de compatibilidade
+  return getCompatibilidadeDISC(candidato[0], vaga[0]);
 }
 
 /**
