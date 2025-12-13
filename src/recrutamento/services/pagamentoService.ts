@@ -98,11 +98,19 @@ export async function estornarCreditoEmpresa(
       status: 'aprovado',
     });
 
-    // Atualizar créditos da empresa
-    await supabase.rpc('incrementar_creditos_empresa', {
-      p_empresa_id: empresaId,
-      p_valor: valor,
-    });
+    // Atualizar créditos da empresa diretamente
+    const { data: empresaData, error: selectError } = await supabase
+      .from('empresas_recrutamento')
+      .select('creditos')
+      .eq('id', empresaId)
+      .single();
+
+    if (selectError) throw selectError;
+
+    await supabase
+      .from('empresas_recrutamento')
+      .update({ creditos: (empresaData?.creditos || 0) + valor })
+      .eq('id', empresaId);
   } catch (error) {
     console.error('Erro ao estornar crédito:', error);
     throw error;

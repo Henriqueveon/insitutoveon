@@ -65,8 +65,8 @@ interface Candidato {
 interface Proposta {
   id: string;
   status: string;
-  salario_oferecido: number;
-  mensagem: string;
+  salario_oferecido: number | null;
+  mensagem: string | null;
   created_at: string;
   data_entrevista: string | null;
   horario_entrevista: string | null;
@@ -75,23 +75,22 @@ interface Proposta {
   link_entrevista: string | null;
   empresa: {
     id: string;
-    nome_fantasia: string;
+    nome_fantasia: string | null;
     razao_social: string;
     socio_telefone: string;
     socio_email: string;
-    endereco: string;
-    cidade: string;
-    estado: string;
-  };
+    cidade: string | null;
+    estado: string | null;
+  } | null;
   vaga: {
     id: string;
     titulo: string;
-    faixa_salarial: string;
-    regime: string;
-    modalidade: string;
-    cidade: string;
-    estado: string;
-  };
+    faixa_salarial: string | null;
+    regime: string | null;
+    modalidade: string | null;
+    cidade: string | null;
+    estado: string | null;
+  } | null;
 }
 
 const CUSTO_ACEITE = 9.90;
@@ -146,7 +145,7 @@ export default function PropostasCandidato() {
         .select(`
           *,
           empresa:empresas_recrutamento (
-            id, nome_fantasia, razao_social, socio_telefone, socio_email, endereco, cidade, estado
+            id, nome_fantasia, razao_social, socio_telefone, socio_email, cidade, estado
           ),
           vaga:vagas_recrutamento (
             id, titulo, faixa_salarial, regime, modalidade, cidade, estado
@@ -157,7 +156,7 @@ export default function PropostasCandidato() {
 
       if (error) throw error;
 
-      setPropostas(data || []);
+      setPropostas((data as unknown as Proposta[]) || []);
     } catch (error) {
       console.error('Erro ao carregar propostas:', error);
       toast({
@@ -211,10 +210,10 @@ export default function PropostasCandidato() {
       await supabase
         .from('transacoes_recrutamento')
         .insert({
-          candidato_id: candidato.id,
-          tipo: 'debito',
+          usuario_id: candidato.id,
+          tipo: 'candidato',
           valor: CUSTO_ACEITE,
-          descricao: `Aceite de proposta - ${propostaSelecionada.vaga.titulo}`,
+          tipo_transacao: 'pagamento',
           status: 'aprovado',
         });
 
@@ -223,10 +222,10 @@ export default function PropostasCandidato() {
         .from('notificacoes_recrutamento')
         .insert({
           tipo_destinatario: 'empresa',
-          destinatario_id: propostaSelecionada.empresa.id,
+          destinatario_id: propostaSelecionada.empresa?.id || '',
           titulo: `${candidato.nome_completo} aceitou sua proposta!`,
-          mensagem: `O candidato aceitou a proposta para a vaga ${propostaSelecionada.vaga.titulo}. Seus dados de contato foram liberados.`,
-          tipo: 'proposta_aceita',
+          mensagem: `O candidato aceitou a proposta para a vaga ${propostaSelecionada.vaga?.titulo || 'N/A'}. Seus dados de contato foram liberados.`,
+          tipo_notificacao: 'proposta_aceita',
         });
 
       setPagamentoAprovado(true);
@@ -297,10 +296,10 @@ export default function PropostasCandidato() {
         .from('notificacoes_recrutamento')
         .insert({
           tipo_destinatario: 'empresa',
-          destinatario_id: propostaSelecionada.empresa.id,
+          destinatario_id: propostaSelecionada.empresa?.id || '',
           titulo: 'Proposta recusada',
           mensagem: `${candidato?.nome_completo} recusou a proposta. Motivo: ${motivo}. Seu crédito foi devolvido.`,
-          tipo: 'proposta_recusada',
+          tipo_notificacao: 'proposta_recusada',
         });
 
       // Se o motivo for "indisponível", oferecer pausar perfil
@@ -357,10 +356,10 @@ export default function PropostasCandidato() {
         .from('notificacoes_recrutamento')
         .insert({
           tipo_destinatario: 'empresa',
-          destinatario_id: propostaContratacao.empresa.id,
+          destinatario_id: propostaContratacao.empresa?.id || '',
           titulo: 'Contratação confirmada!',
-          mensagem: `${candidato.nome_completo} confirmou a contratação para a vaga ${propostaContratacao.vaga.titulo}.`,
-          tipo: 'contratacao',
+          mensagem: `${candidato.nome_completo} confirmou a contratação para a vaga ${propostaContratacao.vaga?.titulo || 'N/A'}.`,
+          tipo_notificacao: 'contratacao',
         });
 
       toast({
@@ -529,7 +528,7 @@ export default function PropostasCandidato() {
                         </p>
                         <p className="flex items-center">
                           <MapPin className="w-4 h-4 mr-2 text-slate-500" />
-                          {proposta.empresa.endereco} - {proposta.empresa.cidade}/{proposta.empresa.estado}
+                          {proposta.empresa?.cidade}/{proposta.empresa?.estado}
                         </p>
                       </div>
 

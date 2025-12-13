@@ -157,14 +157,8 @@ export default function EmProcesso() {
   };
 
   const carregarContatosDesbloqueados = async () => {
-    const { data } = await supabase
-      .from('contatos_desbloqueados')
-      .select('candidato_id')
-      .eq('empresa_id', empresa?.id);
-
-    if (data) {
-      setContatoDesbloqueado(data.map(c => c.candidato_id));
-    }
+    // Tabela contatos_desbloqueados ainda não existe, manter estado vazio por enquanto
+    setContatoDesbloqueado([]);
   };
 
   const abrirModalAgendamento = (proposta: Proposta) => {
@@ -214,14 +208,7 @@ export default function EmProcesso() {
           .update({ creditos: empresa.creditos - CUSTO_ENTREVISTA })
           .eq('id', empresa.id);
 
-        // Registrar desbloqueio
-        await supabase
-          .from('contatos_desbloqueados')
-          .insert({
-            empresa_id: empresa.id,
-            candidato_id: propostaSelecionada.candidato.id,
-          });
-
+        // Marcar como desbloqueado localmente
         setContatoDesbloqueado(prev => [...prev, propostaSelecionada.candidato.id]);
         recarregarEmpresa();
       }
@@ -249,13 +236,8 @@ export default function EmProcesso() {
           destinatario_id: propostaSelecionada.candidato.id,
           titulo: 'Entrevista agendada!',
           mensagem: `${empresa.nome_fantasia} agendou uma entrevista para ${new Date(agendamento.data).toLocaleDateString('pt-BR')} às ${agendamento.horario}.`,
-          tipo: 'entrevista',
+          tipo_notificacao: 'entrevista',
         });
-
-      toast({
-        title: 'Entrevista agendada!',
-        description: 'O candidato foi notificado sobre a entrevista.',
-      });
 
       setModalAgendamento(false);
       carregarPropostas();
@@ -288,7 +270,7 @@ export default function EmProcesso() {
           destinatario_id: proposta.candidato.id,
           titulo: 'Proposta cancelada',
           mensagem: `${empresa?.nome_fantasia} cancelou a proposta para a vaga ${proposta.vaga.titulo}.`,
-          tipo: 'proposta',
+          tipo_notificacao: 'proposta',
         });
 
       toast({
@@ -330,7 +312,7 @@ export default function EmProcesso() {
           destinatario_id: proposta.candidato.id,
           titulo: 'Parabéns! Você foi contratado!',
           mensagem: `${empresa?.nome_fantasia} registrou sua contratação para a vaga ${proposta.vaga.titulo}.`,
-          tipo: 'contratacao',
+          tipo_notificacao: 'contratacao',
         });
 
       toast({

@@ -150,14 +150,20 @@ export type Database = {
           aceite_lgpd_data: string | null
           aceite_termos: boolean | null
           aceite_termos_data: string | null
+          ano_conclusao: string | null
           anos_experiencia: number | null
           areas_experiencia: string[] | null
           areas_interesse: string[] | null
           bairro: string | null
+          cadastro_completo: boolean | null
+          categoria_cnh: string | null
+          cep: string | null
           certificacoes: string | null
           cidade: string
+          complemento: string | null
           cpf: string
           created_at: string | null
+          curriculo_url: string | null
           curso: string | null
           data_nascimento: string
           disponibilidade_horario: string | null
@@ -170,15 +176,20 @@ export type Database = {
           esta_trabalhando: boolean | null
           estado: string
           estado_civil: string | null
+          etapa_cadastro: number | null
           foto_url: string | null
           id: string
           idade_filhos: string | null
           instagram: string | null
+          instituicao: string | null
+          logradouro: string | null
           motivo_busca_oportunidade: string | null
           motivo_saida: string | null
           nome_completo: string
+          numero: string | null
           objetivo_profissional: string | null
           perfil_disc: string | null
+          perfil_disc_detalhado: Json | null
           perfil_valores: Json | null
           possui_cnh: string | null
           possui_veiculo: string | null
@@ -193,6 +204,8 @@ export type Database = {
           telefone: string
           tem_filhos: boolean | null
           tempo_ultima_empresa: string | null
+          teste_disc_concluido: boolean | null
+          teste_disc_data: string | null
           teste_disc_id: string | null
           ultima_empresa: string | null
           ultimo_cargo: string | null
@@ -209,14 +222,20 @@ export type Database = {
           aceite_lgpd_data?: string | null
           aceite_termos?: boolean | null
           aceite_termos_data?: string | null
+          ano_conclusao?: string | null
           anos_experiencia?: number | null
           areas_experiencia?: string[] | null
           areas_interesse?: string[] | null
           bairro?: string | null
+          cadastro_completo?: boolean | null
+          categoria_cnh?: string | null
+          cep?: string | null
           certificacoes?: string | null
           cidade: string
+          complemento?: string | null
           cpf: string
           created_at?: string | null
+          curriculo_url?: string | null
           curso?: string | null
           data_nascimento: string
           disponibilidade_horario?: string | null
@@ -229,15 +248,20 @@ export type Database = {
           esta_trabalhando?: boolean | null
           estado: string
           estado_civil?: string | null
+          etapa_cadastro?: number | null
           foto_url?: string | null
           id?: string
           idade_filhos?: string | null
           instagram?: string | null
+          instituicao?: string | null
+          logradouro?: string | null
           motivo_busca_oportunidade?: string | null
           motivo_saida?: string | null
           nome_completo: string
+          numero?: string | null
           objetivo_profissional?: string | null
           perfil_disc?: string | null
+          perfil_disc_detalhado?: Json | null
           perfil_valores?: Json | null
           possui_cnh?: string | null
           possui_veiculo?: string | null
@@ -252,6 +276,8 @@ export type Database = {
           telefone: string
           tem_filhos?: boolean | null
           tempo_ultima_empresa?: string | null
+          teste_disc_concluido?: boolean | null
+          teste_disc_data?: string | null
           teste_disc_id?: string | null
           ultima_empresa?: string | null
           ultimo_cargo?: string | null
@@ -268,14 +294,20 @@ export type Database = {
           aceite_lgpd_data?: string | null
           aceite_termos?: boolean | null
           aceite_termos_data?: string | null
+          ano_conclusao?: string | null
           anos_experiencia?: number | null
           areas_experiencia?: string[] | null
           areas_interesse?: string[] | null
           bairro?: string | null
+          cadastro_completo?: boolean | null
+          categoria_cnh?: string | null
+          cep?: string | null
           certificacoes?: string | null
           cidade?: string
+          complemento?: string | null
           cpf?: string
           created_at?: string | null
+          curriculo_url?: string | null
           curso?: string | null
           data_nascimento?: string
           disponibilidade_horario?: string | null
@@ -288,15 +320,20 @@ export type Database = {
           esta_trabalhando?: boolean | null
           estado?: string
           estado_civil?: string | null
+          etapa_cadastro?: number | null
           foto_url?: string | null
           id?: string
           idade_filhos?: string | null
           instagram?: string | null
+          instituicao?: string | null
+          logradouro?: string | null
           motivo_busca_oportunidade?: string | null
           motivo_saida?: string | null
           nome_completo?: string
+          numero?: string | null
           objetivo_profissional?: string | null
           perfil_disc?: string | null
+          perfil_disc_detalhado?: Json | null
           perfil_valores?: Json | null
           possui_cnh?: string | null
           possui_veiculo?: string | null
@@ -311,6 +348,8 @@ export type Database = {
           telefone?: string
           tem_filhos?: boolean | null
           tempo_ultima_empresa?: string | null
+          teste_disc_concluido?: boolean | null
+          teste_disc_data?: string | null
           teste_disc_id?: string | null
           ultima_empresa?: string | null
           ultimo_cargo?: string | null
@@ -469,6 +508,137 @@ export type Database = {
         }
         Relationships: []
       }
+      entrevistas_recrutamento: {
+        Row: {
+          candidato_id: string | null
+          created_at: string | null
+          data_entrevista: string
+          empresa_id: string | null
+          feedback_candidato: string | null
+          feedback_empresa: string | null
+          horario_fim: string | null
+          horario_inicio: string
+          id: string
+          link_reuniao: string | null
+          local: string | null
+          nota_candidato: number | null
+          nota_empresa: number | null
+          proposta_id: string | null
+          resultado: string | null
+          status: string | null
+          tipo: string
+          updated_at: string | null
+          vaga_id: string | null
+        }
+        Insert: {
+          candidato_id?: string | null
+          created_at?: string | null
+          data_entrevista: string
+          empresa_id?: string | null
+          feedback_candidato?: string | null
+          feedback_empresa?: string | null
+          horario_fim?: string | null
+          horario_inicio: string
+          id?: string
+          link_reuniao?: string | null
+          local?: string | null
+          nota_candidato?: number | null
+          nota_empresa?: number | null
+          proposta_id?: string | null
+          resultado?: string | null
+          status?: string | null
+          tipo: string
+          updated_at?: string | null
+          vaga_id?: string | null
+        }
+        Update: {
+          candidato_id?: string | null
+          created_at?: string | null
+          data_entrevista?: string
+          empresa_id?: string | null
+          feedback_candidato?: string | null
+          feedback_empresa?: string | null
+          horario_fim?: string | null
+          horario_inicio?: string
+          id?: string
+          link_reuniao?: string | null
+          local?: string | null
+          nota_candidato?: number | null
+          nota_empresa?: number | null
+          proposta_id?: string | null
+          resultado?: string | null
+          status?: string | null
+          tipo?: string
+          updated_at?: string | null
+          vaga_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entrevistas_recrutamento_candidato_id_fkey"
+            columns: ["candidato_id"]
+            isOneToOne: false
+            referencedRelation: "candidatos_recrutamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entrevistas_recrutamento_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas_recrutamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entrevistas_recrutamento_proposta_id_fkey"
+            columns: ["proposta_id"]
+            isOneToOne: false
+            referencedRelation: "propostas_recrutamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entrevistas_recrutamento_vaga_id_fkey"
+            columns: ["vaga_id"]
+            isOneToOne: false
+            referencedRelation: "vagas_recrutamento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      favoritos_recrutamento: {
+        Row: {
+          candidato_id: string | null
+          created_at: string | null
+          empresa_id: string | null
+          id: string
+        }
+        Insert: {
+          candidato_id?: string | null
+          created_at?: string | null
+          empresa_id?: string | null
+          id?: string
+        }
+        Update: {
+          candidato_id?: string | null
+          created_at?: string | null
+          empresa_id?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favoritos_recrutamento_candidato_id_fkey"
+            columns: ["candidato_id"]
+            isOneToOne: false
+            referencedRelation: "candidatos_recrutamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favoritos_recrutamento_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas_recrutamento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       metricas_teste: {
         Row: {
           candidato_id: string | null
@@ -573,6 +743,51 @@ export type Database = {
           },
         ]
       }
+      notificacoes: {
+        Row: {
+          created_at: string | null
+          dados: Json | null
+          destinatario_id: string
+          enviada_whatsapp: boolean | null
+          enviada_whatsapp_em: string | null
+          id: string
+          lida: boolean | null
+          lida_em: string | null
+          mensagem: string
+          tipo_destinatario: string
+          tipo_notificacao: string
+          titulo: string
+        }
+        Insert: {
+          created_at?: string | null
+          dados?: Json | null
+          destinatario_id: string
+          enviada_whatsapp?: boolean | null
+          enviada_whatsapp_em?: string | null
+          id?: string
+          lida?: boolean | null
+          lida_em?: string | null
+          mensagem: string
+          tipo_destinatario: string
+          tipo_notificacao: string
+          titulo: string
+        }
+        Update: {
+          created_at?: string | null
+          dados?: Json | null
+          destinatario_id?: string
+          enviada_whatsapp?: boolean | null
+          enviada_whatsapp_em?: string | null
+          id?: string
+          lida?: boolean | null
+          lida_em?: string | null
+          mensagem?: string
+          tipo_destinatario?: string
+          tipo_notificacao?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       notificacoes_recrutamento: {
         Row: {
           created_at: string | null
@@ -644,6 +859,103 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      propostas_recrutamento: {
+        Row: {
+          candidato_id: string | null
+          created_at: string | null
+          data_contratacao: string | null
+          data_entrevista: string | null
+          data_pagamento: string | null
+          empresa_id: string | null
+          horario_entrevista: string | null
+          id: string
+          link_entrevista: string | null
+          local_entrevista: string | null
+          mensagem: string | null
+          motivo_recusa: string | null
+          observacao_recusa: string | null
+          pago: boolean | null
+          respondida_em: string | null
+          salario_contratacao: number | null
+          salario_oferecido: number | null
+          status: string | null
+          tipo_entrevista: string | null
+          updated_at: string | null
+          vaga_id: string | null
+          valor_pago: number | null
+        }
+        Insert: {
+          candidato_id?: string | null
+          created_at?: string | null
+          data_contratacao?: string | null
+          data_entrevista?: string | null
+          data_pagamento?: string | null
+          empresa_id?: string | null
+          horario_entrevista?: string | null
+          id?: string
+          link_entrevista?: string | null
+          local_entrevista?: string | null
+          mensagem?: string | null
+          motivo_recusa?: string | null
+          observacao_recusa?: string | null
+          pago?: boolean | null
+          respondida_em?: string | null
+          salario_contratacao?: number | null
+          salario_oferecido?: number | null
+          status?: string | null
+          tipo_entrevista?: string | null
+          updated_at?: string | null
+          vaga_id?: string | null
+          valor_pago?: number | null
+        }
+        Update: {
+          candidato_id?: string | null
+          created_at?: string | null
+          data_contratacao?: string | null
+          data_entrevista?: string | null
+          data_pagamento?: string | null
+          empresa_id?: string | null
+          horario_entrevista?: string | null
+          id?: string
+          link_entrevista?: string | null
+          local_entrevista?: string | null
+          mensagem?: string | null
+          motivo_recusa?: string | null
+          observacao_recusa?: string | null
+          pago?: boolean | null
+          respondida_em?: string | null
+          salario_contratacao?: number | null
+          salario_oferecido?: number | null
+          status?: string | null
+          tipo_entrevista?: string | null
+          updated_at?: string | null
+          vaga_id?: string | null
+          valor_pago?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "propostas_recrutamento_candidato_id_fkey"
+            columns: ["candidato_id"]
+            isOneToOne: false
+            referencedRelation: "candidatos_recrutamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propostas_recrutamento_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas_recrutamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propostas_recrutamento_vaga_id_fkey"
+            columns: ["vaga_id"]
+            isOneToOne: false
+            referencedRelation: "vagas_recrutamento"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       solicitacoes_entrevista: {
         Row: {
@@ -738,11 +1050,13 @@ export type Database = {
       }
       transacoes_recrutamento: {
         Row: {
+          candidato_id: string | null
           created_at: string | null
           gateway_id: string | null
           gateway_response: Json | null
           id: string
           metodo_pagamento: string | null
+          proposta_id: string | null
           solicitacao_id: string | null
           status: string | null
           tipo: string
@@ -751,11 +1065,13 @@ export type Database = {
           valor: number
         }
         Insert: {
+          candidato_id?: string | null
           created_at?: string | null
           gateway_id?: string | null
           gateway_response?: Json | null
           id?: string
           metodo_pagamento?: string | null
+          proposta_id?: string | null
           solicitacao_id?: string | null
           status?: string | null
           tipo: string
@@ -764,11 +1080,13 @@ export type Database = {
           valor: number
         }
         Update: {
+          candidato_id?: string | null
           created_at?: string | null
           gateway_id?: string | null
           gateway_response?: Json | null
           id?: string
           metodo_pagamento?: string | null
+          proposta_id?: string | null
           solicitacao_id?: string | null
           status?: string | null
           tipo?: string
@@ -809,64 +1127,109 @@ export type Database = {
       }
       vagas_recrutamento: {
         Row: {
+          areas_conhecimento: string[] | null
           beneficios: string[] | null
+          carga_horaria: string | null
+          categoria_cnh_requerida: string | null
           cidade: string | null
           created_at: string | null
           descricao: string | null
           empresa_id: string | null
+          encerrada_em: string | null
+          endereco: string | null
+          escolaridade_minima: string | null
           estado: string | null
+          experiencia_minima: number | null
+          faixa_salarial: string | null
           faixa_salarial_max: number | null
           faixa_salarial_min: number | null
           horario: string | null
           id: string
           modalidade: string | null
           palavras_funcionario_ideal: string | null
+          perfil_disc_desejado: string | null
           perfil_disc_ideal: string | null
+          quantidade_vagas: number | null
           regime: string | null
+          requer_cnh: boolean | null
+          requer_veiculo: boolean | null
           requisitos: string[] | null
+          salario_maximo: number | null
+          salario_minimo: number | null
           status: string | null
           titulo: string
           updated_at: string | null
+          urgente: boolean | null
         }
         Insert: {
+          areas_conhecimento?: string[] | null
           beneficios?: string[] | null
+          carga_horaria?: string | null
+          categoria_cnh_requerida?: string | null
           cidade?: string | null
           created_at?: string | null
           descricao?: string | null
           empresa_id?: string | null
+          encerrada_em?: string | null
+          endereco?: string | null
+          escolaridade_minima?: string | null
           estado?: string | null
+          experiencia_minima?: number | null
+          faixa_salarial?: string | null
           faixa_salarial_max?: number | null
           faixa_salarial_min?: number | null
           horario?: string | null
           id?: string
           modalidade?: string | null
           palavras_funcionario_ideal?: string | null
+          perfil_disc_desejado?: string | null
           perfil_disc_ideal?: string | null
+          quantidade_vagas?: number | null
           regime?: string | null
+          requer_cnh?: boolean | null
+          requer_veiculo?: boolean | null
           requisitos?: string[] | null
+          salario_maximo?: number | null
+          salario_minimo?: number | null
           status?: string | null
           titulo: string
           updated_at?: string | null
+          urgente?: boolean | null
         }
         Update: {
+          areas_conhecimento?: string[] | null
           beneficios?: string[] | null
+          carga_horaria?: string | null
+          categoria_cnh_requerida?: string | null
           cidade?: string | null
           created_at?: string | null
           descricao?: string | null
           empresa_id?: string | null
+          encerrada_em?: string | null
+          endereco?: string | null
+          escolaridade_minima?: string | null
           estado?: string | null
+          experiencia_minima?: number | null
+          faixa_salarial?: string | null
           faixa_salarial_max?: number | null
           faixa_salarial_min?: number | null
           horario?: string | null
           id?: string
           modalidade?: string | null
           palavras_funcionario_ideal?: string | null
+          perfil_disc_desejado?: string | null
           perfil_disc_ideal?: string | null
+          quantidade_vagas?: number | null
           regime?: string | null
+          requer_cnh?: boolean | null
+          requer_veiculo?: boolean | null
           requisitos?: string[] | null
+          salario_maximo?: number | null
+          salario_minimo?: number | null
           status?: string | null
           titulo?: string
           updated_at?: string | null
+          urgente?: boolean | null
         }
         Relationships: [
           {
