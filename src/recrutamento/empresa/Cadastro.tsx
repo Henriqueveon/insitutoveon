@@ -528,12 +528,17 @@ export default function EmpresaCadastro() {
         throw new Error(result.error || 'Erro ao cadastrar empresa');
       }
 
+      // Mostrar mensagem de sucesso com instrução para confirmar email
       toast({
         title: 'Cadastro realizado!',
-        description: 'Sua empresa foi cadastrada com sucesso.',
+        description: 'Para finalizar o cadastro, abra seu email e faça a confirmação.',
+        duration: 10000, // 10 segundos para dar tempo de ler
       });
 
-      navigate('/recrutamento/empresa/dashboard');
+      // Redirecionar para página de login após 3 segundos
+      setTimeout(() => {
+        navigate('/recrutamento/empresa/login');
+      }, 3000);
     } catch (error) {
       console.error('Erro no cadastro:', error);
       toast({
