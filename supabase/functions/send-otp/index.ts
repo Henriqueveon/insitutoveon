@@ -73,7 +73,9 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Instituto Veon <noreply@institutoveon.com.br>',
+        // TEMPORÁRIO: Usando email de teste do Resend
+        // Quando tiver domínio próprio verificado, alterar para: 'Instituto Veon <noreply@institutoveon.com.br>'
+        from: 'Instituto Veon <onboarding@resend.dev>',
         to: [email],
         subject: `Seu código de verificação: ${codigo}`,
         html: `
