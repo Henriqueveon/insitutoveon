@@ -2,11 +2,204 @@
 // LOGIN EMPRESA - Área de Recrutamento VEON
 // =====================================================
 
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { Eye, EyeOff, Loader2, Building2 } from 'lucide-react';
+
 export default function EmpresaLogin() {
-  // TODO: Implementar na Fase 2
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [showSenha, setShowSenha] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!email || !senha) {
+      toast({
+        title: 'Campos obrigatórios',
+        description: 'Preencha e-mail e senha.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Login com Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: senha,
+      });
+
+      if (error) throw error;
+
+      // Verificar se é uma empresa cadastrada
+      const { data: empresa, error: empresaError } = await supabase
+        .from('empresas_recrutamento')
+        .select('id, razao_social, status')
+        .eq('socio_email', email)
+        .single();
+
+      if (empresaError || !empresa) {
+        await supabase.auth.signOut();
+        throw new Error('Empresa não encontrada. Verifique suas credenciais.');
+      }
+
+      if (empresa.status !== 'ativo') {
+        await supabase.auth.signOut();
+        throw new Error('Sua conta está suspensa. Entre em contato com o suporte.');
+      }
+
+      toast({
+        title: 'Bem-vindo!',
+        description: `Olá, ${empresa.razao_social}`,
+      });
+
+      navigate('/recrutamento/empresa/dashboard');
+    } catch (error) {
+      console.error('Erro no login:', error);
+      toast({
+        title: 'Erro ao entrar',
+        description: error instanceof Error ? error.message : 'Verifique suas credenciais.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div>
-      <h1>Login Empresa</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      {/* Background decorativo */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#E31E24]/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#003DA5]/10 rounded-full blur-3xl" />
+      </div>
+
+      <Card className="w-full max-w-md bg-slate-800/80 border-slate-700 backdrop-blur-sm relative z-10">
+        <CardHeader className="text-center space-y-4">
+          {/* Logo */}
+          <div className="flex justify-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#E31E24] to-[#003DA5] rounded-2xl flex items-center justify-center shadow-lg">
+              <Building2 className="w-8 h-8 text-white" />
+            </div>
+          </div>
+
+          <div>
+            <CardTitle className="text-2xl font-bold text-white">
+              Veon Recrutamento
+            </CardTitle>
+            <CardDescription className="text-slate-400 mt-2">
+              Acesse sua conta empresarial
+            </CardDescription>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          <form onSubmit={handleLogin} className="space-y-4">
+            {/* E-mail */}
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-slate-300">
+                E-mail
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="empresa@exemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-[#E31E24] focus:ring-[#E31E24]/20"
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Senha */}
+            <div className="space-y-2">
+              <Label htmlFor="senha" className="text-slate-300">
+                Senha
+              </Label>
+              <div className="relative">
+                <Input
+                  id="senha"
+                  type={showSenha ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-[#E31E24] focus:ring-[#E31E24]/20 pr-10"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSenha(!showSenha)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                >
+                  {showSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Link esqueci senha */}
+            <div className="text-right">
+              <Link
+                to="/recrutamento/empresa/recuperar-senha"
+                className="text-sm text-[#00D9FF] hover:text-[#00D9FF]/80 transition-colors"
+              >
+                Esqueci minha senha
+              </Link>
+            </div>
+
+            {/* Botão entrar */}
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-[#E31E24] to-[#B91C1C] hover:from-[#C91920] hover:to-[#991B1B] text-white font-semibold py-5"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Entrando...
+                </>
+              ) : (
+                'Entrar'
+              )}
+            </Button>
+          </form>
+
+          {/* Divisor */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-700" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-slate-800 text-slate-500">ou</span>
+            </div>
+          </div>
+
+          {/* Link cadastro */}
+          <div className="text-center">
+            <p className="text-slate-400 text-sm">
+              Não tem conta?{' '}
+              <Link
+                to="/recrutamento/empresa/cadastro"
+                className="text-[#00D9FF] hover:text-[#00D9FF]/80 font-medium transition-colors"
+              >
+                Cadastre sua empresa
+              </Link>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

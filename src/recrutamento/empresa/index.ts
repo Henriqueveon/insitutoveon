@@ -11,3 +11,6 @@ export { default as EmProcesso } from './EmProcesso';
 export { default as Contratados } from './Contratados';
 export { default as Creditos } from './Creditos';
 export { default as EmpresaConfiguracoes } from './Configuracoes';
+
+// Re-export como default para imports diretos
+export { default } from './Login';

@@ -47,6 +47,11 @@ import AnalistaConfiguracoes from "./pages/analista/Configuracoes";
 // Página de Base Científica
 import BaseCientifica from "./pages/BaseCientifica";
 
+// Área de Recrutamento - Empresa
+import EmpresaLogin from "./recrutamento/empresa/Login";
+import EmpresaCadastro from "./recrutamento/empresa/Cadastro";
+import EmpresaDashboard from "./recrutamento/empresa/Dashboard";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -124,6 +129,11 @@ const App = () => (
                   <Route path="novo-analista" element={<PainelNovoAnalista />} />
                   <Route path="configuracoes" element={<PainelConfiguracoes />} />
                 </Route>
+
+                {/* Área de Recrutamento - Empresa */}
+                <Route path="/recrutamento/empresa/login" element={<EmpresaLogin />} />
+                <Route path="/recrutamento/empresa/cadastro" element={<EmpresaCadastro />} />
+                <Route path="/recrutamento/empresa/dashboard" element={<EmpresaDashboard />} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
