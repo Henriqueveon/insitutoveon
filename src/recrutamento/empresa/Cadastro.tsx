@@ -548,20 +548,23 @@ export default function EmpresaCadastro() {
 
   // Navegação entre etapas
   const proximaEtapa = () => {
-    // Se está na etapa 2 e vai para 3, enviar OTP automaticamente
+    // Pular etapa 3 (OTP) - o email será verificado pelo Supabase Auth automaticamente
     if (etapa === 2) {
-      setEtapa(3);
-      // Enviar OTP quando entrar na etapa 3
-      setTimeout(() => {
-        if (!otpEnviado) enviarOTP();
-      }, 500);
+      setEtapa(4); // Ir direto para foto
+    } else if (etapa === 3) {
+      setEtapa(4); // Caso esteja na etapa 3, ir para 4
     } else {
       setEtapa((prev) => Math.min(prev + 1, 6));
     }
   };
 
   const etapaAnterior = () => {
-    setEtapa((prev) => Math.max(prev - 1, 1));
+    // Pular etapa 3 (OTP) ao voltar também
+    if (etapa === 4) {
+      setEtapa(2); // Voltar direto para dados do sócio
+    } else {
+      setEtapa((prev) => Math.max(prev - 1, 1));
+    }
   };
 
   // Validação por etapa
@@ -574,7 +577,8 @@ export default function EmpresaCadastro() {
         const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(socioEmail);
         return socioNome.trim().length >= 3 && validarCPF(socioCpf) && emailValido && socioTelefone.length >= 14;
       case 3:
-        return emailVerificado;
+        // Etapa pulada - email verificado pelo Supabase Auth
+        return true;
       case 4:
         return fotoUrl !== null;
       case 5:
