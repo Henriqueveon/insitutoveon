@@ -1,6 +1,7 @@
 // =====================================================
 // SELFIE CANDIDATO - Captura de Foto
 // Área de Recrutamento VEON
+// Com suporte a câmera e upload
 // =====================================================
 
 import { useState, useRef, useCallback, useEffect } from 'react';
@@ -13,9 +14,9 @@ import {
   RotateCcw,
   Check,
   Upload,
-  ArrowRight,
   AlertCircle,
   Loader2,
+  ImageIcon,
 } from 'lucide-react';
 
 export default function SelfieCandidato() {
@@ -35,12 +36,40 @@ export default function SelfieCandidato() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [usandoFrontal, setUsandoFrontal] = useState(true);
+  const [cameraDisponivel, setCameraDisponivel] = useState(true);
+  const [modoAtivo, setModoAtivo] = useState<'selecao' | 'camera' | 'upload' | 'preview'>('selecao');
+
+  // Verificar disponibilidade da câmera
+  useEffect(() => {
+    const verificarCamera = async () => {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setCameraDisponivel(false);
+          return;
+        }
+
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const temCamera = devices.some(device => device.kind === 'videoinput');
+        setCameraDisponivel(temCamera);
+      } catch (error) {
+        console.error('Erro ao verificar câmera:', error);
+        setCameraDisponivel(false);
+      }
+    };
+
+    verificarCamera();
+  }, []);
 
   // Iniciar câmera
   const iniciarCamera = useCallback(async () => {
     try {
       setCameraError(null);
       setIsLoading(true);
+
+      // Verificar se mediaDevices está disponível
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Câmera não suportada neste navegador');
+      }
 
       const constraints: MediaStreamConstraints = {
         video: {
@@ -59,15 +88,35 @@ export default function SelfieCandidato() {
       }
 
       setCameraAtiva(true);
-    } catch (error) {
+      setModoAtivo('camera');
+    } catch (error: any) {
       console.error('Erro ao acessar câmera:', error);
-      setCameraError(
-        'Não foi possível acessar a câmera. Verifique as permissões do navegador ou use a opção de upload.'
-      );
+
+      let mensagemErro = 'Não foi possível acessar a câmera.';
+
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        mensagemErro = 'Permissão de câmera negada. Por favor, permita o acesso nas configurações do navegador.';
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        mensagemErro = 'Nenhuma câmera encontrada neste dispositivo.';
+        setCameraDisponivel(false);
+      } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+        mensagemErro = 'Câmera já está sendo usada por outro aplicativo.';
+      } else if (error.name === 'OverconstrainedError') {
+        mensagemErro = 'Configurações de câmera não suportadas.';
+      }
+
+      setCameraError(mensagemErro);
+      setModoAtivo('selecao');
+
+      toast({
+        title: 'Erro na câmera',
+        description: 'Use a opção de enviar uma foto do seu dispositivo.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [usandoFrontal]);
+  }, [usandoFrontal, toast]);
 
   // Parar câmera
   const pararCamera = useCallback(() => {
@@ -107,6 +156,7 @@ export default function SelfieCandidato() {
           setFotoBlob(blob);
           setFoto(URL.createObjectURL(blob));
           pararCamera();
+          setModoAtivo('preview');
         }
       },
       'image/jpeg',
@@ -140,13 +190,26 @@ export default function SelfieCandidato() {
     setFotoBlob(file);
     setFoto(URL.createObjectURL(file));
     pararCamera();
+    setModoAtivo('preview');
   };
 
-  // Tirar outra foto
-  const tirarOutraFoto = () => {
+  // Tirar outra foto / escolher outra
+  const voltarParaSelecao = () => {
     setFoto(null);
     setFotoBlob(null);
+    setCameraError(null);
+    setModoAtivo('selecao');
+  };
+
+  // Iniciar modo câmera
+  const selecionarCamera = () => {
+    setModoAtivo('camera');
     iniciarCamera();
+  };
+
+  // Iniciar modo upload
+  const selecionarUpload = () => {
+    fileInputRef.current?.click();
   };
 
   // Usar foto e continuar
@@ -212,13 +275,13 @@ export default function SelfieCandidato() {
               <canvas ref={canvasRef} className="hidden" />
 
               {/* Preview da foto */}
-              {foto ? (
+              {modoAtivo === 'preview' && foto ? (
                 <img
                   src={foto}
                   alt="Sua foto"
                   className="w-full h-full object-cover"
                 />
-              ) : cameraAtiva ? (
+              ) : modoAtivo === 'camera' && cameraAtiva ? (
                 /* Stream de vídeo */
                 <video
                   ref={videoRef}
@@ -228,28 +291,38 @@ export default function SelfieCandidato() {
                   className={`w-full h-full object-cover ${usandoFrontal ? 'scale-x-[-1]' : ''}`}
                 />
               ) : (
-                /* Placeholder */
-                <div className="w-full h-full flex flex-col items-center justify-center">
-                  {cameraError ? (
+                /* Placeholder - tela de seleção */
+                <div className="w-full h-full flex flex-col items-center justify-center p-6">
+                  {isLoading ? (
+                    <Loader2 className="w-12 h-12 text-slate-400 animate-spin" />
+                  ) : cameraError ? (
                     <>
                       <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
-                      <p className="text-slate-400 text-center px-4 text-sm">
+                      <p className="text-slate-400 text-center text-sm mb-4">
                         {cameraError}
                       </p>
+                      <Button
+                        variant="outline"
+                        onClick={selecionarUpload}
+                        className="border-slate-600 text-slate-300"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Enviar foto
+                      </Button>
                     </>
-                  ) : isLoading ? (
-                    <Loader2 className="w-12 h-12 text-slate-400 animate-spin" />
                   ) : (
                     <>
-                      <Camera className="w-16 h-16 text-slate-600 mb-4" />
-                      <p className="text-slate-500">Câmera não iniciada</p>
+                      <ImageIcon className="w-16 h-16 text-slate-600 mb-4" />
+                      <p className="text-slate-500 text-center">
+                        Escolha como deseja adicionar sua foto
+                      </p>
                     </>
                   )}
                 </div>
               )}
 
               {/* Guia de rosto */}
-              {cameraAtiva && !foto && (
+              {modoAtivo === 'camera' && cameraAtiva && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="w-48 h-64 border-2 border-dashed border-white/30 rounded-full" />
                 </div>
@@ -260,74 +333,90 @@ export default function SelfieCandidato() {
 
         {/* Botões */}
         <div className="space-y-3">
-          {foto ? (
-            /* Foto capturada */
-            <>
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  onClick={tirarOutraFoto}
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700 py-6"
-                >
-                  <RotateCcw className="w-5 h-5 mr-2" />
-                  Tirar outra
-                </Button>
-                <Button
-                  onClick={usarFoto}
-                  className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 py-6"
-                >
-                  <Check className="w-5 h-5 mr-2" />
-                  Usar esta foto
-                </Button>
-              </div>
-            </>
-          ) : cameraAtiva ? (
-            /* Câmera ativa */
-            <Button
-              onClick={tirarFoto}
-              className="w-full bg-gradient-to-r from-[#E31E24] to-[#B91C1C] hover:from-[#C91920] hover:to-[#991B1B] py-6 text-lg"
-            >
-              <Camera className="w-6 h-6 mr-2" />
-              Tirar foto
-            </Button>
-          ) : (
-            /* Câmera não iniciada */
-            <>
-              <Button
-                onClick={iniciarCamera}
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-[#E31E24] to-[#B91C1C] hover:from-[#C91920] hover:to-[#991B1B] py-6 text-lg"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-6 h-6 mr-2 animate-spin" />
-                ) : (
-                  <Camera className="w-6 h-6 mr-2" />
-                )}
-                Abrir câmera
-              </Button>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-700" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-slate-900 text-slate-500">ou</span>
-                </div>
-              </div>
-
+          {modoAtivo === 'preview' && foto ? (
+            /* Foto capturada - botões de ação */
+            <div className="grid grid-cols-2 gap-3">
               <Button
                 variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full border-slate-600 text-slate-300 hover:bg-slate-700 py-6"
+                onClick={voltarParaSelecao}
+                className="border-slate-600 text-slate-300 hover:bg-slate-700 py-6"
+              >
+                <RotateCcw className="w-5 h-5 mr-2" />
+                Escolher outra
+              </Button>
+              <Button
+                onClick={usarFoto}
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 py-6"
+              >
+                <Check className="w-5 h-5 mr-2" />
+                Usar esta foto
+              </Button>
+            </div>
+          ) : modoAtivo === 'camera' && cameraAtiva ? (
+            /* Câmera ativa - botão de captura */
+            <>
+              <Button
+                onClick={tirarFoto}
+                className="w-full bg-gradient-to-r from-[#E31E24] to-[#B91C1C] hover:from-[#C91920] hover:to-[#991B1B] py-6 text-lg"
+              >
+                <Camera className="w-6 h-6 mr-2" />
+                Tirar foto
+              </Button>
+              <Button
+                variant="outline"
+                onClick={voltarParaSelecao}
+                className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
+              >
+                Cancelar
+              </Button>
+            </>
+          ) : (
+            /* Tela de seleção - duas opções */
+            <>
+              {/* Botão Tirar Foto - só mostra se câmera disponível */}
+              {cameraDisponivel && (
+                <Button
+                  onClick={selecionarCamera}
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-[#E31E24] to-[#B91C1C] hover:from-[#C91920] hover:to-[#991B1B] py-6 text-lg"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-6 h-6 mr-2 animate-spin" />
+                  ) : (
+                    <Camera className="w-6 h-6 mr-2" />
+                  )}
+                  Tirar Foto
+                </Button>
+              )}
+
+              {/* Botão Upload */}
+              <Button
+                variant={cameraDisponivel ? 'outline' : 'default'}
+                onClick={selecionarUpload}
+                className={cameraDisponivel
+                  ? "w-full border-slate-600 text-slate-300 hover:bg-slate-700 py-6"
+                  : "w-full bg-gradient-to-r from-[#E31E24] to-[#B91C1C] hover:from-[#C91920] hover:to-[#991B1B] py-6 text-lg"
+                }
               >
                 <Upload className="w-5 h-5 mr-2" />
-                Enviar foto do dispositivo
+                Enviar do Dispositivo
               </Button>
+
+              {/* Mensagem se câmera não disponível */}
+              {!cameraDisponivel && (
+                <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                  <p className="text-sm text-yellow-400 text-center">
+                    <AlertCircle className="w-4 h-4 inline mr-1" />
+                    Câmera não disponível neste dispositivo. Use a opção de enviar uma foto.
+                  </p>
+                </div>
+              )}
 
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                capture="user"
                 onChange={handleFileUpload}
                 className="hidden"
               />
