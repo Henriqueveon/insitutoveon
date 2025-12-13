@@ -3,7 +3,7 @@
 // 5 Etapas: CNPJ → Sócio → Foto → Termos → Senha
 // =====================================================
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -173,20 +173,37 @@ export default function EmpresaCadastro() {
   };
 
   // ========== ETAPA 3: FOTO ==========
+
+  // Efeito para conectar stream ao video quando ambos estiverem prontos
+  useEffect(() => {
+    if (usandoCamera && streamCamera && videoRef.current) {
+      videoRef.current.srcObject = streamCamera;
+      videoRef.current.play().catch(console.error);
+    }
+  }, [usandoCamera, streamCamera]);
+
+  // Limpar stream ao desmontar componente
+  useEffect(() => {
+    return () => {
+      if (streamCamera) {
+        streamCamera.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [streamCamera]);
+
   const iniciarCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: 640, height: 480 },
+        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+        audio: false,
       });
       setStreamCamera(stream);
       setUsandoCamera(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
     } catch (error) {
+      console.error('Erro ao acessar câmera:', error);
       toast({
         title: 'Erro na câmera',
-        description: 'Não foi possível acessar a câmera. Tente fazer upload de uma foto.',
+        description: 'Não foi possível acessar a câmera. Verifique as permissões ou tente fazer upload de uma foto.',
         variant: 'destructive',
       });
     }
@@ -301,39 +318,42 @@ export default function EmpresaCadastro() {
         }
       }
 
-      // 3. Inserir empresa no banco
-      const { error: insertError } = await supabase.from('empresas_recrutamento').insert({
-        cnpj: dadosCNPJ.cnpj,
-        razao_social: dadosCNPJ.razao_social,
-        nome_fantasia: dadosCNPJ.nome_fantasia,
-        situacao_cadastral: dadosCNPJ.situacao_cadastral,
-        data_abertura: dadosCNPJ.data_abertura,
-        natureza_juridica: dadosCNPJ.natureza_juridica,
-        porte: dadosCNPJ.porte,
-        capital_social: dadosCNPJ.capital_social,
-        logradouro: dadosCNPJ.logradouro,
-        numero: dadosCNPJ.numero,
-        complemento: dadosCNPJ.complemento,
-        bairro: dadosCNPJ.bairro,
-        cidade: dadosCNPJ.municipio,
-        estado: dadosCNPJ.uf,
-        cep: dadosCNPJ.cep,
-        telefone_empresa: dadosCNPJ.telefone,
-        email_empresa: dadosCNPJ.email,
-        socio_nome: socioNome,
-        socio_cpf: socioCpf,
-        socio_email: socioEmail,
-        socio_telefone: socioTelefone,
-        socio_foto_url: fotoUrlFinal,
-        senha_hash: 'AUTH_SUPABASE', // Senha gerenciada pelo Supabase Auth
-        aceite_termos: aceitouTermos,
-        aceite_termos_data: new Date().toISOString(),
-        aceite_lgpd: aceitouLGPD,
-        aceite_lgpd_data: new Date().toISOString(),
-        status: 'ativo',
+      // 3. Inserir empresa no banco usando RPC (bypassa RLS)
+      const { data: rpcResult, error: rpcError } = await supabase.rpc('cadastrar_empresa', {
+        p_cnpj: dadosCNPJ.cnpj,
+        p_razao_social: dadosCNPJ.razao_social,
+        p_nome_fantasia: dadosCNPJ.nome_fantasia || null,
+        p_situacao_cadastral: dadosCNPJ.situacao_cadastral || null,
+        p_data_abertura: dadosCNPJ.data_abertura || null,
+        p_natureza_juridica: dadosCNPJ.natureza_juridica || null,
+        p_porte: dadosCNPJ.porte || null,
+        p_capital_social: dadosCNPJ.capital_social || null,
+        p_logradouro: dadosCNPJ.logradouro || null,
+        p_numero: dadosCNPJ.numero || null,
+        p_complemento: dadosCNPJ.complemento || null,
+        p_bairro: dadosCNPJ.bairro || null,
+        p_cidade: dadosCNPJ.municipio || null,
+        p_estado: dadosCNPJ.uf || null,
+        p_cep: dadosCNPJ.cep || null,
+        p_telefone_empresa: dadosCNPJ.telefone || null,
+        p_email_empresa: dadosCNPJ.email || null,
+        p_socio_nome: socioNome,
+        p_socio_cpf: socioCpf.replace(/\D/g, ''), // Remove máscara
+        p_socio_email: socioEmail,
+        p_socio_telefone: socioTelefone.replace(/\D/g, ''), // Remove máscara
+        p_socio_foto_url: fotoUrlFinal,
+        p_aceite_termos: aceitouTermos,
+        p_aceite_lgpd: aceitouLGPD,
       });
 
-      if (insertError) throw insertError;
+      if (rpcError) {
+        console.error('Erro RPC:', rpcError);
+        throw new Error(rpcError.message);
+      }
+
+      if (rpcResult && !rpcResult.success) {
+        throw new Error(rpcResult.error || 'Erro ao cadastrar empresa');
+      }
 
       toast({
         title: 'Cadastro realizado!',
