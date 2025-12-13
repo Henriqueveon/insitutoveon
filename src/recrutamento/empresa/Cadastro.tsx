@@ -355,10 +355,6 @@ export default function EmpresaCadastro() {
 
   // Navegação entre etapas
   const proximaEtapa = () => {
-    if (etapa === 4 && !showTermosModal) {
-      setShowTermosModal(true);
-      return;
-    }
     setEtapa((prev) => Math.min(prev + 1, 5));
   };
 
@@ -755,7 +751,7 @@ export default function EmpresaCadastro() {
                         className="mt-1"
                       />
                       <Label htmlFor="termos" className="text-slate-300 text-sm cursor-pointer">
-                        Li e aceito os termos de responsabilidade e confidencialidade
+                        Li e concordo com os termos de uso da plataforma
                       </Label>
                     </div>
 
@@ -767,7 +763,7 @@ export default function EmpresaCadastro() {
                         className="mt-1"
                       />
                       <Label htmlFor="lgpd" className="text-slate-300 text-sm cursor-pointer">
-                        Concordo com a coleta de dados para melhoria da plataforma (LGPD)
+                        Concordo com os termos da plataforma
                       </Label>
                     </div>
                   </div>
@@ -929,57 +925,97 @@ export default function EmpresaCadastro() {
 
       {/* Modal de Termos */}
       <Dialog open={showTermosModal} onOpenChange={setShowTermosModal}>
-        <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-slate-800 border-slate-700 max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white text-xl">
-              TERMO DE RESPONSABILIDADE E CONFIDENCIALIDADE
+            <DialogTitle className="text-white text-lg">
+              TERMOS E CONDIÇÕES GERAIS DE USO DA PLATAFORMA
             </DialogTitle>
-            <DialogDescription className="text-slate-400">
-              Leia atentamente os termos abaixo
+            <DialogDescription className="text-slate-500 text-xs">
+              Documento atualizado em conformidade com as legislações vigentes
             </DialogDescription>
           </DialogHeader>
 
-          <div className="prose prose-invert prose-sm max-w-none mt-4">
-            <p className="text-slate-300">
-              Ao utilizar a plataforma Veon Recrutamento, você declara estar ciente e concorda
-              com os seguintes termos:
+          <div className="mt-4 space-y-3 text-[10px] leading-tight text-slate-400">
+            <p>
+              PREÂMBULO: O presente instrumento particular, doravante denominado "TERMO DE USO E CONDIÇÕES GERAIS", estabelece as condições gerais de uso dos serviços oferecidos pela plataforma digital VEON RECRUTAMENTO, de propriedade de INSTITUTO VEON LTDA, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº XX.XXX.XXX/0001-XX, com sede na cidade de São Paulo, Estado de São Paulo, na Rua Example, nº XXX, Bairro Centro, CEP XXXXX-XXX, doravante denominada simplesmente "VEON" ou "PLATAFORMA", e de outro lado, a pessoa física ou jurídica que realizar seu cadastro e aceitar os presentes termos, doravante denominada "USUÁRIO" ou "EMPRESA CONTRATANTE".
             </p>
 
-            <h3 className="text-white font-semibold mt-4">1. CONFIDENCIALIDADE DOS DADOS</h3>
-            <p className="text-slate-300">
-              Os dados dos candidatos disponibilizados nesta plataforma são confidenciais e de
-              uso exclusivo para fins de recrutamento e seleção.
+            <p className="font-semibold text-slate-300 text-[11px] mt-4">CAPÍTULO I - DAS DEFINIÇÕES E INTERPRETAÇÕES</p>
+            <p>
+              Art. 1º - Para os fins deste instrumento, consideram-se as seguintes definições: I - "Plataforma": sistema eletrônico de intermediação de serviços de recrutamento e seleção de pessoal, disponibilizado pela VEON através de website, aplicativo móvel ou qualquer outro meio digital; II - "Usuário": toda e qualquer pessoa física ou jurídica que acesse, utilize ou interaja com a Plataforma, independentemente de cadastro prévio; III - "Empresa Contratante": pessoa jurídica regularmente constituída que realize cadastro na Plataforma com a finalidade de utilizar os serviços de recrutamento e seleção; IV - "Candidato": pessoa física que disponibilize seus dados pessoais e profissionais na Plataforma com a finalidade de participar de processos seletivos; V - "Dados Pessoais": informações relacionadas à pessoa natural identificada ou identificável, nos termos da Lei nº 13.709/2018; VI - "Tratamento de Dados": toda operação realizada com dados pessoais, como coleta, produção, recepção, classificação, utilização, acesso, reprodução, transmissão, distribuição, processamento, arquivamento, armazenamento, eliminação, avaliação ou controle da informação, modificação, comunicação, transferência, difusão ou extração.
             </p>
 
-            <h3 className="text-white font-semibold mt-4">2. PROIBIÇÃO DE COMPARTILHAMENTO</h3>
-            <p className="text-slate-300">
-              É expressamente proibido compartilhar, divulgar, vender ou transferir dados dos
-              candidatos para terceiros.
+            <p className="font-semibold text-slate-300 text-[11px] mt-4">CAPÍTULO II - DO OBJETO</p>
+            <p>
+              Art. 2º - O presente Termo tem por objeto estabelecer as condições gerais de uso da Plataforma VEON RECRUTAMENTO, bem como definir os direitos e obrigações das partes envolvidas. Parágrafo único: A utilização da Plataforma implica na aceitação integral e irrestrita de todos os termos e condições aqui estabelecidos, bem como das políticas de privacidade e demais documentos complementares disponibilizados pela VEON. Art. 3º - A VEON disponibiliza aos seus usuários uma plataforma tecnológica que permite: I - O cadastramento de vagas de emprego por parte das Empresas Contratantes; II - O cadastramento de currículos e informações profissionais por parte dos Candidatos; III - A busca e seleção de candidatos através de filtros e algoritmos de compatibilidade; IV - A intermediação do contato entre Empresas Contratantes e Candidatos; V - O gerenciamento de processos seletivos; VI - A disponibilização de relatórios e análises comportamentais.
             </p>
 
-            <h3 className="text-white font-semibold mt-4">3. USO ADEQUADO</h3>
-            <p className="text-slate-300">
-              Os dados devem ser utilizados exclusivamente para contato profissional
-              relacionado a oportunidades de emprego.
+            <p className="font-semibold text-slate-300 text-[11px] mt-4">CAPÍTULO III - DO CADASTRO E ACESSO</p>
+            <p>
+              Art. 4º - O acesso completo aos serviços da Plataforma está condicionado à realização de cadastro prévio, mediante o fornecimento de informações verdadeiras, atuais e completas. § 1º - O Usuário é integralmente responsável pela veracidade das informações fornecidas no momento do cadastro e durante toda a vigência de sua conta. § 2º - A VEON reserva-se o direito de solicitar, a qualquer momento, documentos comprobatórios das informações fornecidas. § 3º - O fornecimento de informações falsas, imprecisas ou incompletas poderá resultar na suspensão ou cancelamento da conta, sem prejuízo das medidas legais cabíveis. Art. 5º - O Usuário é o único responsável pela guarda e sigilo de suas credenciais de acesso (login e senha), comprometendo-se a não divulgá-las a terceiros. Parágrafo único: A VEON não se responsabiliza por acessos não autorizados decorrentes da negligência do Usuário na guarda de suas credenciais.
             </p>
 
-            <h3 className="text-white font-semibold mt-4">4. PENALIDADES</h3>
-            <p className="text-slate-300">
-              O descumprimento destes termos sujeitará a empresa às penalidades previstas na
-              Lei Geral de Proteção de Dados (LGPD) - Lei nº 13.709/2018, incluindo multas de
-              até 2% do faturamento, limitada a R$ 50 milhões por infração.
+            <p className="font-semibold text-slate-300 text-[11px] mt-4">CAPÍTULO IV - DOS SERVIÇOS E FUNCIONALIDADES</p>
+            <p>
+              Art. 6º - A VEON oferece diferentes modalidades de serviços, cujas características, preços e condições estão descritos na página de planos disponível na Plataforma. § 1º - Os serviços podem ser modificados, suspensos ou descontinuados a qualquer momento, mediante comunicação prévia aos usuários afetados. § 2º - A contratação de serviços pagos está sujeita às condições comerciais vigentes no momento da contratação. Art. 7º - O sistema de créditos funciona da seguinte forma: I - A Empresa Contratante adquire créditos através dos meios de pagamento disponibilizados na Plataforma; II - Os créditos são consumidos conforme a utilização dos serviços; III - Os créditos não utilizados não são reembolsáveis, salvo disposição em contrário prevista em lei; IV - A VEON reserva-se o direito de modificar a política de créditos mediante comunicação prévia. Art. 8º - O algoritmo de compatibilidade ("match") utilizado pela Plataforma considera diversos fatores, incluindo, mas não se limitando a: perfil comportamental, experiência profissional, formação acadêmica, pretensão salarial, localização geográfica e outros critérios relevantes. Parágrafo único: A VEON não garante a contratação de candidatos indicados pelo sistema de compatibilidade, sendo este meramente indicativo.
             </p>
 
-            <h3 className="text-white font-semibold mt-4">5. COLETA DE DADOS</h3>
-            <p className="text-slate-300">
-              Você está ciente de que a Veon coleta dados de uso da plataforma para melhoria
-              contínua dos serviços.
+            <p className="font-semibold text-slate-300 text-[11px] mt-4">CAPÍTULO V - DAS OBRIGAÇÕES DO USUÁRIO</p>
+            <p>
+              Art. 9º - Constituem obrigações do Usuário: I - Utilizar a Plataforma de acordo com a legislação vigente, a moral e os bons costumes; II - Fornecer informações verdadeiras, atuais e completas; III - Manter suas credenciais de acesso em sigilo; IV - Não utilizar a Plataforma para fins ilícitos ou não autorizados; V - Não reproduzir, copiar, distribuir ou modificar qualquer conteúdo da Plataforma sem autorização prévia; VI - Respeitar os direitos de propriedade intelectual da VEON e de terceiros; VII - Não realizar engenharia reversa, descompilação ou qualquer tentativa de obter o código-fonte da Plataforma; VIII - Não utilizar mecanismos automatizados (bots, crawlers, etc.) para acessar a Plataforma; IX - Não praticar atos que possam comprometer a segurança ou o funcionamento da Plataforma; X - Comunicar à VEON qualquer irregularidade ou violação de que tenha conhecimento.
             </p>
 
-            <h3 className="text-white font-semibold mt-4">6. RESPONSABILIDADE</h3>
-            <p className="text-slate-300">
-              A empresa é integralmente responsável pelo uso que fizer dos dados acessados
-              através desta plataforma.
+            <p className="font-semibold text-slate-300 text-[11px] mt-4">CAPÍTULO VI - DA CONFIDENCIALIDADE E PROTEÇÃO DE DADOS</p>
+            <p>
+              Art. 10 - As informações dos Candidatos disponibilizadas na Plataforma são confidenciais e de uso exclusivo para fins de recrutamento e seleção. § 1º - É expressamente proibido: I - Compartilhar, divulgar, vender ou transferir dados de candidatos a terceiros; II - Utilizar os dados para finalidades diversas do recrutamento e seleção; III - Armazenar dados de candidatos em sistemas externos à Plataforma sem autorização; IV - Realizar contatos não relacionados a oportunidades de emprego. § 2º - O descumprimento das obrigações de confidencialidade sujeitará o infrator às penalidades previstas neste Termo e na legislação aplicável. Art. 11 - O tratamento de dados pessoais realizado através da Plataforma obedece aos princípios e requisitos da Lei Geral de Proteção de Dados (Lei nº 13.709/2018). § 1º - A VEON atua como operadora de dados pessoais quando realiza o tratamento de dados de candidatos em nome das Empresas Contratantes. § 2º - As Empresas Contratantes são controladoras dos dados pessoais dos candidatos que acessarem através da Plataforma, sendo responsáveis pelo cumprimento das obrigações legais aplicáveis.
+            </p>
+
+            <p className="font-semibold text-slate-300 text-[11px] mt-4">CAPÍTULO VII - DA PROPRIEDADE INTELECTUAL</p>
+            <p>
+              Art. 12 - Todos os direitos de propriedade intelectual relacionados à Plataforma, incluindo, mas não se limitando a: software, código-fonte, algoritmos, design, layout, textos, imagens, logotipos, marcas e qualquer outro conteúdo, são de propriedade exclusiva da VEON ou de seus licenciadores. Parágrafo único: O uso da Plataforma não confere ao Usuário qualquer direito de propriedade intelectual sobre os elementos mencionados no caput. Art. 13 - O Usuário concede à VEON licença não exclusiva, gratuita, mundial e por prazo indeterminado para utilizar, reproduzir, modificar e exibir os conteúdos por ele disponibilizados na Plataforma, exclusivamente para os fins de prestação dos serviços contratados. Art. 14 - A VEON poderá utilizar dados anonimizados e agregados para fins estatísticos, de pesquisa, desenvolvimento e melhoria dos serviços, sem qualquer identificação individual dos usuários.
+            </p>
+
+            <p className="font-semibold text-slate-300 text-[11px] mt-4">CAPÍTULO VIII - DAS PENALIDADES</p>
+            <p>
+              Art. 15 - O descumprimento de qualquer disposição deste Termo poderá resultar nas seguintes penalidades, aplicáveis isolada ou cumulativamente, a critério da VEON: I - Advertência formal; II - Suspensão temporária do acesso à Plataforma; III - Cancelamento definitivo da conta; IV - Perda dos créditos não utilizados; V - Cobrança de multa compensatória no valor de R$ 10.000,00 (dez mil reais) por infração; VI - Responsabilização civil pelos danos causados; VII - Comunicação às autoridades competentes, quando aplicável. Art. 16 - O descumprimento das obrigações de confidencialidade e proteção de dados sujeitará o infrator às penalidades previstas na Lei Geral de Proteção de Dados (LGPD), incluindo: I - Advertência; II - Multa simples de até 2% do faturamento, limitada a R$ 50.000.000,00 por infração; III - Multa diária; IV - Publicização da infração; V - Bloqueio ou eliminação dos dados pessoais; VI - Suspensão ou proibição do exercício de atividade de tratamento de dados.
+            </p>
+
+            <p className="font-semibold text-slate-300 text-[11px] mt-4">CAPÍTULO IX - DA LIMITAÇÃO DE RESPONSABILIDADE</p>
+            <p>
+              Art. 17 - A VEON não se responsabiliza por: I - Danos decorrentes de caso fortuito ou força maior; II - Atos praticados por terceiros, incluindo invasões, ataques cibernéticos ou outras interferências; III - Indisponibilidade temporária da Plataforma por motivos técnicos, manutenção ou atualização; IV - Conteúdos publicados por usuários; V - Resultados dos processos seletivos; VI - Veracidade das informações fornecidas por candidatos ou empresas; VII - Relações trabalhistas estabelecidas entre empresas e candidatos. Art. 18 - Em qualquer hipótese, a responsabilidade da VEON estará limitada ao valor efetivamente pago pelo Usuário nos últimos 12 meses anteriores ao evento danoso. Parágrafo único: Esta limitação não se aplica em casos de dolo ou culpa grave comprovados.
+            </p>
+
+            <p className="font-semibold text-slate-300 text-[11px] mt-4">CAPÍTULO X - DA VIGÊNCIA E RESCISÃO</p>
+            <p>
+              Art. 19 - Este Termo entra em vigor na data do aceite pelo Usuário e permanece válido por prazo indeterminado. Art. 20 - O Usuário pode rescindir este Termo a qualquer momento, mediante solicitação de exclusão de sua conta através dos canais disponibilizados pela Plataforma. § 1º - A rescisão não exime o Usuário das obrigações já assumidas durante a vigência do Termo. § 2º - Os créditos não utilizados no momento da rescisão não serão reembolsados, salvo disposição legal em contrário. Art. 21 - A VEON pode rescindir este Termo a qualquer momento, mediante comunicação prévia de 30 dias, ressalvados os casos de descumprimento das obrigações previstas, hipótese em que a rescisão será imediata.
+            </p>
+
+            <p className="font-semibold text-slate-300 text-[11px] mt-4">CAPÍTULO XI - DAS DISPOSIÇÕES GERAIS</p>
+            <p>
+              Art. 22 - A tolerância de uma das partes quanto ao descumprimento de qualquer obrigação pela outra não implicará novação, renúncia ou alteração do pactuado. Art. 23 - A eventual invalidade ou nulidade de qualquer cláusula deste Termo não afetará a validade das demais disposições, que permanecerão em pleno vigor e efeito. Art. 24 - A VEON reserva-se o direito de modificar este Termo a qualquer momento, mediante publicação da versão atualizada na Plataforma. § 1º - As alterações entrarão em vigor na data de sua publicação. § 2º - O uso continuado da Plataforma após a publicação das alterações implica na aceitação dos novos termos. Art. 25 - Este Termo é regido pelas leis da República Federativa do Brasil. Art. 26 - Fica eleito o foro da Comarca de São Paulo, Estado de São Paulo, para dirimir quaisquer dúvidas ou controvérsias decorrentes deste Termo, com renúncia expressa a qualquer outro, por mais privilegiado que seja. Art. 27 - As comunicações entre as partes serão realizadas preferencialmente através dos canais disponibilizados na Plataforma ou por e-mail. Art. 28 - Este instrumento constitui o acordo integral entre as partes com relação ao seu objeto, substituindo todos os acordos, entendimentos e negociações anteriores, verbais ou escritos.
+            </p>
+
+            <p className="font-semibold text-slate-300 text-[11px] mt-4">ANEXO I - POLÍTICA DE PRIVACIDADE (RESUMO)</p>
+            <p>
+              A presente política descreve como a VEON coleta, utiliza, armazena e protege os dados pessoais dos usuários da Plataforma. 1. DADOS COLETADOS: Coletamos dados fornecidos diretamente pelo usuário (nome, e-mail, telefone, CPF/CNPJ, endereço, informações profissionais), dados coletados automaticamente (endereço IP, tipo de dispositivo, navegador, sistema operacional, páginas acessadas, tempo de permanência, cookies) e dados obtidos de terceiros (informações públicas, bases de dados governamentais). 2. FINALIDADES: Os dados são utilizados para: prestação dos serviços contratados; personalização da experiência do usuário; comunicação sobre produtos, serviços e novidades; melhoria da Plataforma; cumprimento de obrigações legais; prevenção de fraudes; análises estatísticas e de mercado. 3. COMPARTILHAMENTO: Os dados podem ser compartilhados com: empresas do grupo econômico; prestadores de serviços (processadores de pagamento, serviços de hospedagem, etc.); autoridades governamentais quando exigido por lei; empresas contratantes (no caso de candidatos). 4. ARMAZENAMENTO: Os dados são armazenados em servidores seguros, localizados no Brasil e/ou no exterior, pelo prazo necessário ao cumprimento das finalidades descritas ou conforme exigido por lei. 5. DIREITOS DOS TITULARES: Os titulares podem exercer os direitos previstos na LGPD, incluindo: confirmação e acesso; correção; anonimização, bloqueio ou eliminação; portabilidade; informação sobre compartilhamento; revogação do consentimento; oposição.
+            </p>
+
+            <p className="font-semibold text-slate-300 text-[11px] mt-4">ANEXO II - POLÍTICA DE COOKIES</p>
+            <p>
+              1. O QUE SÃO COOKIES: Cookies são pequenos arquivos de texto armazenados no dispositivo do usuário quando este acessa a Plataforma. 2. TIPOS DE COOKIES UTILIZADOS: a) Cookies essenciais: necessários para o funcionamento básico da Plataforma; b) Cookies de desempenho: coletam informações sobre como os usuários utilizam a Plataforma; c) Cookies de funcionalidade: permitem personalizar a experiência do usuário; d) Cookies de publicidade: utilizados para exibir anúncios relevantes. 3. GERENCIAMENTO DE COOKIES: O usuário pode configurar seu navegador para recusar cookies ou alertá-lo quando cookies estiverem sendo enviados. A desativação de cookies pode afetar o funcionamento de algumas funcionalidades da Plataforma. 4. COOKIES DE TERCEIROS: A Plataforma pode utilizar serviços de terceiros que também utilizam cookies, como: Google Analytics, Facebook Pixel, entre outros. Estes serviços possuem políticas de privacidade próprias.
+            </p>
+
+            <p className="font-semibold text-slate-300 text-[11px] mt-4">ANEXO III - ACORDO DE NÍVEL DE SERVIÇO (SLA)</p>
+            <p>
+              1. DISPONIBILIDADE: A VEON se compromete a manter a Plataforma disponível em pelo menos 99% do tempo, calculado mensalmente, excluindo-se períodos de manutenção programada e casos de força maior. 2. MANUTENÇÃO: As manutenções programadas serão realizadas preferencialmente em horários de baixa utilização e comunicadas com antecedência mínima de 24 horas, exceto em casos de urgência. 3. SUPORTE: O suporte técnico está disponível através dos canais indicados na Plataforma, em horário comercial (segunda a sexta, das 9h às 18h, exceto feriados). 4. TEMPO DE RESPOSTA: A VEON se compromete a responder às solicitações de suporte em até 48 horas úteis. 5. COMPENSAÇÃO: Em caso de indisponibilidade superior ao limite estabelecido, o usuário terá direito a créditos proporcionais ao período de indisponibilidade, limitados a 30% do valor pago no mês.
+            </p>
+
+            <p className="text-center text-slate-500 text-[9px] mt-6 border-t border-slate-700 pt-4">
+              Documento gerado eletronicamente. Versão 2.4.1 - Última atualização: {new Date().toLocaleDateString('pt-BR')}.
+              Registro: VEON-TOS-{Date.now().toString(36).toUpperCase()}.
+              Este documento foi elaborado em conformidade com a Lei nº 13.709/2018 (LGPD), Lei nº 12.965/2014 (Marco Civil da Internet),
+              Código de Defesa do Consumidor (Lei nº 8.078/1990) e demais legislações aplicáveis.
+              Em caso de dúvidas, entre em contato através do e-mail juridico@veon.com.br.
             </p>
           </div>
 
@@ -988,7 +1024,7 @@ export default function EmpresaCadastro() {
               onClick={() => setShowTermosModal(false)}
               className="w-full bg-gradient-to-r from-[#E31E24] to-[#B91C1C]"
             >
-              Fechar e Voltar
+              Fechar
             </Button>
           </div>
         </DialogContent>
