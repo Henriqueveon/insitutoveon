@@ -45,44 +45,44 @@ interface Candidato {
   telefone: string;
   cidade: string;
   estado: string;
-  bairro: string;
+  bairro: string | null;
   perfil_disc: string | null;
-  objetivo_profissional: string;
+  objetivo_profissional: string | null;
 
   // Experiência
-  areas_experiencia: string[];
-  anos_experiencia: string;
-  ultima_empresa: string;
-  ultimo_cargo: string;
-  tempo_ultima_empresa: string;
-  motivo_saida: string;
+  areas_experiencia: string[] | null;
+  anos_experiencia: number | null;
+  ultima_empresa: string | null;
+  ultimo_cargo: string | null;
+  tempo_ultima_empresa: string | null;
+  motivo_saida: string | null;
 
   // Formação
-  escolaridade: string;
+  escolaridade: string | null;
   curso: string | null;
   certificacoes: string | null;
 
   // Disponibilidade
-  disponibilidade_inicio: string;
-  disponibilidade_horario: string;
-  regime_preferido: string;
-  pretensao_salarial: string;
+  disponibilidade_inicio: string | null;
+  disponibilidade_horario: string | null;
+  regime_preferido: string | null;
+  pretensao_salarial: string | null;
 
   // Logística
-  possui_cnh: boolean;
-  possui_veiculo: boolean;
-  aceita_viajar: boolean;
-  aceita_mudanca: boolean;
+  possui_cnh: string | null;
+  possui_veiculo: string | null;
+  aceita_viajar: string | null;
+  aceita_mudanca: string | null;
 
   // Pessoal
-  estado_civil: string;
-  tem_filhos: boolean;
+  estado_civil: string | null;
+  tem_filhos: boolean | null;
   quantidade_filhos: number | null;
   instagram: string | null;
 
   // Valores
-  valores_empresa: string[];
-  areas_interesse: string[];
+  valores_empresa: string[] | null;
+  areas_interesse: string[] | null;
 }
 
 export default function MeuCurriculoCandidato() {

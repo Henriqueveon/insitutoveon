@@ -63,11 +63,11 @@ interface Candidato {
   telefone: string;
   cidade: string;
   estado: string;
-  bairro: string;
+  bairro: string | null;
   foto_url: string | null;
   video_url: string | null;
-  status: 'disponivel' | 'pausado' | 'contratado';
-  objetivo_profissional: string;
+  status: string;
+  objetivo_profissional: string | null;
   instagram: string | null;
 }
 

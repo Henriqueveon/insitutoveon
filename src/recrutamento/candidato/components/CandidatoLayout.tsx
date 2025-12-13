@@ -36,7 +36,7 @@ interface Candidato {
   telefone: string;
   cidade: string;
   estado: string;
-  status: 'disponivel' | 'pausado' | 'contratado';
+  status: string;
   perfil_disc: string | null;
 }
 
@@ -112,10 +112,10 @@ export default function CandidatoLayout() {
 
   const carregarPropostasNovas = async (candidatoId: string) => {
     const { count } = await supabase
-      .from('propostas_recrutamento')
+      .from('solicitacoes_entrevista')
       .select('*', { count: 'exact', head: true })
       .eq('candidato_id', candidatoId)
-      .eq('status', 'pendente');
+      .eq('status', 'aguardando_candidato');
 
     setPropostasNovas(count || 0);
   };

@@ -42,18 +42,11 @@ interface Transacao {
   id: string;
   created_at: string;
   tipo: string;
-  descricao: string | null;
+  tipo_transacao: string | null;
   valor: number;
   metodo_pagamento: string | null;
   status: string;
-  empresa_id: string | null;
-  candidato_id: string | null;
-  empresas_recrutamento?: {
-    razao_social: string;
-  };
-  candidatos_recrutamento?: {
-    nome_completo: string;
-  };
+  usuario_id: string;
 }
 
 interface FinanceiroStats {
@@ -139,11 +132,7 @@ export default function Financeiro() {
     try {
       let query = supabase
         .from('transacoes_recrutamento')
-        .select(`
-          *,
-          empresas_recrutamento (razao_social),
-          candidatos_recrutamento (nome_completo)
-        `, { count: 'exact' })
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false });
 
       // Aplicar filtros
@@ -386,10 +375,6 @@ export default function Financeiro() {
                     const metodoConfig = METODO_CONFIG[transacao.metodo_pagamento || 'pix'];
                     const MetodoIcon = metodoConfig?.icon || DollarSign;
 
-                    const nome = transacao.tipo === 'compra_creditos'
-                      ? transacao.empresas_recrutamento?.razao_social
-                      : getNomeAbreviado(transacao.candidatos_recrutamento?.nome_completo || null);
-
                     return (
                       <TableRow key={transacao.id} className="border-slate-700 hover:bg-slate-700/30">
                         <TableCell className="text-slate-300 whitespace-nowrap">
@@ -401,10 +386,10 @@ export default function Financeiro() {
                           </span>
                         </TableCell>
                         <TableCell className="text-white font-medium max-w-[150px] truncate">
-                          {nome || '-'}
+                          {transacao.usuario_id?.substring(0, 8) || '-'}
                         </TableCell>
                         <TableCell className="text-slate-300 max-w-[200px] truncate">
-                          {transacao.descricao || '-'}
+                          {transacao.tipo_transacao || '-'}
                         </TableCell>
                         <TableCell className="text-white font-medium whitespace-nowrap">
                           {formatValor(transacao.valor)}

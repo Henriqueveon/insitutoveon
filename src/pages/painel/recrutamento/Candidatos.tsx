@@ -66,14 +66,11 @@ interface Candidato {
   foto_url: string | null;
   video_url: string | null;
   documento_url: string | null;
-  cargo_desejado: string | null;
-  area_atuacao: string | null;
   anos_experiencia: number | null;
   escolaridade: string | null;
   pretensao_salarial: string | null;
   disponibilidade_inicio: string | null;
   aceita_mudanca: string | null;
-  palavras_chave: string[] | null;
 }
 
 const ESTADOS_BR = [
@@ -519,7 +516,7 @@ export default function Candidatos() {
               <div>
                 <p>{selectedCandidato?.nome_completo || 'Candidato'}</p>
                 <p className="text-sm font-normal text-slate-400">
-                  {selectedCandidato?.cargo_desejado || 'Cargo não informado'}
+                  {selectedCandidato?.escolaridade || 'Cargo não informado'}
                 </p>
               </div>
             </DialogTitle>
@@ -580,12 +577,6 @@ export default function Candidatos() {
                   Informações Profissionais
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {selectedCandidato.area_atuacao && (
-                    <div className="flex items-center gap-2 text-slate-300">
-                      <Briefcase className="w-4 h-4 text-slate-500" />
-                      <span>{selectedCandidato.area_atuacao}</span>
-                    </div>
-                  )}
                   {selectedCandidato.escolaridade && (
                     <div className="flex items-center gap-2 text-slate-300">
                       <GraduationCap className="w-4 h-4 text-slate-500" />
@@ -625,22 +616,6 @@ export default function Candidatos() {
                   )}
                 </div>
               </div>
-
-              {/* Palavras-chave */}
-              {selectedCandidato.palavras_chave && selectedCandidato.palavras_chave.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-amber-400 uppercase tracking-wide">
-                    Palavras-chave
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedCandidato.palavras_chave.map((palavra, idx) => (
-                      <Badge key={idx} variant="outline" className="border-slate-600 text-slate-300">
-                        {palavra}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Arquivos */}
               <div className="space-y-3">

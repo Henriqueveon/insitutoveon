@@ -42,8 +42,8 @@ interface Solicitacao {
   vaga_id: string;
   status: string;
   match_percentual: number | null;
-  pago_empresa: boolean;
-  pago_candidato: boolean;
+  empresa_pagou: boolean;
+  candidato_pagou: boolean;
   motivo_recusa: string | null;
   empresas_recrutamento?: {
     razao_social: string;
@@ -299,14 +299,14 @@ export default function Entrevistas() {
                               ) : '-'}
                             </TableCell>
                             <TableCell className="text-center">
-                              {sol.pago_empresa ? (
+                              {sol.empresa_pagou ? (
                                 <Check className="w-5 h-5 text-green-400 mx-auto" />
                               ) : (
                                 <X className="w-5 h-5 text-red-400 mx-auto" />
                               )}
                             </TableCell>
                             <TableCell className="text-center">
-                              {sol.pago_candidato ? (
+                              {sol.candidato_pagou ? (
                                 <Check className="w-5 h-5 text-green-400 mx-auto" />
                               ) : (
                                 <X className="w-5 h-5 text-red-400 mx-auto" />
