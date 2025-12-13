@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 interface EnviarNotificacaoParams {
   tipoDestinatario: "empresa" | "candidato";
@@ -6,7 +7,7 @@ interface EnviarNotificacaoParams {
   tipoNotificacao: string;
   titulo: string;
   mensagem: string;
-  dados?: Record<string, unknown>;
+  dados?: Json;
   enviarWhatsApp?: boolean;
 }
 
