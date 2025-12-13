@@ -129,7 +129,7 @@ export default function Index() {
       {/* Footer */}
       <footer className="py-6 text-center border-t border-border space-y-3">
         <p className="text-sm text-muted-foreground">
-          Instituto VEON © {new Date().getFullYear()} • "Eu sou a bússola que aponta para o sucesso!"
+          Instituto Veon © {new Date().getFullYear()} • A bússola que aponta para o sucesso!
         </p>
         <Button
           variant="ghost"
