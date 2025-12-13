@@ -1,6 +1,6 @@
 // =====================================================
 // CADASTRO EMPRESA - Área de Recrutamento VEON
-// 5 Etapas: CNPJ → Sócio → Foto → Termos → Senha
+// 6 Etapas: CNPJ → Sócio → Email OTP → Foto → Termos → Senha
 // =====================================================
 
 import { useState, useRef, useEffect } from 'react';
@@ -36,9 +36,14 @@ import {
   Eye,
   EyeOff,
   AlertTriangle,
+  Mail,
+  RefreshCw,
 } from 'lucide-react';
 import { buscarCNPJ, formatarCNPJ, validarCNPJ } from '../services/cnpjService';
 import { CNPJResponse } from '../types/recrutamento.types';
+
+// URL base das Edge Functions do Supabase
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://xpvbwmtkvomccnnqzyqe.supabase.co';
 
 // Máscaras
 const aplicarMascaraCNPJ = (value: string) => {
@@ -106,19 +111,27 @@ export default function EmpresaCadastro() {
   const [usandoCamera, setUsandoCamera] = useState(false);
   const [streamCamera, setStreamCamera] = useState<MediaStream | null>(null);
 
-  // Etapa 4: Termos
+  // Etapa 3: Verificação de Email (OTP)
+  const [codigoOtp, setCodigoOtp] = useState('');
+  const [enviandoOtp, setEnviandoOtp] = useState(false);
+  const [verificandoOtp, setVerificandoOtp] = useState(false);
+  const [emailVerificado, setEmailVerificado] = useState(false);
+  const [otpEnviado, setOtpEnviado] = useState(false);
+  const [tempoReenvio, setTempoReenvio] = useState(0);
+
+  // Etapa 5: Termos
   const [showTermosModal, setShowTermosModal] = useState(false);
   const [aceitouTermos, setAceitouTermos] = useState(false);
   const [aceitouLGPD, setAceitouLGPD] = useState(false);
 
-  // Etapa 5: Senha
+  // Etapa 6: Senha
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [showSenha, setShowSenha] = useState(false);
   const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
 
-  // Progresso
-  const progresso = (etapa / 5) * 100;
+  // Progresso (agora são 6 etapas)
+  const progresso = (etapa / 6) * 100;
 
   // ========== ETAPA 1: BUSCAR CNPJ ==========
   const handleBuscarCNPJ = async () => {
@@ -172,7 +185,120 @@ export default function EmpresaCadastro() {
     }
   };
 
-  // ========== ETAPA 3: FOTO ==========
+  // ========== ETAPA 3: VERIFICAÇÃO DE EMAIL (OTP) ==========
+
+  // Timer para reenvio de OTP
+  useEffect(() => {
+    if (tempoReenvio > 0) {
+      const timer = setTimeout(() => setTempoReenvio(tempoReenvio - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [tempoReenvio]);
+
+  const enviarOTP = async () => {
+    if (!socioEmail) {
+      toast({
+        title: 'Email não informado',
+        description: 'Volte à etapa anterior e informe seu email.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setEnviandoOtp(true);
+
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/send-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: socioEmail,
+          tipo: 'cadastro_empresa',
+          nome: socioNome,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setOtpEnviado(true);
+        setTempoReenvio(60); // 60 segundos para reenviar
+        toast({
+          title: 'Código enviado!',
+          description: `Verifique sua caixa de entrada: ${data.email_masked}`,
+        });
+      } else {
+        throw new Error(data.error || 'Erro ao enviar código');
+      }
+    } catch (error) {
+      console.error('Erro ao enviar OTP:', error);
+      toast({
+        title: 'Erro ao enviar código',
+        description: error instanceof Error ? error.message : 'Tente novamente em alguns instantes.',
+        variant: 'destructive',
+      });
+    } finally {
+      setEnviandoOtp(false);
+    }
+  };
+
+  const verificarOTP = async () => {
+    if (codigoOtp.length !== 6) {
+      toast({
+        title: 'Código inválido',
+        description: 'Digite o código de 6 dígitos enviado para seu email.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setVerificandoOtp(true);
+
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: socioEmail,
+          codigo: codigoOtp,
+          tipo: 'cadastro_empresa',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setEmailVerificado(true);
+        toast({
+          title: 'Email verificado!',
+          description: 'Seu email foi confirmado com sucesso.',
+        });
+        // Avançar automaticamente para próxima etapa
+        setTimeout(() => setEtapa(4), 1000);
+      } else {
+        toast({
+          title: 'Código incorreto',
+          description: data.error || 'Verifique o código e tente novamente.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao verificar OTP:', error);
+      toast({
+        title: 'Erro na verificação',
+        description: 'Não foi possível verificar o código. Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setVerificandoOtp(false);
+    }
+  };
+
+  // ========== ETAPA 4: FOTO ==========
 
   // Efeito para conectar stream ao video quando ambos estiverem prontos
   useEffect(() => {
@@ -375,7 +501,16 @@ export default function EmpresaCadastro() {
 
   // Navegação entre etapas
   const proximaEtapa = () => {
-    setEtapa((prev) => Math.min(prev + 1, 5));
+    // Se está na etapa 2 e vai para 3, enviar OTP automaticamente
+    if (etapa === 2) {
+      setEtapa(3);
+      // Enviar OTP quando entrar na etapa 3
+      setTimeout(() => {
+        if (!otpEnviado) enviarOTP();
+      }, 500);
+    } else {
+      setEtapa((prev) => Math.min(prev + 1, 6));
+    }
   };
 
   const etapaAnterior = () => {
@@ -390,10 +525,12 @@ export default function EmpresaCadastro() {
       case 2:
         return socioNome && socioCpf.length === 14 && socioEmail && socioTelefone.length >= 14;
       case 3:
-        return fotoUrl !== null;
+        return emailVerificado;
       case 4:
-        return aceitouTermos && aceitouLGPD;
+        return fotoUrl !== null;
       case 5:
+        return aceitouTermos && aceitouLGPD;
+      case 6:
         return validarSenha(senha).valido && senha === confirmarSenha;
       default:
         return false;
@@ -423,7 +560,7 @@ export default function EmpresaCadastro() {
         {/* Progress */}
         <div className="mb-8">
           <div className="flex justify-between text-sm text-slate-400 mb-2">
-            <span>Etapa {etapa} de 5</span>
+            <span>Etapa {etapa} de 6</span>
             <span>{Math.round(progresso)}%</span>
           </div>
           <Progress value={progresso} className="h-2 bg-slate-700" />
@@ -433,6 +570,7 @@ export default function EmpresaCadastro() {
             {[
               { icon: Search, label: 'CNPJ' },
               { icon: User, label: 'Sócio' },
+              { icon: Mail, label: 'Email' },
               { icon: Camera, label: 'Foto' },
               { icon: FileText, label: 'Termos' },
               { icon: Lock, label: 'Senha' },
@@ -629,8 +767,115 @@ export default function EmpresaCadastro() {
               </div>
             )}
 
-            {/* ========== ETAPA 3: FOTO ========== */}
+            {/* ========== ETAPA 3: VERIFICAÇÃO DE EMAIL ========== */}
             {etapa === 3 && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h2 className="text-xl font-semibold text-white">Verificar E-mail</h2>
+                  <p className="text-slate-400 mt-1">
+                    Digite o código de 6 dígitos enviado para {socioEmail}
+                  </p>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Ícone de email */}
+                  <div className="flex justify-center">
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
+                      emailVerificado ? 'bg-green-500/20' : 'bg-[#00D9FF]/20'
+                    }`}>
+                      {emailVerificado ? (
+                        <CheckCircle2 className="w-10 h-10 text-green-400" />
+                      ) : (
+                        <Mail className="w-10 h-10 text-[#00D9FF]" />
+                      )}
+                    </div>
+                  </div>
+
+                  {emailVerificado ? (
+                    <div className="text-center space-y-2">
+                      <p className="text-green-400 font-medium text-lg">Email verificado com sucesso!</p>
+                      <p className="text-slate-400 text-sm">Você será redirecionado automaticamente...</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Campo de código OTP */}
+                      <div className="space-y-2">
+                        <Label htmlFor="codigoOtp" className="text-slate-300 text-center block">
+                          Código de verificação
+                        </Label>
+                        <Input
+                          id="codigoOtp"
+                          placeholder="000000"
+                          value={codigoOtp}
+                          onChange={(e) => setCodigoOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 text-center text-2xl tracking-[0.5em] font-mono"
+                          maxLength={6}
+                          disabled={verificandoOtp}
+                        />
+                      </div>
+
+                      {/* Botão verificar */}
+                      <Button
+                        onClick={verificarOTP}
+                        disabled={codigoOtp.length !== 6 || verificandoOtp}
+                        className="w-full bg-gradient-to-r from-[#00D9FF] to-[#0099CC] hover:from-[#00C4E6] hover:to-[#0088B3] text-slate-900 font-medium"
+                      >
+                        {verificandoOtp ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Verificando...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            Verificar Código
+                          </>
+                        )}
+                      </Button>
+
+                      {/* Reenviar código */}
+                      <div className="text-center">
+                        <p className="text-slate-500 text-sm mb-2">Não recebeu o código?</p>
+                        {tempoReenvio > 0 ? (
+                          <p className="text-slate-400 text-sm">
+                            Aguarde <span className="text-[#00D9FF] font-medium">{tempoReenvio}s</span> para reenviar
+                          </p>
+                        ) : (
+                          <Button
+                            onClick={enviarOTP}
+                            disabled={enviandoOtp}
+                            variant="ghost"
+                            className="text-[#00D9FF] hover:text-[#00C4E6] hover:bg-[#00D9FF]/10"
+                          >
+                            {enviandoOtp ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Enviando...
+                              </>
+                            ) : (
+                              <>
+                                <RefreshCw className="w-4 h-4 mr-2" />
+                                Reenviar código
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+
+                      {/* Dica */}
+                      <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+                        <p className="text-slate-400 text-xs text-center">
+                          O código expira em 10 minutos. Verifique também sua caixa de spam.
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ========== ETAPA 4: FOTO ========== */}
+            {etapa === 4 && (
               <div className="space-y-6">
                 <div className="text-center">
                   <h2 className="text-xl font-semibold text-white">Foto do Sócio</h2>
@@ -729,8 +974,8 @@ export default function EmpresaCadastro() {
               </div>
             )}
 
-            {/* ========== ETAPA 4: TERMOS ========== */}
-            {etapa === 4 && (
+            {/* ========== ETAPA 5: TERMOS ========== */}
+            {etapa === 5 && (
               <div className="space-y-6">
                 <div className="text-center">
                   <h2 className="text-xl font-semibold text-white">Termos e Condições</h2>
@@ -791,8 +1036,8 @@ export default function EmpresaCadastro() {
               </div>
             )}
 
-            {/* ========== ETAPA 5: SENHA ========== */}
-            {etapa === 5 && (
+            {/* ========== ETAPA 6: SENHA ========== */}
+            {etapa === 6 && (
               <div className="space-y-6">
                 <div className="text-center">
                   <h2 className="text-xl font-semibold text-white">Criar Senha</h2>
@@ -910,10 +1155,10 @@ export default function EmpresaCadastro() {
                 </Link>
               )}
 
-              {etapa < 5 ? (
+              {etapa < 6 ? (
                 <Button
                   onClick={proximaEtapa}
-                  disabled={!podeAvancar()}
+                  disabled={!podeAvancar() || (etapa === 3 && !emailVerificado)}
                   className="bg-gradient-to-r from-[#E31E24] to-[#B91C1C] hover:from-[#C91920] hover:to-[#991B1B]"
                 >
                   Continuar
