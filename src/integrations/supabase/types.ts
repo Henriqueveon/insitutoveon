@@ -316,6 +316,7 @@ export type Database = {
       }
     }
     Functions: {
+      delete_candidato: { Args: { p_candidato_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
