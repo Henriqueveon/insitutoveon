@@ -25,13 +25,13 @@ import {
   CheckCircle,
   CreditCard,
   Settings,
-  Bell,
   LogOut,
   Menu,
   X,
   ChevronRight,
   Building2,
 } from 'lucide-react';
+import NotificationBell from '@/components/recrutamento/NotificationBell';
 
 interface Empresa {
   id: string;
@@ -58,14 +58,12 @@ export default function EmpresaLayout() {
   const { toast } = useToast();
 
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
-  const [notificacoesNaoLidas, setNotificacoesNaoLidas] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Carregar dados da empresa
   useEffect(() => {
     carregarEmpresa();
-    carregarNotificacoes();
   }, []);
 
   const carregarEmpresa = async () => {
@@ -98,32 +96,6 @@ export default function EmpresaLayout() {
       console.error('Erro ao carregar empresa:', error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const carregarNotificacoes = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: empresaData } = await supabase
-        .from('empresas_recrutamento')
-        .select('id')
-        .eq('socio_email', user.email)
-        .single();
-
-      if (!empresaData) return;
-
-      const { count } = await supabase
-        .from('notificacoes_recrutamento')
-        .select('*', { count: 'exact', head: true })
-        .eq('tipo_destinatario', 'empresa')
-        .eq('destinatario_id', empresaData.id)
-        .eq('lida', false);
-
-      setNotificacoesNaoLidas(count || 0);
-    } catch (error) {
-      console.error('Erro ao carregar notificações:', error);
     }
   };
 
@@ -275,19 +247,13 @@ export default function EmpresaLayout() {
               </div>
 
               {/* Notificações */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative text-slate-400 hover:text-white"
-                onClick={() => navigate('/recrutamento/empresa/notificacoes')}
-              >
-                <Bell className="w-5 h-5" />
-                {notificacoesNaoLidas > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-[#E31E24] text-xs">
-                    {notificacoesNaoLidas > 9 ? '9+' : notificacoesNaoLidas}
-                  </Badge>
-                )}
-              </Button>
+              {empresa && (
+                <NotificationBell
+                  usuarioId={empresa.id}
+                  tipoUsuario="empresa"
+                  baseUrl="/recrutamento/empresa"
+                />
+              )}
 
               {/* User Menu */}
               <DropdownMenu>

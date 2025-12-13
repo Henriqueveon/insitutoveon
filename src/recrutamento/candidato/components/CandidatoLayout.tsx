@@ -22,11 +22,11 @@ import {
   Mail,
   FileText,
   Settings,
-  Bell,
   LogOut,
   ChevronRight,
   User,
 } from 'lucide-react';
+import NotificationBell from '@/components/recrutamento/NotificationBell';
 
 interface Candidato {
   id: string;
@@ -54,12 +54,10 @@ export default function CandidatoLayout() {
 
   const [candidato, setCandidato] = useState<Candidato | null>(null);
   const [propostasNovas, setPropostasNovas] = useState(0);
-  const [notificacoesNaoLidas, setNotificacoesNaoLidas] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     carregarCandidato();
-    carregarNotificacoes();
   }, []);
 
   const carregarCandidato = async () => {
@@ -120,24 +118,6 @@ export default function CandidatoLayout() {
     setPropostasNovas(count || 0);
   };
 
-  const carregarNotificacoes = async () => {
-    try {
-      const candidatoId = localStorage.getItem('veon_candidato_id');
-      if (!candidatoId) return;
-
-      const { count } = await supabase
-        .from('notificacoes_recrutamento')
-        .select('*', { count: 'exact', head: true })
-        .eq('tipo_destinatario', 'candidato')
-        .eq('destinatario_id', candidatoId)
-        .eq('lida', false);
-
-      setNotificacoesNaoLidas(count || 0);
-    } catch (error) {
-      console.error('Erro ao carregar notificações:', error);
-    }
-  };
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     localStorage.removeItem('veon_candidato_id');
@@ -194,18 +174,13 @@ export default function CandidatoLayout() {
           {/* Ações */}
           <div className="flex items-center space-x-2">
             {/* Notificações */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative text-slate-400 hover:text-white"
-            >
-              <Bell className="w-5 h-5" />
-              {notificacoesNaoLidas > 0 && (
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-[#E31E24] text-xs">
-                  {notificacoesNaoLidas > 9 ? '9+' : notificacoesNaoLidas}
-                </Badge>
-              )}
-            </Button>
+            {candidato && (
+              <NotificationBell
+                usuarioId={candidato.id}
+                tipoUsuario="candidato"
+                baseUrl="/recrutamento/candidato"
+              />
+            )}
 
             {/* Menu do usuário */}
             <DropdownMenu>

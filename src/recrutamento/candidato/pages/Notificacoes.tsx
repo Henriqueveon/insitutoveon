@@ -1,0 +1,340 @@
+// =====================================================
+// NOTIFICAÇÕES - Painel do Candidato
+// Lista de todas as notificações recebidas
+// =====================================================
+
+import { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Bell,
+  Info,
+  Megaphone,
+  Sparkles,
+  AlertTriangle,
+  Check,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+interface Candidato {
+  id: string;
+}
+
+interface Notificacao {
+  id: string;
+  titulo: string;
+  mensagem: string;
+  tipo_notificacao: string;
+  lida: boolean;
+  created_at: string;
+}
+
+const TIPOS_NOTIFICACAO = {
+  informativo: { icon: Info, color: 'bg-blue-500', label: 'Informativo' },
+  promocao: { icon: Megaphone, color: 'bg-green-500', label: 'Promoção' },
+  atualizacao: { icon: Sparkles, color: 'bg-purple-500', label: 'Atualização' },
+  urgente: { icon: AlertTriangle, color: 'bg-red-500', label: 'Urgente' },
+};
+
+const ITENS_POR_PAGINA = 10;
+
+export default function NotificacoesCandidato() {
+  const { toast } = useToast();
+  const { candidato } = useOutletContext<{ candidato: Candidato }>();
+
+  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
+  const [totalNotificacoes, setTotalNotificacoes] = useState(0);
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [filtroLeitura, setFiltroLeitura] = useState('todas');
+  const [filtroTipo, setFiltroTipo] = useState('todos');
+  const [notificacaoDetalhe, setNotificacaoDetalhe] = useState<Notificacao | null>(null);
+
+  useEffect(() => {
+    if (candidato?.id) {
+      carregarNotificacoes();
+    }
+  }, [candidato?.id, paginaAtual, filtroLeitura, filtroTipo]);
+
+  const carregarNotificacoes = async () => {
+    setIsLoading(true);
+    try {
+      let query = supabase
+        .from('notificacoes')
+        .select('*', { count: 'exact' })
+        .eq('destinatario_id', candidato.id)
+        .eq('tipo_destinatario', 'candidato')
+        .order('created_at', { ascending: false });
+
+      // Filtro de leitura
+      if (filtroLeitura === 'nao_lidas') {
+        query = query.eq('lida', false);
+      } else if (filtroLeitura === 'lidas') {
+        query = query.eq('lida', true);
+      }
+
+      // Filtro de tipo
+      if (filtroTipo !== 'todos') {
+        query = query.eq('tipo_notificacao', filtroTipo);
+      }
+
+      // Paginação
+      const from = (paginaAtual - 1) * ITENS_POR_PAGINA;
+      const to = from + ITENS_POR_PAGINA - 1;
+      query = query.range(from, to);
+
+      const { data, count, error } = await query;
+
+      if (error) throw error;
+
+      setNotificacoes((data as Notificacao[]) || []);
+      setTotalNotificacoes(count || 0);
+    } catch (error) {
+      console.error('Erro ao carregar notificações:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const marcarComoLida = async (notificacao: Notificacao) => {
+    if (!notificacao.lida) {
+      try {
+        await supabase
+          .from('notificacoes')
+          .update({ lida: true, lida_em: new Date().toISOString() })
+          .eq('id', notificacao.id);
+
+        setNotificacoes(prev =>
+          prev.map(n => n.id === notificacao.id ? { ...n, lida: true } : n)
+        );
+      } catch (error) {
+        console.error('Erro ao marcar como lida:', error);
+      }
+    }
+    setNotificacaoDetalhe(notificacao);
+  };
+
+  const marcarTodasComoLidas = async () => {
+    try {
+      const { data, error } = await supabase.rpc('marcar_todas_notificacoes_lidas', {
+        p_destinatario_id: candidato.id,
+        p_tipo_destinatario: 'candidato',
+      });
+
+      if (error) throw error;
+
+      const resultado = data as { success: boolean; marcadas: number };
+
+      if (resultado.success) {
+        toast({
+          title: 'Pronto!',
+          description: `${resultado.marcadas} notificações marcadas como lidas.`,
+        });
+        carregarNotificacoes();
+      }
+    } catch (error) {
+      console.error('Erro ao marcar todas como lidas:', error);
+    }
+  };
+
+  const getTipoConfig = (tipo: string) => {
+    return TIPOS_NOTIFICACAO[tipo as keyof typeof TIPOS_NOTIFICACAO] || TIPOS_NOTIFICACAO.informativo;
+  };
+
+  const totalPaginas = Math.ceil(totalNotificacoes / ITENS_POR_PAGINA);
+  const naoLidas = notificacoes.filter(n => !n.lida).length;
+
+  return (
+    <div className="space-y-6 max-w-lg mx-auto">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-xl font-bold text-white flex items-center justify-center gap-2">
+          <Bell className="w-6 h-6 text-amber-400" />
+          Notificações
+        </h1>
+        <p className="text-slate-400 text-sm mt-1">
+          {totalNotificacoes} notificação(ões)
+        </p>
+      </div>
+
+      {/* Ações */}
+      {naoLidas > 0 && (
+        <Button
+          onClick={marcarTodasComoLidas}
+          variant="outline"
+          className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
+        >
+          <Check className="w-4 h-4 mr-2" />
+          Marcar todas como lidas ({naoLidas})
+        </Button>
+      )}
+
+      {/* Filtros */}
+      <div className="flex gap-3">
+        <Select value={filtroLeitura} onValueChange={(v) => { setFiltroLeitura(v); setPaginaAtual(1); }}>
+          <SelectTrigger className="flex-1 bg-slate-800 border-slate-700 text-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todas">Todas</SelectItem>
+            <SelectItem value="nao_lidas">Não lidas</SelectItem>
+            <SelectItem value="lidas">Lidas</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={filtroTipo} onValueChange={(v) => { setFiltroTipo(v); setPaginaAtual(1); }}>
+          <SelectTrigger className="flex-1 bg-slate-800 border-slate-700 text-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os tipos</SelectItem>
+            <SelectItem value="informativo">Informativo</SelectItem>
+            <SelectItem value="promocao">Promoção</SelectItem>
+            <SelectItem value="atualizacao">Atualização</SelectItem>
+            <SelectItem value="urgente">Urgente</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Lista de notificações */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+        </div>
+      ) : notificacoes.length === 0 ? (
+        <Card className="bg-slate-800/60 border-slate-700">
+          <CardContent className="py-12 text-center">
+            <Bell className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+            <p className="text-slate-400">Nenhuma notificação encontrada</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {notificacoes.map(notificacao => {
+            const tipoConfig = getTipoConfig(notificacao.tipo_notificacao);
+            const TipoIcon = tipoConfig.icon;
+
+            return (
+              <Card
+                key={notificacao.id}
+                onClick={() => marcarComoLida(notificacao)}
+                className={`cursor-pointer transition-all ${
+                  !notificacao.lida
+                    ? 'bg-slate-700/50 border-slate-600'
+                    : 'bg-slate-800/60 border-slate-700'
+                }`}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2 rounded-lg ${tipoConfig.color} flex-shrink-0`}>
+                      <TipoIcon className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className={`font-medium text-sm ${notificacao.lida ? 'text-slate-400' : 'text-white'}`}>
+                          {notificacao.titulo}
+                        </p>
+                        {!notificacao.lida && (
+                          <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-1.5" />
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                        {notificacao.mensagem}
+                      </p>
+                      <p className="text-xs text-slate-600 mt-2">
+                        {formatDistanceToNow(new Date(notificacao.created_at), {
+                          addSuffix: true,
+                          locale: ptBR,
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Paginação */}
+      {totalPaginas > 1 && (
+        <div className="flex items-center justify-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={paginaAtual === 1}
+            onClick={() => setPaginaAtual(prev => prev - 1)}
+            className="border-slate-700 text-slate-300"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <span className="text-slate-400 text-sm">
+            {paginaAtual} de {totalPaginas}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={paginaAtual === totalPaginas}
+            onClick={() => setPaginaAtual(prev => prev + 1)}
+            className="border-slate-700 text-slate-300"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* Modal de detalhes */}
+      <Dialog open={!!notificacaoDetalhe} onOpenChange={() => setNotificacaoDetalhe(null)}>
+        <DialogContent className="bg-slate-800 border-slate-700 max-w-sm mx-4">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              {notificacaoDetalhe && (() => {
+                const config = getTipoConfig(notificacaoDetalhe.tipo_notificacao);
+                return (
+                  <>
+                    <div className={`p-1.5 rounded-lg ${config.color}`}>
+                      <config.icon className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-base">{notificacaoDetalhe.titulo}</span>
+                  </>
+                );
+              })()}
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              {notificacaoDetalhe && format(new Date(notificacaoDetalhe.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+            </DialogDescription>
+          </DialogHeader>
+          {notificacaoDetalhe && (
+            <div className="mt-4">
+              <p className="text-slate-300 text-sm whitespace-pre-wrap">
+                {notificacaoDetalhe.mensagem}
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
