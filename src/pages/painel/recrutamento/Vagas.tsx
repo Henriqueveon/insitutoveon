@@ -49,7 +49,7 @@ interface Vaga {
   estado: string | null;
   faixa_salarial_min: number | null;
   faixa_salarial_max: number | null;
-  regime_contratacao: string | null;
+  regime: string | null;
   perfil_disc_ideal: string | null;
   status: string;
   empresas_recrutamento?: {
@@ -108,7 +108,7 @@ export default function Vagas() {
       }
 
       if (regimeFilter !== 'todos') {
-        query = query.eq('regime_contratacao', regimeFilter);
+        query = query.eq('regime', regimeFilter);
       }
 
       // Paginação
@@ -348,7 +348,7 @@ export default function Vagas() {
                           {formatSalario(vaga.faixa_salarial_min, vaga.faixa_salarial_max)}
                         </TableCell>
                         <TableCell className="text-slate-300">
-                          {vaga.regime_contratacao || '-'}
+                          {vaga.regime || '-'}
                         </TableCell>
                         <TableCell>
                           {renderDiscBadges(vaga.perfil_disc_ideal)}

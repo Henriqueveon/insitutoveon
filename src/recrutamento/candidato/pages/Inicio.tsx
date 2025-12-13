@@ -68,7 +68,7 @@ export default function InicioCandidato() {
 
     // Propostas aceitas
     const { count: aceitas } = await supabase
-      .from('propostas_recrutamento')
+      .from('solicitacoes_entrevista')
       .select('*', { count: 'exact', head: true })
       .eq('candidato_id', candidato.id)
       .eq('status', 'aceita');

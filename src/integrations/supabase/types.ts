@@ -322,6 +322,45 @@ export type Database = {
         }
         Relationships: []
       }
+      email_otps: {
+        Row: {
+          codigo: string
+          criado_em: string | null
+          email: string
+          expira_em: string
+          id: string
+          max_tentativas: number | null
+          tentativas: number | null
+          tipo: string
+          verificado: boolean | null
+          verificado_em: string | null
+        }
+        Insert: {
+          codigo: string
+          criado_em?: string | null
+          email: string
+          expira_em: string
+          id?: string
+          max_tentativas?: number | null
+          tentativas?: number | null
+          tipo?: string
+          verificado?: boolean | null
+          verificado_em?: string | null
+        }
+        Update: {
+          codigo?: string
+          criado_em?: string | null
+          email?: string
+          expira_em?: string
+          id?: string
+          max_tentativas?: number | null
+          tentativas?: number | null
+          tipo?: string
+          verificado?: boolean | null
+          verificado_em?: string | null
+        }
+        Relationships: []
+      }
       empresas_recrutamento: {
         Row: {
           aceite_lgpd: boolean | null
@@ -861,6 +900,36 @@ export type Database = {
       }
     }
     Functions: {
+      cadastrar_empresa: {
+        Args: {
+          p_aceite_lgpd?: boolean
+          p_aceite_termos?: boolean
+          p_bairro?: string
+          p_capital_social?: number
+          p_cep?: string
+          p_cidade?: string
+          p_cnpj: string
+          p_complemento?: string
+          p_data_abertura?: string
+          p_email_empresa?: string
+          p_estado?: string
+          p_logradouro?: string
+          p_natureza_juridica?: string
+          p_nome_fantasia?: string
+          p_numero?: string
+          p_porte?: string
+          p_razao_social: string
+          p_situacao_cadastral?: string
+          p_socio_cpf: string
+          p_socio_email: string
+          p_socio_foto_url?: string
+          p_socio_nome: string
+          p_socio_telefone: string
+          p_telefone_empresa?: string
+        }
+        Returns: Json
+      }
+      criar_otp: { Args: { p_email: string; p_tipo?: string }; Returns: Json }
       delete_candidato: { Args: { p_candidato_id: string }; Returns: Json }
       has_role: {
         Args: {
@@ -868,6 +937,11 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      limpar_otps_expirados: { Args: never; Returns: undefined }
+      verificar_otp: {
+        Args: { p_codigo: string; p_email: string; p_tipo?: string }
+        Returns: Json
       }
     }
     Enums: {

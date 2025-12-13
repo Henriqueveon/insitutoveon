@@ -477,8 +477,9 @@ export default function EmpresaCadastro() {
         throw new Error(rpcError.message);
       }
 
-      if (rpcResult && !rpcResult.success) {
-        throw new Error(rpcResult.error || 'Erro ao cadastrar empresa');
+      const result = rpcResult as { success: boolean; error?: string };
+      if (result && !result.success) {
+        throw new Error(result.error || 'Erro ao cadastrar empresa');
       }
 
       toast({
