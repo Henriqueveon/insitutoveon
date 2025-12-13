@@ -1294,6 +1294,7 @@ export type Database = {
       }
       criar_otp: { Args: { p_email: string; p_tipo?: string }; Returns: Json }
       delete_candidato: { Args: { p_candidato_id: string }; Returns: Json }
+      delete_empresa: { Args: { p_empresa_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
