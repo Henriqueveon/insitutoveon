@@ -379,7 +379,7 @@ export default function Contratados() {
             <p className="text-slate-400">
               {busca || filtroAno !== 'todos'
                 ? 'Tente ajustar os filtros'
-                : 'Quando você contratar candidatos, eles aparecerão aqui'}
+                : 'Quando você contratar profissionais, eles aparecerão aqui'}
             </p>
           </CardContent>
         </Card>

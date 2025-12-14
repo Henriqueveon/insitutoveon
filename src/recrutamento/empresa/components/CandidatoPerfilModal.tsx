@@ -1,6 +1,7 @@
 // =====================================================
-// MODAL PERFIL CANDIDATO - Área de Recrutamento VEON
-// Visualização completa do candidato + envio de proposta
+// MODAL PERFIL PROFISSIONAL - Área de Recrutamento VEON
+// Visualização do profissional + envio de proposta
+// IMPORTANTE: Oculta informações de contato (nome completo, telefone, email)
 // =====================================================
 
 import { useState } from 'react';
@@ -314,7 +315,7 @@ export default function CandidatoPerfilModal({
 
       toast({
         title: 'Proposta enviada!',
-        description: 'O candidato receberá uma notificação sobre sua proposta.',
+        description: 'O profissional receberá uma notificação sobre sua proposta.',
       });
 
       setMostrarEnviarProposta(false);
@@ -354,6 +355,9 @@ export default function CandidatoPerfilModal({
                 <Send className="w-5 h-5 mr-2 text-[#E31E24]" />
                 Enviar Proposta para {candidato.nome_completo.split(' ')[0]}
               </DialogTitle>
+              <p className="text-sm text-slate-400 mt-1">
+                As informações de contato serão reveladas após o profissional aceitar sua proposta
+              </p>
             </DialogHeader>
 
             <div className="mt-6 space-y-4">
@@ -466,16 +470,21 @@ export default function CandidatoPerfilModal({
                 </div>
 
                 <div className="flex-1">
+                  {/* Mostra apenas PRIMEIRO NOME - contato oculto */}
                   <h2 className="text-xl font-bold text-white">
-                    {candidato.nome_completo}
+                    {candidato.nome_completo.split(' ')[0]}
                   </h2>
                   <div className="flex flex-wrap items-center gap-2 mt-1 text-slate-400 text-sm">
                     <span className="flex items-center">
                       <MapPin className="w-4 h-4 mr-1" />
                       {candidato.cidade}, {candidato.estado}
                     </span>
-                    <span>•</span>
-                    <span>{calcularIdade(candidato.data_nascimento)} anos</span>
+                    {candidato.data_nascimento && (
+                      <>
+                        <span>•</span>
+                        <span>{calcularIdade(candidato.data_nascimento)} anos</span>
+                      </>
+                    )}
                     {candidato.perfil_disc && (
                       <>
                         <span>•</span>
@@ -623,12 +632,7 @@ export default function CandidatoPerfilModal({
                         Aceita Mudança
                       </Badge>
                     )}
-                    {candidato.instagram && (
-                      <Badge className="bg-pink-500/20 text-pink-400">
-                        <Instagram className="w-3 h-3 mr-1" />
-                        {candidato.instagram}
-                      </Badge>
-                    )}
+                    {/* Instagram removido - informação de contato oculta */}
                   </div>
 
                   {/* Áreas de interesse */}
@@ -736,14 +740,14 @@ export default function CandidatoPerfilModal({
                         />
                       </div>
                       <p className="text-slate-400 text-sm text-center">
-                        Vídeo de apresentação do candidato
+                        Vídeo de apresentação do profissional
                       </p>
                     </div>
                   ) : (
                     <div className="text-center py-12">
                       <Play className="w-16 h-16 text-slate-600 mx-auto mb-4" />
                       <p className="text-slate-400">
-                        Este candidato não enviou um vídeo de apresentação
+                        Este profissional não enviou um vídeo de apresentação
                       </p>
                     </div>
                   )}

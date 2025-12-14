@@ -61,6 +61,7 @@ import {
   Navigation,
 } from 'lucide-react';
 import CandidatoPerfilModal from '../components/CandidatoPerfilModal';
+import ProfissionalCard, { calcularMatchSimples } from '../components/ProfissionalCard';
 
 interface Empresa {
   id: string;
@@ -431,10 +432,10 @@ export default function BuscarCandidatos() {
         setTotalCandidatos(count || 0);
       }
     } catch (error) {
-      console.error('Erro ao carregar candidatos:', error);
+      console.error('Erro ao carregar profissionais:', error);
       toast({
         title: 'Erro ao carregar',
-        description: 'Não foi possível carregar os candidatos.',
+        description: 'Não foi possível carregar os profissionais.',
         variant: 'destructive',
       });
     } finally {
@@ -749,7 +750,7 @@ export default function BuscarCandidatos() {
                       className="w-full"
                     />
                     <p className="text-xs text-slate-500">
-                      Mostra candidatos até {filtros.raioKm}km de {filtros.cidade}
+                      Mostra profissionais até {filtros.raioKm}km de {filtros.cidade}
                     </p>
                   </div>
                 )}
@@ -1054,127 +1055,27 @@ export default function BuscarCandidatos() {
         {/* Resultados */}
         <div className="mb-4 flex items-center justify-between">
           <p className="text-slate-400">
-            {totalCandidatos} candidato{totalCandidatos !== 1 ? 's' : ''} encontrado{totalCandidatos !== 1 ? 's' : ''}
+            {totalCandidatos} profissiona{totalCandidatos !== 1 ? 'is' : 'l'} encontrado{totalCandidatos !== 1 ? 's' : ''}
           </p>
         </div>
 
-        {/* Grid de Candidatos */}
+        {/* Grid de Profissionais - Estilo Instagram */}
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E31E24]" />
           </div>
         ) : candidatos.length > 0 ? (
           <>
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {candidatos.map((candidato) => (
-                <Card
+                <ProfissionalCard
                   key={candidato.id}
-                  className="bg-slate-800/60 border-slate-700 hover:border-slate-600 transition-all cursor-pointer group"
+                  profissional={candidato}
                   onClick={() => abrirPerfil(candidato)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="relative">
-                          <Avatar className="h-12 w-12">
-                            <AvatarImage src={candidato.foto_url || undefined} />
-                            <AvatarFallback className="bg-slate-600 text-white">
-                              {candidato.nome_completo.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          {candidato.perfil_disc && (
-                            <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full ${getCorPerfil(candidato.perfil_disc)} flex items-center justify-center text-xs font-bold text-white`}>
-                              {candidato.perfil_disc}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium text-white">
-                            {candidato.nome_completo.split(' ').slice(0, 2).join(' ')}
-                          </p>
-                          <p className="text-xs text-slate-400 flex items-center">
-                            <MapPin className="w-3 h-3 mr-1" />
-                            {candidato.cidade}, {candidato.estado}
-                            {candidato.distancia_km !== undefined && candidato.distancia_km !== null && (
-                              <span className="ml-2 text-green-400">
-                                ({candidato.distancia_km} km)
-                              </span>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-red-400"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorito(candidato.id);
-                        }}
-                      >
-                        <Heart
-                          className={`w-4 h-4 ${favoritos.includes(candidato.id) ? 'fill-red-500 text-red-500' : ''}`}
-                        />
-                      </Button>
-                    </div>
-
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {candidato.areas_experiencia?.slice(0, 2).map((area, i) => (
-                        <Badge key={i} variant="secondary" className="bg-slate-700 text-slate-300 text-xs">
-                          {area}
-                        </Badge>
-                      ))}
-                      {candidato.areas_experiencia?.length > 2 && (
-                        <Badge variant="secondary" className="bg-slate-700 text-slate-400 text-xs">
-                          +{candidato.areas_experiencia.length - 2}
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* Info */}
-                    <div className="space-y-1.5 text-sm">
-                      <div className="flex items-center text-slate-400">
-                        <Briefcase className="w-4 h-4 mr-2 text-slate-500" />
-                        {candidato.anos_experiencia || 0} anos de experiência
-                      </div>
-                      <div className="flex items-center text-slate-400">
-                        <GraduationCap className="w-4 h-4 mr-2 text-slate-500" />
-                        {candidato.escolaridade || 'Não informado'}
-                      </div>
-                      <div className="flex items-center text-slate-400">
-                        <Clock className="w-4 h-4 mr-2 text-slate-500" />
-                        {getDisponibilidadeLabel(candidato.disponibilidade_inicio || 'a_combinar')}
-                      </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-700">
-                      <div className="flex items-center space-x-2">
-                        {candidato.possui_cnh === 'sim' && (
-                          <Badge variant="outline" className="border-slate-600 text-slate-400 text-xs">
-                            <Car className="w-3 h-3 mr-1" />
-                            CNH
-                          </Badge>
-                        )}
-                        {candidato.video_url && (
-                          <Badge variant="outline" className="border-blue-600 text-blue-400 text-xs">
-                            <Play className="w-3 h-3 mr-1" />
-                            Vídeo
-                          </Badge>
-                        )}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-[#E31E24] hover:text-[#E31E24] hover:bg-[#E31E24]/10"
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        Ver perfil
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                  isFavorito={favoritos.includes(candidato.id)}
+                  onToggleFavorito={toggleFavorito}
+                  matchPercentual={calcularMatchSimples(candidato)}
+                />
               ))}
             </div>
 
@@ -1210,7 +1111,7 @@ export default function BuscarCandidatos() {
             <CardContent className="py-12 text-center">
               <Users className="w-16 h-16 text-slate-600 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-white mb-2">
-                Nenhum candidato encontrado
+                Nenhum profissional encontrado
               </h3>
               <p className="text-slate-400 mb-4">
                 Tente ajustar os filtros para ver mais resultados

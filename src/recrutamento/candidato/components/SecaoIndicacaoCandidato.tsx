@@ -116,7 +116,7 @@ export default function SecaoIndicacaoCandidato({ candidato }: Props) {
   const compartilharWhatsApp = () => {
     const mensagem = encodeURIComponent(
       `🎯 Descobri uma plataforma incrível para encontrar emprego!\n\n` +
-      `A Recruta Veon te ajuda a descobrir seus talentos naturais e conecta você com empresas que combinam com seu perfil.\n\n` +
+      `A Recruta Veon ajuda profissionais a descobrirem seus talentos naturais e conecta com empresas que combinam com seu perfil.\n\n` +
       `Cadastre-se pelo meu link:\n${linkIndicacao}`
     );
     window.open(`https://wa.me/?text=${mensagem}`, '_blank');
@@ -162,7 +162,7 @@ export default function SecaoIndicacaoCandidato({ candidato }: Props) {
               💰 Indique Amigos e Ganhe R$ 30,00
             </h2>
             <p className="text-slate-300 leading-relaxed">
-              Ajude um amigo a encontrar o emprego dos sonhos! Compartilhe seu link e ganhe{' '}
+              Ajude um profissional a encontrar o emprego dos sonhos! Compartilhe seu link e ganhe{' '}
               <strong className="text-green-400">R$ 30,00 em créditos</strong>{' '}
               quando ele completar o cadastro.
             </p>

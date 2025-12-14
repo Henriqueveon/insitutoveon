@@ -85,14 +85,14 @@ export default function BemVindo() {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
-            Descubra seus talentos naturais e encontre a{' '}
+            Uma empresa quer{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E31E24] to-[#00D9FF]">
-              vaga perfeita
+              te contratar
             </span>
           </h1>
 
           <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto">
-            Cadastre-se gratuitamente e seja encontrado por centenas de empresas que buscam profissionais como você
+            Preencha seu currículo, a oportunidade dos seus sonhos está aqui
           </p>
         </div>
 
@@ -127,7 +127,7 @@ export default function BemVindo() {
               </div>
               <div>
                 <p className="text-lg md:text-xl font-semibold text-white mb-2">
-                  Candidatos que finalizam o cadastro completo:
+                  Profissionais que finalizam o cadastro completo:
                 </p>
                 <ul className="space-y-2 text-green-300">
                   <li className="flex items-center gap-2">

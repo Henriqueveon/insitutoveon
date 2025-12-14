@@ -215,7 +215,7 @@ export default function StatusIndicador({ candidato, onFechar }: Props) {
 
         {/* Mensagem motivacional */}
         <p className="mt-4 text-xs text-center text-slate-500">
-          Perfis completos recebem 5x mais propostas de emprego
+          Profissionais com perfil completo recebem 5x mais propostas
         </p>
       </CardContent>
     </Card>

@@ -151,9 +151,9 @@ export default function CadastroRapido() {
   };
 
   const beneficiosRapidos = [
-    'Receba propostas de emprego',
-    'Descubra seus talentos com teste DISC',
-    'Currículo gerado automaticamente',
+    'Empresas te encontram e enviam propostas',
+    'Descubra seus talentos naturais com teste DISC',
+    'Currículo profissional gerado automaticamente',
   ];
 
   return (

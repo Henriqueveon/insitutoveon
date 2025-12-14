@@ -265,7 +265,7 @@ export default function SecaoIndicacao({ empresa }: Props) {
                     </div>
                     <div>
                       <p className="text-white font-medium">
-                        {indicacao.indicado_tipo === 'empresa' ? 'Empresa' : 'Candidato'}
+                        {indicacao.indicado_tipo === 'empresa' ? 'Empresa' : 'Profissional'}
                       </p>
                       <p className="text-slate-400 text-sm">
                         {formatarData(indicacao.created_at)}

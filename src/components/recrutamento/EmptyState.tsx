@@ -33,8 +33,8 @@ interface EmptyStateProps {
 const configuracoes = {
   candidatos: {
     icon: Users,
-    titulo: 'Nenhum candidato encontrado',
-    descricao: 'Ainda não há candidatos com esses critérios. Tente ajustar os filtros ou compartilhe seu link de recrutamento!',
+    titulo: 'Nenhum profissional encontrado',
+    descricao: 'Ainda não há profissionais com esses critérios. Tente ajustar os filtros ou compartilhe seu link de recrutamento!',
   },
   vagas: {
     icon: Briefcase,
@@ -54,12 +54,12 @@ const configuracoes = {
   filtros: {
     icon: Search,
     titulo: 'Nenhum resultado',
-    descricao: 'Nenhum candidato encontrado. Tente ampliar seus filtros para encontrar mais candidatos.',
+    descricao: 'Nenhum profissional encontrado. Tente ampliar seus filtros para encontrar mais profissionais.',
   },
   video: {
     icon: Video,
     titulo: 'Vídeo não adicionado',
-    descricao: 'Candidatos com vídeo recebem 3x mais propostas. Que tal gravar o seu?',
+    descricao: 'Profissionais com vídeo recebem 3x mais propostas. Que tal gravar o seu?',
   },
   compartilhar: {
     icon: Share2,
@@ -129,9 +129,9 @@ export default function EmptyState({
 export const mensagensSucesso = {
   cadastroCompleto: '🎉 Parabéns! Seu perfil está completo. Agora empresas podem te encontrar!',
   propostaRecebida: '🎯 Uma empresa quer te conhecer! Isso significa que seu perfil se destacou.',
-  vagaPublicada: '✅ Vaga publicada! Vamos encontrar os melhores candidatos para você.',
+  vagaPublicada: '✅ Vaga publicada! Vamos encontrar os melhores profissionais para você.',
   indicacaoSucesso: '🎁 Indicação registrada! Você receberá a recompensa quando seu amigo completar o cadastro.',
-  propostaEnviada: 'Proposta enviada com sucesso! O candidato será notificado.',
+  propostaEnviada: 'Proposta enviada com sucesso! O profissional será notificado.',
   dadosSalvos: 'Alterações salvas com sucesso!',
   videoAdicionado: '🎬 Vídeo adicionado! Seu perfil ficou ainda mais atrativo.',
 };
@@ -147,7 +147,7 @@ export const mensagensErro = {
 };
 
 export const mensagensAviso = {
-  semVideo: '💡 Dica: Candidatos com vídeo recebem 3x mais propostas. Que tal gravar o seu?',
+  semVideo: '💡 Dica: Profissionais com vídeo recebem 3x mais propostas. Que tal gravar o seu?',
   semCreditos: '💳 Você não tem créditos suficientes. Recarregue e continue recrutando!',
   perfilIncompleto: '📝 Complete seu perfil para aumentar suas chances de ser encontrado.',
   confirmarExclusao: 'Tem certeza que deseja excluir? Esta ação não pode ser desfeita.',

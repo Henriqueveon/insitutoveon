@@ -245,7 +245,7 @@ export default function EmpresaDashboard() {
 
   const statsCards = [
     {
-      label: 'Candidatos Disponíveis',
+      label: 'Profissionais Disponíveis',
       value: stats.candidatosDisponiveis,
       icon: Search,
       color: 'from-blue-500 to-blue-600',
@@ -299,7 +299,7 @@ export default function EmpresaDashboard() {
           className="bg-gradient-to-r from-[#E31E24] to-[#B91C1C]"
         >
           <Search className="w-4 h-4 mr-2" />
-          Buscar Candidatos
+          Buscar Profissionais
         </Button>
       </div>
 
@@ -334,7 +334,7 @@ export default function EmpresaDashboard() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-white flex items-center">
               <Sparkles className="w-5 h-5 mr-2 text-yellow-400" />
-              Candidatos com melhor match
+              Profissionais com melhor match
             </CardTitle>
             <Button
               variant="ghost"
@@ -395,7 +395,7 @@ export default function EmpresaDashboard() {
             ) : (
               <div className="text-center py-8">
                 <Users className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                <p className="text-slate-400">Nenhum candidato disponível no momento</p>
+                <p className="text-slate-400">Nenhum profissional disponível no momento</p>
               </div>
             )}
           </CardContent>
@@ -489,7 +489,7 @@ export default function EmpresaDashboard() {
                 Aumente suas contratações
               </p>
               <p className="text-sm text-slate-400 mb-3">
-                Adicione créditos para desbloquear mais candidatos
+                Adicione créditos para desbloquear mais profissionais
               </p>
               <Button
                 size="sm"

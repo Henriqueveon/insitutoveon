@@ -182,7 +182,7 @@ export default function InicioCandidato() {
   const dicas = [
     {
       icon: Video,
-      text: 'Candidatos com vídeo recebem 3x mais propostas',
+      text: 'Profissionais com vídeo recebem 3x mais propostas',
       action: () => navigate('/recrutamento/candidato/configuracoes'),
     },
     {

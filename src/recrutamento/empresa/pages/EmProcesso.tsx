@@ -317,7 +317,7 @@ export default function EmProcesso() {
 
       toast({
         title: 'Contratação registrada!',
-        description: 'O candidato foi marcado como contratado.',
+        description: 'O profissional foi marcado como contratado.',
       });
 
       carregarPropostas();
@@ -579,7 +579,7 @@ export default function EmProcesso() {
                     ? 'Nenhuma proposta aceita aguardando agendamento'
                     : tabAtiva === 'agendadas'
                     ? 'Nenhuma entrevista agendada'
-                    : 'Envie propostas para candidatos para vê-los aqui'}
+                    : 'Envie propostas para profissionais para vê-los aqui'}
                 </p>
               </CardContent>
             </Card>
@@ -626,7 +626,7 @@ export default function EmProcesso() {
                         Custo: R$ {CUSTO_ENTREVISTA},00
                       </p>
                       <p className="text-sm text-yellow-400/70">
-                        Ao agendar, você desbloqueará o telefone e email do candidato.
+                        Ao agendar, você desbloqueará o telefone e email do profissional.
                       </p>
                     </div>
                   </div>

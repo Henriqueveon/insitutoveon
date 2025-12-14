@@ -48,7 +48,7 @@ export default function Propostas() {
         <div className="mt-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
           <p className="text-sm text-amber-400 text-center flex items-center justify-center gap-2">
             <Sparkles className="w-4 h-4" />
-            Candidatos com vídeo recebem 3x mais propostas. Que tal gravar o seu?
+            Profissionais com vídeo recebem 3x mais propostas. Que tal gravar o seu?
           </p>
         </div>
 
