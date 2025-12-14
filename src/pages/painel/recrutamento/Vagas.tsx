@@ -123,14 +123,27 @@ export default function Vagas() {
       setVagas(data || []);
       setTotalCount(count || 0);
 
-      // Buscar contagem de candidatos compatíveis para cada vaga
+      // Buscar contagem de candidatos compatíveis para cada vaga (por cidade/estado)
       if (data && data.length > 0) {
         const counts: Record<string, number> = {};
         for (const vaga of data) {
-          const { count: candidatosCompativeis } = await supabase
+          let query = supabase
             .from('candidatos_recrutamento')
             .select('*', { count: 'exact', head: true })
-            .eq('status', 'disponivel');
+            .eq('status', 'disponivel')
+            .eq('cadastro_completo', true);
+
+          // Filtrar por estado se a vaga tem estado definido
+          if (vaga.estado) {
+            query = query.eq('estado', vaga.estado);
+          }
+
+          // Filtrar também por cidade se definida
+          if (vaga.cidade) {
+            query = query.eq('cidade', vaga.cidade);
+          }
+
+          const { count: candidatosCompativeis } = await query;
           counts[vaga.id] = candidatosCompativeis || 0;
         }
         setCandidatosCount(counts);
@@ -373,6 +386,12 @@ export default function Vagas() {
                               size="sm"
                               className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-700"
                               title="Ver detalhes"
+                              onClick={() => {
+                                toast({
+                                  title: vaga.titulo,
+                                  description: `${vaga.cidade || '-'}/${vaga.estado || '-'} | ${vaga.regime || '-'} | ${formatSalario(vaga.faixa_salarial_min, vaga.faixa_salarial_max)}`,
+                                });
+                              }}
                             >
                               <Eye className="w-4 h-4" />
                             </Button>

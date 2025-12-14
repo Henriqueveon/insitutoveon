@@ -684,6 +684,12 @@ export default function Empresas() {
                             size="sm"
                             className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-700"
                             title="Ver detalhes"
+                            onClick={() => {
+                              toast({
+                                title: empresa.razao_social,
+                                description: `CNPJ: ${formatCNPJ(empresa.cnpj)} | Sócio: ${empresa.socio_nome || '-'} | Créditos: R$ ${(empresa.creditos || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                              });
+                            }}
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
@@ -692,6 +698,12 @@ export default function Empresas() {
                             size="sm"
                             className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-700"
                             title="Editar"
+                            onClick={() => {
+                              toast({
+                                title: 'Edição de empresa',
+                                description: 'Funcionalidade em desenvolvimento.',
+                              });
+                            }}
                           >
                             <Pencil className="w-4 h-4" />
                           </Button>

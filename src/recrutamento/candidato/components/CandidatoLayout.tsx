@@ -68,44 +68,48 @@ export default function CandidatoLayout() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
-        // Tentar recuperar do localStorage (candidato sem auth)
-        const candidatoId = localStorage.getItem('veon_candidato_id');
-        if (candidatoId) {
-          const { data } = await supabase
-            .from('candidatos_recrutamento')
-            .select('*')
-            .eq('id', candidatoId)
-            .single();
-
-          if (data) {
-            setCandidato(data);
-            carregarPropostasNovas(data.id);
-          } else {
-            navigate('/recrutamento/candidato/bem-vindo');
-          }
-        } else {
-          navigate('/recrutamento/candidato/bem-vindo');
-        }
+        // Sem autenticação - redirecionar para login
+        navigate('/recrutamento/candidato/login');
         return;
       }
 
-      // Buscar candidato pelo email do usuário autenticado
-      const { data, error } = await supabase
+      // 1. Primeiro tentar buscar pelo auth_user_id
+      let { data, error } = await supabase
         .from('candidatos_recrutamento')
         .select('*')
-        .eq('email', user.email)
+        .eq('auth_user_id', user.id)
         .single();
 
+      // 2. Se não encontrou por auth_user_id, tentar por email (migração)
       if (error || !data) {
-        navigate('/recrutamento/candidato/bem-vindo');
-        return;
+        const { data: dataByEmail, error: errorByEmail } = await supabase
+          .from('candidatos_recrutamento')
+          .select('*')
+          .eq('email', user.email)
+          .single();
+
+        if (errorByEmail || !dataByEmail) {
+          // Candidato não existe - redirecionar para cadastro
+          navigate('/recrutamento/candidato/bem-vindo');
+          return;
+        }
+
+        data = dataByEmail;
+
+        // 3. Vincular auth_user_id se ainda não estiver vinculado
+        if (!dataByEmail.auth_user_id) {
+          await supabase.rpc('vincular_auth_candidato', {
+            p_candidato_id: dataByEmail.id,
+            p_auth_user_id: user.id,
+          });
+        }
       }
 
       setCandidato(data);
-      localStorage.setItem('veon_candidato_id', data.id);
       carregarPropostasNovas(data.id);
     } catch (error) {
       console.error('Erro ao carregar candidato:', error);
+      navigate('/recrutamento/candidato/login');
     } finally {
       setIsLoading(false);
     }
@@ -123,8 +127,7 @@ export default function CandidatoLayout() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    localStorage.removeItem('veon_candidato_id');
-    navigate('/recrutamento/candidato/bem-vindo');
+    navigate('/recrutamento/candidato/login');
   };
 
   if (isLoading) {

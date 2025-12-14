@@ -36,18 +36,7 @@ export default function CandidatoLogin() {
     setIsLoading(true);
 
     try {
-      // 1. Verificar se o candidato existe
-      const { data: candidato, error: candidatoError } = await supabase
-        .from('candidatos_recrutamento')
-        .select('id, nome_completo, status')
-        .eq('email', email.toLowerCase().trim())
-        .single();
-
-      if (candidatoError || !candidato) {
-        throw new Error('E-mail não encontrado. Verifique ou faça seu cadastro.');
-      }
-
-      // 2. Tentar login com Supabase Auth
+      // 1. Tentar login com Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: email.toLowerCase().trim(),
         password: senha,
@@ -55,24 +44,48 @@ export default function CandidatoLogin() {
 
       if (authError) {
         if (authError.message.includes('Invalid login credentials')) {
-          throw new Error('Senha incorreta. Verifique e tente novamente.');
-        }
-        if (authError.message.includes('Email not confirmed')) {
-          // Mesmo sem confirmar, podemos permitir login
-          localStorage.setItem('veon_candidato_id', candidato.id);
-          toast({
-            title: 'Bem-vindo!',
-            description: `Olá, ${candidato.nome_completo?.split(' ')[0]}!`,
-          });
-          navigate('/recrutamento/candidato/inicio');
-          return;
+          throw new Error('E-mail ou senha incorretos. Verifique e tente novamente.');
         }
         throw authError;
       }
 
-      // 3. Login bem-sucedido
-      localStorage.setItem('veon_candidato_id', candidato.id);
+      if (!authData.user) {
+        throw new Error('Erro ao autenticar. Tente novamente.');
+      }
 
+      // 2. Buscar candidato pelo auth_user_id ou email
+      let { data: candidato } = await supabase
+        .from('candidatos_recrutamento')
+        .select('id, nome_completo, auth_user_id')
+        .eq('auth_user_id', authData.user.id)
+        .single();
+
+      // Se não encontrou por auth_user_id, tentar por email
+      if (!candidato) {
+        const { data: candidatoByEmail } = await supabase
+          .from('candidatos_recrutamento')
+          .select('id, nome_completo, auth_user_id')
+          .eq('email', email.toLowerCase().trim())
+          .single();
+
+        candidato = candidatoByEmail;
+
+        // Vincular auth_user_id se encontrou por email
+        if (candidato && !candidato.auth_user_id) {
+          await supabase.rpc('vincular_auth_candidato', {
+            p_candidato_id: candidato.id,
+            p_auth_user_id: authData.user.id,
+          });
+        }
+      }
+
+      if (!candidato) {
+        // Usuário Auth existe mas não tem cadastro de candidato
+        await supabase.auth.signOut();
+        throw new Error('Cadastro de candidato não encontrado. Por favor, faça seu cadastro.');
+      }
+
+      // 3. Login bem-sucedido
       toast({
         title: 'Bem-vindo!',
         description: `Olá, ${candidato.nome_completo?.split(' ')[0]}!`,

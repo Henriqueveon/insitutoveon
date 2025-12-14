@@ -38,6 +38,7 @@ export default function SelfieCandidato() {
   const [usandoFrontal, setUsandoFrontal] = useState(true);
   const [cameraDisponivel, setCameraDisponivel] = useState(true);
   const [modoAtivo, setModoAtivo] = useState<'selecao' | 'camera' | 'upload' | 'preview'>('selecao');
+  const [salvando, setSalvando] = useState(false);
 
   // Verificar disponibilidade da câmera
   useEffect(() => {
@@ -216,6 +217,9 @@ export default function SelfieCandidato() {
   const usarFoto = () => {
     if (!fotoBlob) return;
 
+    // Ativar loading state
+    setSalvando(true);
+
     // Salvar no localStorage temporariamente
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -224,6 +228,14 @@ export default function SelfieCandidato() {
 
       navigate('/recrutamento/candidato/video', {
         state: { form, ref, fotoBlob: base64 },
+      });
+    };
+    reader.onerror = () => {
+      setSalvando(false);
+      toast({
+        title: 'Erro ao processar foto',
+        description: 'Tente novamente ou envie outra foto.',
+        variant: 'destructive',
       });
     };
     reader.readAsDataURL(fotoBlob);
@@ -339,17 +351,23 @@ export default function SelfieCandidato() {
               <Button
                 variant="outline"
                 onClick={voltarParaSelecao}
-                className="border-slate-600 text-slate-300 hover:bg-slate-700 py-6"
+                disabled={salvando}
+                className="border-slate-600 text-slate-300 hover:bg-slate-700 py-6 disabled:opacity-50"
               >
                 <RotateCcw className="w-5 h-5 mr-2" />
                 Escolher outra
               </Button>
               <Button
                 onClick={usarFoto}
-                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 py-6"
+                disabled={salvando}
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 py-6 disabled:opacity-50"
               >
-                <Check className="w-5 h-5 mr-2" />
-                Usar esta foto
+                {salvando ? (
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                ) : (
+                  <Check className="w-5 h-5 mr-2" />
+                )}
+                {salvando ? 'Salvando...' : 'Usar esta foto'}
               </Button>
             </div>
           ) : modoAtivo === 'camera' && cameraAtiva ? (

@@ -307,6 +307,9 @@ export default function VideoCandidato() {
       return;
     }
 
+    // Ativar loading state
+    setSalvando(true);
+
     // Salvar no localStorage temporariamente
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -317,6 +320,14 @@ export default function VideoCandidato() {
 
       navigate('/recrutamento/candidato/documento', {
         state: { form, ref, fotoBlob, videoBlob: base64, videoDuracao: tempo, videoTipo: usarRoteiro ? 'roteiro' : 'livre' },
+      });
+    };
+    reader.onerror = () => {
+      setSalvando(false);
+      toast({
+        title: 'Erro ao processar vídeo',
+        description: 'Tente novamente ou grave um novo vídeo.',
+        variant: 'destructive',
       });
     };
     reader.readAsDataURL(videoBlob);
@@ -523,7 +534,8 @@ export default function VideoCandidato() {
               <Button
                 variant="outline"
                 onClick={voltarParaSelecao}
-                className="border-slate-600 text-slate-300 hover:bg-slate-700 py-6"
+                disabled={salvando}
+                className="border-slate-600 text-slate-300 hover:bg-slate-700 py-6 disabled:opacity-50"
               >
                 <RotateCcw className="w-5 h-5 mr-2" />
                 Escolher outro
