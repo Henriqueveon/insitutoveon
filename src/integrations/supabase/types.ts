@@ -1873,6 +1873,16 @@ export type Database = {
         }
         Returns: Json
       }
+      cadastrar_candidato_rapido: {
+        Args: {
+          p_auth_user_id?: string
+          p_codigo_indicacao?: string
+          p_email: string
+          p_nome_completo: string
+          p_telefone: string
+        }
+        Returns: Json
+      }
       cadastrar_empresa: {
         Args: {
           p_aceite_lgpd?: boolean
