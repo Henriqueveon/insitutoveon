@@ -187,6 +187,16 @@ export default function BemVindo() {
           <p className="text-xs text-slate-500 mt-4">
             Seus dados estão protegidos pela LGPD
           </p>
+
+          <p className="text-sm text-slate-400 mt-6">
+            Já tem uma conta?{' '}
+            <button
+              onClick={() => navigate('/recrutamento/candidato/login')}
+              className="text-[#00D9FF] hover:underline"
+            >
+              Fazer login
+            </button>
+          </p>
         </div>
       </div>
     </div>

@@ -31,6 +31,9 @@ import {
   Loader2,
   Save,
   CheckCircle,
+  Lock,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 import {
@@ -86,6 +89,7 @@ const SECOES = [
   { id: 'formacao', titulo: 'Formação', icon: GraduationCap },
   { id: 'logistica', titulo: 'Mobilidade', icon: Car },
   { id: 'expectativas', titulo: 'Expectativas', icon: Target },
+  { id: 'conta', titulo: 'Senha', icon: Lock },
 ];
 
 export default function CompletarCadastro() {
@@ -102,6 +106,9 @@ export default function CompletarCadastro() {
   const [form, setForm] = useState<Record<string, any>>({});
   const [cargoSugestoes, setCargoSugestoes] = useState<string[]>([]);
   const [showCargoSugestoes, setShowCargoSugestoes] = useState(false);
+  const [showSenha, setShowSenha] = useState(false);
+  const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
+  const [senhaErrors, setSenhaErrors] = useState<Record<string, string>>({});
 
   // Carregar dados existentes
   useEffect(() => {
@@ -155,6 +162,10 @@ export default function CompletarCadastro() {
         valores_empresa: candidatoContext.valores_empresa || [],
         areas_interesse: candidatoContext.areas_interesse || [],
         objetivo_profissional: candidatoContext.objetivo_profissional || '',
+
+        // Senha (vazio inicialmente)
+        senha: '',
+        confirmar_senha: '',
       });
     }
   }, [candidatoContext]);
@@ -225,9 +236,30 @@ export default function CompletarCadastro() {
     return Math.round((pontos / total) * 100);
   };
 
+  // Validar senha
+  const validarSenha = () => {
+    const erros: Record<string, string> = {};
+
+    if (!form.senha || form.senha.length < 6) {
+      erros.senha = 'A senha deve ter pelo menos 6 caracteres';
+    }
+
+    if (form.senha !== form.confirmar_senha) {
+      erros.confirmar_senha = 'As senhas não coincidem';
+    }
+
+    setSenhaErrors(erros);
+    return Object.keys(erros).length === 0;
+  };
+
   // Salvar dados
   const salvarDados = async (avancar = false) => {
     if (!candidatoContext?.id) return;
+
+    // Se está na seção de senha e quer avançar, validar senha
+    if (secaoAtual === 5 && avancar) {
+      if (!validarSenha()) return;
+    }
 
     setIsSaving(true);
     try {
@@ -306,8 +338,51 @@ export default function CompletarCadastro() {
         if (secaoAtual < SECOES.length - 1) {
           setSecaoAtual(secaoAtual + 1);
         } else {
+          // Última seção (senha) - criar usuário no Supabase Auth
+          if (form.senha && candidatoContext.email) {
+            try {
+              // Criar usuário no Auth
+              const { error: signUpError } = await supabase.auth.signUp({
+                email: candidatoContext.email,
+                password: form.senha,
+                options: {
+                  data: { tipo: 'candidato' },
+                },
+              });
+
+              if (signUpError && !signUpError.message.includes('User already registered')) {
+                console.warn('Erro ao criar auth:', signUpError.message);
+              }
+
+              // Tentar fazer login
+              const { error: loginError } = await supabase.auth.signInWithPassword({
+                email: candidatoContext.email,
+                password: form.senha,
+              });
+
+              if (loginError && !loginError.message.includes('Email not confirmed')) {
+                console.warn('Aviso no login:', loginError.message);
+              }
+
+              // Atualizar flag de senha criada
+              await supabase
+                .from('candidatos_recrutamento')
+                .update({ senha_hash: 'AUTH_SUPABASE' })
+                .eq('id', candidatoContext.id);
+
+            } catch (authError) {
+              console.error('Erro auth:', authError);
+            }
+          }
+
           // Finalizado - verificar se precisa do teste DISC
           recarregarCandidato();
+
+          toast({
+            title: 'Cadastro completo!',
+            description: 'Sua conta foi criada com sucesso.',
+          });
+
           if (!candidatoContext.perfil_disc) {
             navigate('/teste', {
               state: {
@@ -714,6 +789,81 @@ export default function CompletarCadastro() {
               <p className="text-xs text-slate-500 text-right">
                 {(form.objetivo_profissional?.length || 0)}/150
               </p>
+            </div>
+          </div>
+        );
+
+      case 5: // Conta (Senha)
+        return (
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg mb-4">
+              <p className="text-blue-300 text-sm">
+                Crie uma senha para acessar sua conta de qualquer dispositivo.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm text-slate-300 flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                Criar senha de acesso
+              </label>
+              <div className="relative">
+                <Input
+                  type={showSenha ? 'text' : 'password'}
+                  placeholder="Mínimo 6 caracteres"
+                  value={form.senha || ''}
+                  onChange={(e) => {
+                    updateForm('senha', e.target.value);
+                    setSenhaErrors({});
+                  }}
+                  className={`bg-slate-900/50 border-slate-600 text-white pr-10 ${senhaErrors.senha ? 'border-red-500' : ''}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSenha(!showSenha)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                >
+                  {showSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {senhaErrors.senha && (
+                <p className="text-red-400 text-xs">{senhaErrors.senha}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm text-slate-300 flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                Confirmar senha
+              </label>
+              <div className="relative">
+                <Input
+                  type={showConfirmarSenha ? 'text' : 'password'}
+                  placeholder="Digite a senha novamente"
+                  value={form.confirmar_senha || ''}
+                  onChange={(e) => {
+                    updateForm('confirmar_senha', e.target.value);
+                    setSenhaErrors({});
+                  }}
+                  className={`bg-slate-900/50 border-slate-600 text-white pr-10 ${senhaErrors.confirmar_senha ? 'border-red-500' : ''}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmarSenha(!showConfirmarSenha)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                >
+                  {showConfirmarSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {senhaErrors.confirmar_senha && (
+                <p className="text-red-400 text-xs">{senhaErrors.confirmar_senha}</p>
+              )}
+              {form.confirmar_senha && form.senha === form.confirmar_senha && form.senha?.length >= 6 && (
+                <p className="text-green-400 text-xs flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                  Senhas coincidem
+                </p>
+              )}
             </div>
           </div>
         );

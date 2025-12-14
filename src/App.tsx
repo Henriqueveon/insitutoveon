@@ -63,6 +63,7 @@ import EmpresaBemVindo from "./recrutamento/empresa/BemVindo";
 import EmpresaLogin from "./recrutamento/empresa/Login";
 import EmpresaCadastro from "./recrutamento/empresa/Cadastro";
 import EmpresaCadastroRapido from "./recrutamento/empresa/CadastroRapido";
+import EmpresaRecuperarSenha from "./recrutamento/empresa/RecuperarSenha";
 import EmpresaLayout from "./recrutamento/empresa/components/EmpresaLayout";
 import {
   EmpresaDashboard,
@@ -79,8 +80,10 @@ import {
 
 // Área de Recrutamento - Candidato (Cadastro)
 import CandidatoBemVindo from "./recrutamento/candidato/BemVindo";
+import CandidatoLogin from "./recrutamento/candidato/Login";
 import CandidatoCadastroRapido from "./recrutamento/candidato/CadastroRapido";
 import CandidatoCadastro from "./recrutamento/candidato/Cadastro";
+import CandidatoRecuperarSenha from "./recrutamento/candidato/RecuperarSenha";
 import CandidatoSelfie from "./recrutamento/candidato/Selfie";
 import CandidatoVideo from "./recrutamento/candidato/Video";
 import CandidatoDocumento from "./recrutamento/candidato/Documento";
@@ -188,6 +191,7 @@ const App = () => (
                 <Route path="/recrutamento/empresa/login" element={<EmpresaLogin />} />
                 <Route path="/recrutamento/empresa/cadastro" element={<EmpresaCadastro />} />
                 <Route path="/recrutamento/empresa/cadastro-rapido" element={<EmpresaCadastroRapido />} />
+                <Route path="/recrutamento/empresa/recuperar-senha" element={<EmpresaRecuperarSenha />} />
                 <Route path="/recrutamento/empresa" element={<EmpresaLayout />}>
                   <Route index element={<Navigate to="/recrutamento/empresa/dashboard" replace />} />
                   <Route path="dashboard" element={<EmpresaDashboard />} />
@@ -204,8 +208,10 @@ const App = () => (
 
                 {/* Área de Recrutamento - Candidato (Cadastro) */}
                 <Route path="/recrutamento/candidato/bem-vindo" element={<CandidatoBemVindo />} />
+                <Route path="/recrutamento/candidato/login" element={<CandidatoLogin />} />
                 <Route path="/recrutamento/candidato/cadastro-rapido" element={<CandidatoCadastroRapido />} />
                 <Route path="/recrutamento/candidato/cadastro" element={<CandidatoCadastro />} />
+                <Route path="/recrutamento/candidato/recuperar-senha" element={<CandidatoRecuperarSenha />} />
                 <Route path="/recrutamento/candidato/selfie" element={<CandidatoSelfie />} />
                 <Route path="/recrutamento/candidato/video" element={<CandidatoVideo />} />
                 <Route path="/recrutamento/candidato/documento" element={<CandidatoDocumento />} />
