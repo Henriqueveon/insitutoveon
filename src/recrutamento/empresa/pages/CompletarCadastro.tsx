@@ -29,6 +29,9 @@ import {
   CheckCircle,
   ArrowRight,
   Sparkles,
+  Lock,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 interface Empresa {
@@ -39,6 +42,7 @@ interface Empresa {
   socio_nome: string | null;
   socio_cpf: string | null;
   socio_funcao: string | null;
+  socio_email: string;
 }
 
 const FUNCOES_RESPONSAVEL = [
@@ -91,11 +95,15 @@ export default function CompletarCadastro() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
+  const [showSenha, setShowSenha] = useState(false);
+  const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
 
   const [form, setForm] = useState({
     socio_nome: '',
     socio_funcao: '',
     socio_cpf: '',
+    senha: '',
+    confirmar_senha: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -129,7 +137,7 @@ export default function CompletarCadastro() {
 
       const { data, error } = await supabase
         .from('empresas_recrutamento')
-        .select('id, razao_social, nome_fantasia, cadastro_completo, socio_nome, socio_cpf, socio_funcao')
+        .select('id, razao_social, nome_fantasia, cadastro_completo, socio_nome, socio_cpf, socio_funcao, socio_email')
         .eq('id', empresaId)
         .single();
 
@@ -166,6 +174,14 @@ export default function CompletarCadastro() {
       novosErros.socio_cpf = 'CPF inválido';
     }
 
+    if (form.senha.length < 6) {
+      novosErros.senha = 'A senha deve ter pelo menos 6 caracteres';
+    }
+
+    if (form.senha !== form.confirmar_senha) {
+      novosErros.confirmar_senha = 'As senhas não coincidem';
+    }
+
     setErrors(novosErros);
     return Object.keys(novosErros).length === 0;
   };
@@ -175,12 +191,43 @@ export default function CompletarCadastro() {
 
     setIsSaving(true);
     try {
+      // 1. Criar usuário no Supabase Auth
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: empresa.socio_email,
+        password: form.senha,
+        options: {
+          data: { tipo: 'empresa' },
+        },
+      });
+
+      if (signUpError) {
+        // Se o erro for que o usuário já existe, tentar fazer login
+        if (signUpError.message.includes('User already registered')) {
+          // Usuário já existe, tentar atualizar a senha
+          console.log('Usuário já existe no Auth, continuando...');
+        } else {
+          throw signUpError;
+        }
+      }
+
+      // 2. Fazer login para estabelecer sessão
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email: empresa.socio_email,
+        password: form.senha,
+      });
+
+      if (loginError && !loginError.message.includes('Email not confirmed')) {
+        console.warn('Aviso no login:', loginError.message);
+      }
+
+      // 3. Atualizar dados da empresa
       const { error } = await supabase
         .from('empresas_recrutamento')
         .update({
           socio_nome: form.socio_nome.trim(),
           socio_funcao: form.socio_funcao,
           socio_cpf: form.socio_cpf.replace(/\D/g, ''),
+          senha_hash: 'AUTH_SUPABASE', // Indica que usa Supabase Auth
           cadastro_completo: true,
         })
         .eq('id', empresa.id);
@@ -203,7 +250,7 @@ export default function CompletarCadastro() {
       console.error('Erro ao salvar:', error);
       toast({
         title: 'Erro ao salvar',
-        description: 'Não foi possível completar o cadastro.',
+        description: error instanceof Error ? error.message : 'Não foi possível completar o cadastro.',
         variant: 'destructive',
       });
     } finally {
@@ -357,6 +404,66 @@ export default function CompletarCadastro() {
               <p className="text-green-400 text-xs flex items-center gap-1">
                 <CheckCircle className="w-3 h-3" />
                 CPF válido
+              </p>
+            )}
+          </div>
+
+          {/* Senha */}
+          <div className="space-y-2">
+            <Label className="text-slate-300 flex items-center gap-2">
+              <Lock className="w-4 h-4" />
+              Criar senha de acesso *
+            </Label>
+            <div className="relative">
+              <Input
+                type={showSenha ? 'text' : 'password'}
+                placeholder="Mínimo 6 caracteres"
+                value={form.senha}
+                onChange={(e) => setForm(prev => ({ ...prev, senha: e.target.value }))}
+                className={`bg-slate-900/50 border-slate-600 text-white pr-10 ${errors.senha ? 'border-red-500' : ''}`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowSenha(!showSenha)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+              >
+                {showSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            {errors.senha && (
+              <p className="text-red-400 text-xs">{errors.senha}</p>
+            )}
+          </div>
+
+          {/* Confirmar Senha */}
+          <div className="space-y-2">
+            <Label className="text-slate-300 flex items-center gap-2">
+              <Lock className="w-4 h-4" />
+              Confirmar senha *
+            </Label>
+            <div className="relative">
+              <Input
+                type={showConfirmarSenha ? 'text' : 'password'}
+                placeholder="Digite a senha novamente"
+                value={form.confirmar_senha}
+                onChange={(e) => setForm(prev => ({ ...prev, confirmar_senha: e.target.value }))}
+                className={`bg-slate-900/50 border-slate-600 text-white pr-10 ${errors.confirmar_senha ? 'border-red-500' : ''}`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmarSenha(!showConfirmarSenha)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+              >
+                {showConfirmarSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            {errors.confirmar_senha && (
+              <p className="text-red-400 text-xs">{errors.confirmar_senha}</p>
+            )}
+            {form.confirmar_senha && form.senha === form.confirmar_senha && form.senha.length >= 6 && (
+              <p className="text-green-400 text-xs flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                Senhas coincidem
               </p>
             )}
           </div>

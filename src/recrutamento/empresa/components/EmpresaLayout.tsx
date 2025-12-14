@@ -73,10 +73,26 @@ export default function EmpresaLayout() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
+        // Tentar recuperar do localStorage (empresa sem auth - cadastro rápido)
+        const empresaId = localStorage.getItem('veon_empresa_id');
+        if (empresaId) {
+          const { data } = await supabase
+            .from('empresas_recrutamento')
+            .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, cadastro_completo')
+            .eq('id', empresaId)
+            .single();
+
+          if (data) {
+            setEmpresa(data);
+            setIsLoading(false);
+            return;
+          }
+        }
         navigate('/recrutamento/empresa/login');
         return;
       }
 
+      // Buscar empresa pelo email do usuário autenticado
       const { data, error } = await supabase
         .from('empresas_recrutamento')
         .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, cadastro_completo')
@@ -84,6 +100,21 @@ export default function EmpresaLayout() {
         .single();
 
       if (error || !data) {
+        // Tentar pelo localStorage como fallback
+        const empresaId = localStorage.getItem('veon_empresa_id');
+        if (empresaId) {
+          const { data: dataLocal } = await supabase
+            .from('empresas_recrutamento')
+            .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, cadastro_completo')
+            .eq('id', empresaId)
+            .single();
+
+          if (dataLocal) {
+            setEmpresa(dataLocal);
+            setIsLoading(false);
+            return;
+          }
+        }
         toast({
           title: 'Erro ao carregar dados',
           description: 'Não foi possível carregar os dados da empresa.',
@@ -94,6 +125,7 @@ export default function EmpresaLayout() {
       }
 
       setEmpresa(data);
+      localStorage.setItem('veon_empresa_id', data.id); // Salvar para sessões futuras
     } catch (error) {
       console.error('Erro ao carregar empresa:', error);
     } finally {
@@ -103,6 +135,7 @@ export default function EmpresaLayout() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    localStorage.removeItem('veon_empresa_id');
     navigate('/recrutamento/empresa/login');
   };
 
