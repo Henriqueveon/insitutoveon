@@ -75,6 +75,7 @@ import {
 
 // Área de Recrutamento - Candidato (Cadastro)
 import CandidatoBemVindo from "./recrutamento/candidato/BemVindo";
+import CandidatoCadastroRapido from "./recrutamento/candidato/CadastroRapido";
 import CandidatoCadastro from "./recrutamento/candidato/Cadastro";
 import CandidatoSelfie from "./recrutamento/candidato/Selfie";
 import CandidatoVideo from "./recrutamento/candidato/Video";
@@ -89,6 +90,7 @@ import {
   MeuCurriculoCandidato,
   ConfiguracoesCandidato,
   NotificacoesCandidato,
+  CompletarCadastro as CandidatoCompletarCadastro,
 } from "./recrutamento/candidato/pages";
 
 const queryClient = new QueryClient();
@@ -194,6 +196,7 @@ const App = () => (
 
                 {/* Área de Recrutamento - Candidato (Cadastro) */}
                 <Route path="/recrutamento/candidato/bem-vindo" element={<CandidatoBemVindo />} />
+                <Route path="/recrutamento/candidato/cadastro-rapido" element={<CandidatoCadastroRapido />} />
                 <Route path="/recrutamento/candidato/cadastro" element={<CandidatoCadastro />} />
                 <Route path="/recrutamento/candidato/selfie" element={<CandidatoSelfie />} />
                 <Route path="/recrutamento/candidato/video" element={<CandidatoVideo />} />
@@ -208,6 +211,7 @@ const App = () => (
                   <Route path="meu-curriculo" element={<MeuCurriculoCandidato />} />
                   <Route path="configuracoes" element={<ConfiguracoesCandidato />} />
                   <Route path="notificacoes" element={<NotificacoesCandidato />} />
+                  <Route path="completar-cadastro" element={<CandidatoCompletarCadastro />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

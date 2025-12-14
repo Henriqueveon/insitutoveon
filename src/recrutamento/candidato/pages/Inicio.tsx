@@ -22,6 +22,7 @@ import {
   Lightbulb,
 } from 'lucide-react';
 import SecaoIndicacaoCandidato from '../components/SecaoIndicacaoCandidato';
+import StatusIndicador from '../components/StatusIndicador';
 
 interface Candidato {
   id: string;
@@ -31,6 +32,14 @@ interface Candidato {
   status: string;
   perfil_disc: string | null;
   objetivo_profissional: string | null;
+  cadastro_completo: boolean;
+  data_nascimento?: string | null;
+  cpf?: string | null;
+  estado?: string | null;
+  cidade?: string | null;
+  escolaridade?: string | null;
+  areas_experiencia?: string[] | null;
+  pretensao_salarial?: string | null;
 }
 
 interface Stats {
@@ -188,8 +197,20 @@ export default function InicioCandidato() {
     },
   ];
 
+  // Verificar se precisa mostrar indicador de status OFF
+  const mostrarStatusOff = candidato && (
+    !candidato.cadastro_completo ||
+    !candidato.foto_url ||
+    !candidato.perfil_disc
+  );
+
   return (
     <div className="space-y-6 max-w-lg mx-auto">
+      {/* Indicador de Status OFF - Aparece primeiro se incompleto */}
+      {mostrarStatusOff && candidato && (
+        <StatusIndicador candidato={candidato} />
+      )}
+
       {/* Card de Status */}
       <Card className={`${statusConfig.bgColor} border ${statusConfig.borderColor}`}>
         <CardContent className="p-6">

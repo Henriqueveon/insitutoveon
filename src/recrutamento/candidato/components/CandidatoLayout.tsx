@@ -27,6 +27,7 @@ import {
   User,
 } from 'lucide-react';
 import NotificationBell from '@/components/recrutamento/NotificationBell';
+import { StatusBadge } from './StatusIndicador';
 
 interface Candidato {
   id: string;
@@ -38,6 +39,7 @@ interface Candidato {
   estado: string;
   status: string;
   perfil_disc: string | null;
+  cadastro_completo: boolean;
 }
 
 const menuItems = [
@@ -124,19 +126,6 @@ export default function CandidatoLayout() {
     navigate('/recrutamento/candidato/bem-vindo');
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'disponivel':
-        return { text: 'Disponível', color: 'bg-green-500' };
-      case 'pausado':
-        return { text: 'Pausado', color: 'bg-slate-500' };
-      case 'contratado':
-        return { text: 'Contratado', color: 'bg-blue-500' };
-      default:
-        return { text: 'Disponível', color: 'bg-green-500' };
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -144,8 +133,6 @@ export default function CandidatoLayout() {
       </div>
     );
   }
-
-  const statusInfo = getStatusLabel(candidato?.status || 'disponivel');
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
@@ -164,10 +151,8 @@ export default function CandidatoLayout() {
               <p className="text-sm text-white font-medium">
                 Olá, {candidato?.nome_completo?.split(' ')[0]}!
               </p>
-              <div className="flex items-center space-x-1">
-                <div className={`w-2 h-2 rounded-full ${statusInfo.color}`} />
-                <span className="text-xs text-slate-400">{statusInfo.text}</span>
-              </div>
+              {/* Status Badge - OFF/Disponível */}
+              {candidato && <StatusBadge candidato={candidato} />}
             </div>
           </div>
 

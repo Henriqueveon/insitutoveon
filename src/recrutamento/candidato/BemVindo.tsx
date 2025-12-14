@@ -23,9 +23,10 @@ export default function BemVindo() {
   const ref = searchParams.get('ref'); // Código de referência/campanha
 
   const handleComecar = () => {
+    // Agora vai para o cadastro rápido (só 3 campos)
     const url = ref
-      ? `/recrutamento/candidato/cadastro?ref=${ref}`
-      : '/recrutamento/candidato/cadastro';
+      ? `/recrutamento/candidato/cadastro-rapido?ref=${ref}`
+      : '/recrutamento/candidato/cadastro-rapido';
     navigate(url);
   };
 
@@ -57,11 +58,11 @@ export default function BemVindo() {
   ];
 
   const passos = [
-    'Preencha suas informações',
-    'Tire uma selfie profissional',
-    'Grave um vídeo de apresentação',
+    'Cadastre-se em 30 segundos',
+    'Complete seu perfil com calma',
     'Faça o teste de perfil DISC',
-    'Receba seu currículo completo',
+    'Adicione foto e vídeo',
+    'Receba propostas de empresas',
   ];
 
   return (
@@ -180,7 +181,7 @@ export default function BemVindo() {
 
           <div className="flex items-center justify-center gap-2 mt-4 text-slate-400">
             <Clock className="w-4 h-4" />
-            <span className="text-sm">Leva apenas 10 minutos</span>
+            <span className="text-sm">Cadastro rápido em 30 segundos</span>
           </div>
 
           <p className="text-xs text-slate-500 mt-4">
