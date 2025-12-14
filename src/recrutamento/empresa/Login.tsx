@@ -2,7 +2,7 @@
 // LOGIN EMPRESA - Área de Recrutamento VEON
 // =====================================================
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Loader2, Building2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Building2, User, ArrowRight } from 'lucide-react';
 
 export default function EmpresaLogin() {
   const navigate = useNavigate();
@@ -20,6 +20,15 @@ export default function EmpresaLogin() {
   const [senha, setSenha] = useState('');
   const [showSenha, setShowSenha] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+
+  // Verificar se há URL para redirect após login
+  useEffect(() => {
+    const savedRedirect = localStorage.getItem('veon_redirect_after_login');
+    if (savedRedirect) {
+      setRedirectUrl(savedRedirect);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +101,9 @@ export default function EmpresaLogin() {
                     title: 'Bem-vindo!',
                     description: `Olá, ${empresa.razao_social}. Sua conta foi atualizada.`,
                   });
-                  navigate('/recrutamento/empresa/dashboard');
+                  // Limpar redirect e navegar
+                  localStorage.removeItem('veon_redirect_after_login');
+                  navigate(redirectUrl || '/recrutamento/empresa/dashboard');
                   return;
                 }
               }
@@ -115,7 +126,9 @@ export default function EmpresaLogin() {
         description: `Olá, ${empresa.razao_social}`,
       });
 
-      navigate('/recrutamento/empresa/dashboard');
+      // Limpar redirect e navegar
+      localStorage.removeItem('veon_redirect_after_login');
+      navigate(redirectUrl || '/recrutamento/empresa/dashboard');
     } catch (error) {
       console.error('Erro no login:', error);
       toast({
@@ -265,6 +278,33 @@ export default function EmpresaLogin() {
                 Cadastre sua empresa
               </Link>
             </p>
+          </div>
+
+          {/* Opção para pessoa física */}
+          <div className="mt-6 pt-6 border-t border-slate-700">
+            <div className="bg-slate-700/30 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <User className="w-5 h-5 text-purple-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-white font-medium text-sm">Não é uma empresa?</p>
+                  <p className="text-slate-400 text-xs mt-1">
+                    Se você é um profissional buscando oportunidades, cadastre seu currículo gratuitamente.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/recrutamento/candidato/bem-vindo')}
+                    className="mt-2 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 p-0 h-auto"
+                  >
+                    Cadastrar meu currículo
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
         </Card>

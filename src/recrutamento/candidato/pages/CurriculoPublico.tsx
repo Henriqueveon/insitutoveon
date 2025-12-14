@@ -620,6 +620,21 @@ export default function CurriculoPublico() {
                 <p className="text-center text-slate-500 text-xs mt-3">
                   Cadastro rápido em menos de 1 minuto
                 </p>
+
+                {/* Opção para pessoa física */}
+                <div className="mt-4 pt-4 border-t border-slate-700">
+                  <p className="text-center text-slate-400 text-sm mb-2">
+                    Não é uma empresa?
+                  </p>
+                  <Button
+                    onClick={() => navigate('/recrutamento/candidato/bem-vindo')}
+                    variant="ghost"
+                    className="w-full text-purple-400 hover:text-purple-300 hover:bg-purple-500/10"
+                  >
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Sou profissional, quero cadastrar meu currículo
+                  </Button>
+                </div>
               </>
             )}
           </CardContent>
@@ -666,6 +681,30 @@ export default function CurriculoPublico() {
                   <LogIn className="w-4 h-4 mr-2" />
                   Já tenho cadastro
                 </Button>
+
+                {/* Divisor */}
+                <div className="relative py-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-700" />
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="px-2 bg-slate-800 text-slate-500">ou</span>
+                  </div>
+                </div>
+
+                {/* Opção pessoa física */}
+                <Button
+                  onClick={() => {
+                    setMostrarModalAcesso(false);
+                    navigate('/recrutamento/candidato/bem-vindo');
+                  }}
+                  variant="ghost"
+                  className="w-full text-purple-400 hover:text-purple-300 hover:bg-purple-500/10"
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Não sou empresa, quero cadastrar meu currículo
+                </Button>
+
                 <Button
                   onClick={() => setMostrarModalAcesso(false)}
                   variant="ghost"
