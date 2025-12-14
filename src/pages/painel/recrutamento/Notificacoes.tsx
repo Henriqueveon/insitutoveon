@@ -112,13 +112,13 @@ export default function NotificacoesGestor() {
     try {
       // Carregar histórico de lotes
       const { data: lotesData, error: lotesError } = await supabase
-        .from('notificacoes_lotes')
+        .from('notificacoes_gestor' as any)
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (lotesError) throw lotesError;
-      setLotes((lotesData as LoteNotificacao[]) || []);
+      setLotes((lotesData as unknown as LoteNotificacao[]) || []);
 
       // Carregar empresas para seleção
       const { data: empresasData } = await supabase
@@ -189,7 +189,7 @@ export default function NotificacoesGestor() {
         ? candidatosSelecionados
         : null;
 
-      const { data, error } = await supabase.rpc('enviar_notificacao_massa', {
+      const { data, error } = await supabase.rpc('enviar_notificacao_massa' as any, {
         p_titulo: titulo,
         p_mensagem: mensagem,
         p_tipo: tipoNotificacao,

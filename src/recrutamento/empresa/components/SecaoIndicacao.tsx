@@ -70,7 +70,7 @@ export default function SecaoIndicacao({ empresa }: Props) {
     setIsLoading(true);
     try {
       // Gerar ou buscar código existente
-      const { data: codigoData, error: codigoError } = await supabase.rpc('gerar_codigo_indicacao', {
+      const { data: codigoData, error: codigoError } = await supabase.rpc('gerar_codigo_indicacao' as any, {
         p_tipo_usuario: 'empresa',
         p_usuario_id: empresa.id,
       });
@@ -81,25 +81,25 @@ export default function SecaoIndicacao({ empresa }: Props) {
       if (resultado?.success) {
         // Buscar dados completos do código
         const { data: codigoCompleto } = await supabase
-          .from('codigos_indicacao')
+          .from('codigos_indicacao' as any)
           .select('*')
           .eq('id', resultado.id)
           .single();
 
         if (codigoCompleto) {
-          setCodigoIndicacao(codigoCompleto as CodigoIndicacao);
+          setCodigoIndicacao(codigoCompleto as unknown as CodigoIndicacao);
         }
       }
 
       // Buscar indicações
       const { data: indicacoesData } = await supabase
-        .from('indicacoes')
+        .from('indicacoes' as any)
         .select('*')
         .eq('indicador_id', empresa.id)
         .order('created_at', { ascending: false })
         .limit(10);
 
-      setIndicacoes((indicacoesData as Indicacao[]) || []);
+      setIndicacoes((indicacoesData as unknown as Indicacao[]) || []);
     } catch (error) {
       console.error('Erro ao carregar indicações:', error);
     } finally {

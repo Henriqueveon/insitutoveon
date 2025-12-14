@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      acessos_link: {
+        Row: {
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          referencia_id: string
+          referer: string | null
+          tipo_link: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          referencia_id: string
+          referer?: string | null
+          tipo_link: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          referencia_id?: string
+          referer?: string | null
+          tipo_link?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       analistas: {
         Row: {
           ativo: boolean | null
@@ -361,6 +391,114 @@ export type Database = {
         }
         Relationships: []
       }
+      cidades_brasil: {
+        Row: {
+          capital: boolean | null
+          estado: string
+          id: number
+          nome: string
+        }
+        Insert: {
+          capital?: boolean | null
+          estado: string
+          id?: number
+          nome: string
+        }
+        Update: {
+          capital?: boolean | null
+          estado?: string
+          id?: number
+          nome?: string
+        }
+        Relationships: []
+      }
+      cidades_coordenadas: {
+        Row: {
+          cidade: string
+          estado: string
+          id: number
+          latitude: number | null
+          longitude: number | null
+          populacao: number | null
+        }
+        Insert: {
+          cidade: string
+          estado: string
+          id?: number
+          latitude?: number | null
+          longitude?: number | null
+          populacao?: number | null
+        }
+        Update: {
+          cidade?: string
+          estado?: string
+          id?: number
+          latitude?: number | null
+          longitude?: number | null
+          populacao?: number | null
+        }
+        Relationships: []
+      }
+      codigos_indicacao: {
+        Row: {
+          ativo: boolean | null
+          codigo: string
+          created_at: string | null
+          creditos_ganhos: number | null
+          id: string
+          tipo_usuario: string
+          total_indicacoes: number | null
+          usuario_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          codigo: string
+          created_at?: string | null
+          creditos_ganhos?: number | null
+          id?: string
+          tipo_usuario: string
+          total_indicacoes?: number | null
+          usuario_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          codigo?: string
+          created_at?: string | null
+          creditos_ganhos?: number | null
+          id?: string
+          tipo_usuario?: string
+          total_indicacoes?: number | null
+          usuario_id?: string
+        }
+        Relationships: []
+      }
+      diferenciais_empresa: {
+        Row: {
+          ativo: boolean | null
+          categoria: string
+          icone: string | null
+          id: number
+          nome: string
+          ordem: number | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          categoria: string
+          icone?: string | null
+          id?: number
+          nome: string
+          ordem?: number | null
+        }
+        Update: {
+          ativo?: boolean | null
+          categoria?: string
+          icone?: string | null
+          id?: number
+          nome?: string
+          ordem?: number | null
+        }
+        Relationships: []
+      }
       email_otps: {
         Row: {
           codigo: string
@@ -416,17 +554,27 @@ export type Database = {
           created_at: string | null
           creditos: number | null
           data_abertura: string | null
+          diferenciais: string[] | null
           email_empresa: string | null
           estado: string | null
+          fotos_ambiente: string[] | null
           id: string
+          instagram_empresa: string | null
+          link_recrutamento: string | null
+          logo_url: string | null
           logradouro: string | null
           natureza_juridica: string | null
           nome_fantasia: string | null
+          num_colaboradores: string | null
           numero: string | null
+          porque_trabalhar: string | null
           porte: string | null
           razao_social: string
+          segmento: string | null
           senha_hash: string
+          site_url: string | null
           situacao_cadastral: string | null
+          sobre_empresa: string | null
           socio_cpf: string
           socio_email: string
           socio_foto_url: string | null
@@ -434,6 +582,8 @@ export type Database = {
           socio_telefone: string
           status: string | null
           telefone_empresa: string | null
+          tempo_mercado: string | null
+          total_acessos_link: number | null
           updated_at: string | null
         }
         Insert: {
@@ -451,17 +601,27 @@ export type Database = {
           created_at?: string | null
           creditos?: number | null
           data_abertura?: string | null
+          diferenciais?: string[] | null
           email_empresa?: string | null
           estado?: string | null
+          fotos_ambiente?: string[] | null
           id?: string
+          instagram_empresa?: string | null
+          link_recrutamento?: string | null
+          logo_url?: string | null
           logradouro?: string | null
           natureza_juridica?: string | null
           nome_fantasia?: string | null
+          num_colaboradores?: string | null
           numero?: string | null
+          porque_trabalhar?: string | null
           porte?: string | null
           razao_social: string
+          segmento?: string | null
           senha_hash: string
+          site_url?: string | null
           situacao_cadastral?: string | null
+          sobre_empresa?: string | null
           socio_cpf: string
           socio_email: string
           socio_foto_url?: string | null
@@ -469,6 +629,8 @@ export type Database = {
           socio_telefone: string
           status?: string | null
           telefone_empresa?: string | null
+          tempo_mercado?: string | null
+          total_acessos_link?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -486,17 +648,27 @@ export type Database = {
           created_at?: string | null
           creditos?: number | null
           data_abertura?: string | null
+          diferenciais?: string[] | null
           email_empresa?: string | null
           estado?: string | null
+          fotos_ambiente?: string[] | null
           id?: string
+          instagram_empresa?: string | null
+          link_recrutamento?: string | null
+          logo_url?: string | null
           logradouro?: string | null
           natureza_juridica?: string | null
           nome_fantasia?: string | null
+          num_colaboradores?: string | null
           numero?: string | null
+          porque_trabalhar?: string | null
           porte?: string | null
           razao_social?: string
+          segmento?: string | null
           senha_hash?: string
+          site_url?: string | null
           situacao_cadastral?: string | null
+          sobre_empresa?: string | null
           socio_cpf?: string
           socio_email?: string
           socio_foto_url?: string | null
@@ -504,6 +676,8 @@ export type Database = {
           socio_telefone?: string
           status?: string | null
           telefone_empresa?: string | null
+          tempo_mercado?: string | null
+          total_acessos_link?: number | null
           updated_at?: string | null
         }
         Relationships: []
@@ -635,6 +809,56 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas_recrutamento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      indicacoes: {
+        Row: {
+          codigo_indicacao_id: string | null
+          created_at: string | null
+          creditado_em: string | null
+          credito_indicado: number | null
+          credito_indicador: number
+          id: string
+          indicado_id: string
+          indicado_tipo: string
+          indicador_id: string
+          indicador_tipo: string
+          status: string | null
+        }
+        Insert: {
+          codigo_indicacao_id?: string | null
+          created_at?: string | null
+          creditado_em?: string | null
+          credito_indicado?: number | null
+          credito_indicador: number
+          id?: string
+          indicado_id: string
+          indicado_tipo: string
+          indicador_id: string
+          indicador_tipo: string
+          status?: string | null
+        }
+        Update: {
+          codigo_indicacao_id?: string | null
+          created_at?: string | null
+          creditado_em?: string | null
+          credito_indicado?: number | null
+          credito_indicador?: number
+          id?: string
+          indicado_id?: string
+          indicado_tipo?: string
+          indicador_id?: string
+          indicador_tipo?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "indicacoes_codigo_indicacao_id_fkey"
+            columns: ["codigo_indicacao_id"]
+            isOneToOne: false
+            referencedRelation: "codigos_indicacao"
             referencedColumns: ["id"]
           },
         ]
@@ -788,6 +1012,54 @@ export type Database = {
         }
         Relationships: []
       }
+      notificacoes_gestor: {
+        Row: {
+          agendada_para: string | null
+          created_at: string | null
+          criado_por: string | null
+          destinatario_tipo: string
+          destinatarios_ids: string[] | null
+          enviada: boolean | null
+          enviada_em: string | null
+          id: string
+          mensagem: string
+          tipo: string | null
+          titulo: string
+          total_enviadas: number | null
+          total_lidas: number | null
+        }
+        Insert: {
+          agendada_para?: string | null
+          created_at?: string | null
+          criado_por?: string | null
+          destinatario_tipo: string
+          destinatarios_ids?: string[] | null
+          enviada?: boolean | null
+          enviada_em?: string | null
+          id?: string
+          mensagem: string
+          tipo?: string | null
+          titulo: string
+          total_enviadas?: number | null
+          total_lidas?: number | null
+        }
+        Update: {
+          agendada_para?: string | null
+          created_at?: string | null
+          criado_por?: string | null
+          destinatario_tipo?: string
+          destinatarios_ids?: string[] | null
+          enviada?: boolean | null
+          enviada_em?: string | null
+          id?: string
+          mensagem?: string
+          tipo?: string | null
+          titulo?: string
+          total_enviadas?: number | null
+          total_lidas?: number | null
+        }
+        Relationships: []
+      }
       notificacoes_recrutamento: {
         Row: {
           created_at: string | null
@@ -830,6 +1102,54 @@ export type Database = {
           tipo_destinatario?: string
           tipo_notificacao?: string
           titulo?: string
+        }
+        Relationships: []
+      }
+      pacotes_creditos: {
+        Row: {
+          ativo: boolean | null
+          badge: string | null
+          cor_botao: string | null
+          created_at: string | null
+          destaque: boolean | null
+          economia: number | null
+          id: string
+          nome: string
+          ordem: number | null
+          preco: number
+          preco_original: number | null
+          preco_por_entrevista: number
+          quantidade_entrevistas: number
+        }
+        Insert: {
+          ativo?: boolean | null
+          badge?: string | null
+          cor_botao?: string | null
+          created_at?: string | null
+          destaque?: boolean | null
+          economia?: number | null
+          id?: string
+          nome: string
+          ordem?: number | null
+          preco: number
+          preco_original?: number | null
+          preco_por_entrevista: number
+          quantidade_entrevistas: number
+        }
+        Update: {
+          ativo?: boolean | null
+          badge?: string | null
+          cor_botao?: string | null
+          created_at?: string | null
+          destaque?: boolean | null
+          economia?: number | null
+          id?: string
+          nome?: string
+          ordem?: number | null
+          preco?: number
+          preco_original?: number | null
+          preco_por_entrevista?: number
+          quantidade_entrevistas?: number
         }
         Relationships: []
       }
@@ -1263,6 +1583,28 @@ export type Database = {
       }
     }
     Functions: {
+      buscar_candidatos_por_raio: {
+        Args: {
+          p_cidade_origem: string
+          p_estado_origem: string
+          p_raio_km?: number
+        }
+        Returns: {
+          candidato_id: string
+          cidade: string
+          distancia_km: number
+          estado: string
+          nome_completo: string
+        }[]
+      }
+      buscar_cidades: {
+        Args: { p_estado?: string; p_limite?: number; p_termo: string }
+        Returns: {
+          capital: boolean
+          cidade: string
+          estado: string
+        }[]
+      }
       cadastrar_empresa: {
         Args: {
           p_aceite_lgpd?: boolean
@@ -1292,9 +1634,32 @@ export type Database = {
         }
         Returns: Json
       }
+      calcular_distancia_km: {
+        Args: { lat1: number; lat2: number; lon1: number; lon2: number }
+        Returns: number
+      }
+      contar_notificacoes_nao_lidas: {
+        Args: { p_tipo_usuario: string; p_usuario_id: string }
+        Returns: number
+      }
+      creditar_indicacao: { Args: { p_indicado_id: string }; Returns: Json }
       criar_otp: { Args: { p_email: string; p_tipo?: string }; Returns: Json }
       delete_candidato: { Args: { p_candidato_id: string }; Returns: Json }
       delete_empresa: { Args: { p_empresa_id: string }; Returns: Json }
+      enviar_notificacao_massa: {
+        Args: {
+          p_destinatario_tipo: string
+          p_destinatarios_ids?: string[]
+          p_mensagem: string
+          p_tipo: string
+          p_titulo: string
+        }
+        Returns: Json
+      }
+      gerar_codigo_indicacao: {
+        Args: { p_tipo_usuario: string; p_usuario_id: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1303,6 +1668,32 @@ export type Database = {
         Returns: boolean
       }
       limpar_otps_expirados: { Args: never; Returns: undefined }
+      marcar_notificacao_lida: {
+        Args: { p_notificacao_id: string }
+        Returns: Json
+      }
+      marcar_todas_notificacoes_lidas: {
+        Args: { p_tipo_usuario: string; p_usuario_id: string }
+        Returns: Json
+      }
+      processar_indicacao: {
+        Args: {
+          p_codigo: string
+          p_indicado_id: string
+          p_indicado_tipo: string
+        }
+        Returns: Json
+      }
+      registrar_acesso_link: {
+        Args: {
+          p_ip_address?: string
+          p_referencia_id: string
+          p_referer?: string
+          p_tipo_link: string
+          p_user_agent?: string
+        }
+        Returns: Json
+      }
       verificar_otp: {
         Args: { p_codigo: string; p_email: string; p_tipo?: string }
         Returns: Json

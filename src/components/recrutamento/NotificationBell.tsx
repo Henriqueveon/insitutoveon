@@ -120,9 +120,9 @@ export default function NotificationBell({ usuarioId, tipoUsuario, baseUrl }: No
 
   const marcarTodasComoLidas = async () => {
     try {
-      const { data, error } = await supabase.rpc('marcar_todas_notificacoes_lidas', {
-        p_destinatario_id: usuarioId,
-        p_tipo_destinatario: tipoUsuario,
+      const { data, error } = await supabase.rpc('marcar_todas_notificacoes_lidas' as any, {
+        p_usuario_id: usuarioId,
+        p_tipo_usuario: tipoUsuario,
       });
 
       if (error) throw error;

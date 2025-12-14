@@ -309,7 +309,7 @@ export default function BuscarCandidatos() {
 
     try {
       let query = supabase
-        .from('cidades_coordenadas')
+        .from('cidades_coordenadas' as any)
         .select('cidade, estado')
         .ilike('cidade', `${termo}%`)
         .order('populacao', { ascending: false })
@@ -322,7 +322,7 @@ export default function BuscarCandidatos() {
       const { data, error } = await query;
 
       if (error) throw error;
-      setCidadesSugestoes((data as CidadeSugestao[]) || []);
+      setCidadesSugestoes((data as unknown as CidadeSugestao[]) || []);
     } catch (error) {
       console.error('Erro ao buscar cidades:', error);
     }
@@ -344,7 +344,7 @@ export default function BuscarCandidatos() {
       // Se busca por proximidade está ativa e tem cidade selecionada, usar função RPC
       if (filtros.buscaProximidade && filtros.cidade && filtros.estado) {
         const { data: proximosData, error: proximosError } = await supabase.rpc(
-          'buscar_candidatos_proximos',
+          'buscar_candidatos_por_raio' as any,
           {
             p_cidade_origem: filtros.cidade,
             p_estado_origem: filtros.estado,
