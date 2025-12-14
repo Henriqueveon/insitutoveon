@@ -1832,6 +1832,14 @@ export type Database = {
       }
     }
     Functions: {
+      atualizar_status_candidato: {
+        Args: { p_candidato_id: string; p_status: string }
+        Returns: Json
+      }
+      atualizar_status_empresa: {
+        Args: { p_empresa_id: string; p_status: string }
+        Returns: Json
+      }
       buscar_candidatos_por_raio: {
         Args: {
           p_cidade_origem: string
@@ -1853,6 +1861,17 @@ export type Database = {
           cidade: string
           estado: string
         }[]
+      }
+      cadastrar_candidato_com_auth: {
+        Args: {
+          p_auth_user_id?: string
+          p_codigo_indicacao?: string
+          p_email: string
+          p_nome: string
+          p_sexo?: string
+          p_telefone?: string
+        }
+        Returns: Json
       }
       cadastrar_empresa: {
         Args: {
@@ -1883,9 +1902,49 @@ export type Database = {
         }
         Returns: Json
       }
+      cadastrar_empresa_com_auth: {
+        Args: {
+          p_auth_user_id?: string
+          p_email: string
+          p_razao_social: string
+          p_responsavel_nome?: string
+          p_socio_funcao?: string
+          p_telefone?: string
+        }
+        Returns: Json
+      }
       calcular_distancia_km: {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
+      }
+      completar_cadastro_candidato: {
+        Args: {
+          p_candidato_id: string
+          p_cidade?: string
+          p_cpf?: string
+          p_data_nascimento?: string
+          p_estado?: string
+          p_instagram?: string
+          p_objetivo_profissional?: string
+          p_pretensao_salarial?: string
+          p_ultima_empresa?: string
+          p_ultimo_cargo?: string
+        }
+        Returns: Json
+      }
+      completar_cadastro_empresa: {
+        Args: {
+          p_cep?: string
+          p_cidade?: string
+          p_cnpj?: string
+          p_empresa_id: string
+          p_estado?: string
+          p_logradouro?: string
+          p_nome_fantasia?: string
+          p_porte?: string
+          p_segmento?: string
+        }
+        Returns: Json
       }
       contar_notificacoes_nao_lidas: {
         Args: { p_tipo_usuario: string; p_usuario_id: string }
@@ -1910,6 +1969,7 @@ export type Database = {
         Returns: Json
       }
       get_candidato_logado: { Args: never; Returns: Json }
+      get_candidato_por_slug: { Args: { p_slug: string }; Returns: Json }
       get_empresa_logada: { Args: never; Returns: Json }
       get_tipo_usuario: { Args: never; Returns: Json }
       has_role: {
@@ -1920,6 +1980,16 @@ export type Database = {
         Returns: boolean
       }
       limpar_otps_expirados: { Args: never; Returns: undefined }
+      listar_candidatos_publicos: {
+        Args: {
+          p_cidade?: string
+          p_estado?: string
+          p_limite?: number
+          p_offset?: number
+          p_perfil_disc?: string
+        }
+        Returns: Json
+      }
       marcar_notificacao_lida: {
         Args: { p_notificacao_id: string }
         Returns: Json
