@@ -84,13 +84,15 @@ export default function CadastroRapido() {
         .maybeSingle();
 
       if (existente) {
-        // Já existe, fazer login direto
-        localStorage.setItem('veon_candidato_id', existente.id);
+        // Já existe, redirecionar para login (NÃO fazer login direto por segurança)
         toast({
-          title: 'Bem-vindo de volta!',
-          description: 'Encontramos seu cadastro. Redirecionando...',
+          title: 'Cadastro já existe',
+          description: 'Você já possui um cadastro. Faça login para continuar.',
+          variant: 'default',
         });
-        navigate('/recrutamento/candidato/inicio');
+        navigate('/recrutamento/candidato/login', {
+          state: { email: existente.email || form.email }
+        });
         return;
       }
 

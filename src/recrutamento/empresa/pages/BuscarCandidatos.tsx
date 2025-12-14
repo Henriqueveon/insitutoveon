@@ -347,7 +347,7 @@ export default function BuscarCandidatos() {
       // Se busca por proximidade está ativa e tem cidade selecionada, usar função RPC
       if (filtros.buscaProximidade && filtros.cidade && filtros.estado) {
         const { data: proximosData, error: proximosError } = await supabase.rpc(
-          'buscar_candidatos_por_raio' as any,
+          'buscar_candidatos_proximos' as any,
           {
             p_cidade_origem: filtros.cidade,
             p_estado_origem: filtros.estado,

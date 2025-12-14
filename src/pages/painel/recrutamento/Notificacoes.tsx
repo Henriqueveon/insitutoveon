@@ -112,7 +112,7 @@ export default function NotificacoesGestor() {
     try {
       // Carregar histórico de lotes
       const { data: lotesData, error: lotesError } = await supabase
-        .from('notificacoes_gestor' as any)
+        .from('notificacoes_lotes' as any)
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);

@@ -76,6 +76,13 @@ export default function InicioCandidato() {
     // Visualizações (simulado - em produção seria uma tabela de logs)
     const visualizacoes = Math.floor(Math.random() * 20) + 5;
 
+    // Propostas novas (aguardando resposta do candidato)
+    const { count: novas } = await supabase
+      .from('solicitacoes_entrevista')
+      .select('*', { count: 'exact', head: true })
+      .eq('candidato_id', candidato.id)
+      .eq('status', 'aguardando_candidato');
+
     // Propostas aceitas
     const { count: aceitas } = await supabase
       .from('solicitacoes_entrevista')
@@ -85,7 +92,7 @@ export default function InicioCandidato() {
 
     setStats({
       visualizacoes,
-      propostasNovas,
+      propostasNovas: novas || 0,
       propostasAceitas: aceitas || 0,
     });
   };
