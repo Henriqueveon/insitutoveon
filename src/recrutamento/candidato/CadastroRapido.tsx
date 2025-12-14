@@ -120,21 +120,43 @@ export default function CadastroRapido() {
     setIsLoading(true);
 
     try {
-      // Verificar se já existe cadastro com este email ou telefone
-      const { data: existente } = await supabase
+      const emailLower = form.email.toLowerCase().trim();
+      const telefoneNumeros = form.telefone.replace(/\D/g, '');
+
+      // Verificar se já existe cadastro com este email
+      const { data: existenteEmail } = await supabase
         .from('candidatos_recrutamento')
-        .select('id, email, telefone')
-        .or(`email.eq.${form.email.toLowerCase()},telefone.eq.${form.telefone.replace(/\D/g, '')}`)
+        .select('id, email')
+        .eq('email', emailLower)
         .maybeSingle();
 
-      if (existente) {
+      if (existenteEmail) {
         toast({
-          title: 'Cadastro já existe',
+          title: 'E-mail já cadastrado',
           description: 'Você já possui um cadastro. Faça login para continuar.',
           variant: 'default',
         });
         navigate('/recrutamento/candidato/login', {
-          state: { email: existente.email || form.email }
+          state: { email: existenteEmail.email }
+        });
+        return;
+      }
+
+      // Verificar se já existe cadastro com este telefone
+      const { data: existenteTelefone } = await supabase
+        .from('candidatos_recrutamento')
+        .select('id, email, telefone')
+        .eq('telefone', telefoneNumeros)
+        .maybeSingle();
+
+      if (existenteTelefone) {
+        toast({
+          title: 'Telefone já cadastrado',
+          description: 'Este telefone já está em uso. Faça login ou use outro número.',
+          variant: 'default',
+        });
+        navigate('/recrutamento/candidato/login', {
+          state: { email: existenteTelefone.email }
         });
         return;
       }
@@ -159,21 +181,27 @@ export default function CadastroRapido() {
 
     setIsLoading(true);
 
+    const emailLower = form.email.toLowerCase().trim();
+    const telefoneNumeros = form.telefone.replace(/\D/g, '');
+
     try {
       // 1. Criar usuário no Supabase Auth
+      console.log('Criando usuário Auth...');
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: form.email.toLowerCase().trim(),
+        email: emailLower,
         password: form.senha,
         options: {
           data: {
             nome: form.nome_completo,
             tipo: 'candidato',
           },
+          emailRedirectTo: `${window.location.origin}/recrutamento/candidato/login`,
         },
       });
 
       if (authError) {
-        if (authError.message.includes('already registered')) {
+        console.error('Erro Auth:', authError);
+        if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
           toast({
             title: 'E-mail já cadastrado',
             description: 'Este e-mail já está em uso. Faça login ou recupere sua senha.',
@@ -184,17 +212,24 @@ export default function CadastroRapido() {
           });
           return;
         }
-        throw authError;
+        throw new Error(authError.message || 'Erro ao criar conta. Tente novamente.');
       }
 
+      if (!authData.user) {
+        throw new Error('Erro ao criar usuário. Tente novamente.');
+      }
+
+      console.log('Usuário Auth criado:', authData.user.id);
+
       // 2. Criar candidato na tabela
+      console.log('Criando candidato na tabela...');
       const { data: novoCandidato, error: insertError } = await supabase
         .from('candidatos_recrutamento')
         .insert({
           nome_completo: form.nome_completo.trim(),
-          telefone: form.telefone.replace(/\D/g, ''),
-          email: form.email.toLowerCase().trim(),
-          auth_user_id: authData.user?.id,
+          telefone: telefoneNumeros,
+          email: emailLower,
+          auth_user_id: authData.user.id,
           status: 'pendente',
           cadastro_completo: false,
           aceite_termos: true,
@@ -202,36 +237,41 @@ export default function CadastroRapido() {
           aceite_lgpd: true,
           aceite_lgpd_data: new Date().toISOString(),
           codigo_indicacao: ref || null,
-        } as any)
+        })
         .select()
         .single();
 
       if (insertError) {
         console.error('Erro ao inserir candidato:', insertError);
-        // Se falhou, tentar deletar o usuário do Auth (cleanup)
-        throw new Error('Erro ao criar perfil. Tente novamente.');
+        // Tentar mostrar erro mais específico
+        if (insertError.message.includes('unique') || insertError.message.includes('duplicate')) {
+          throw new Error('E-mail ou telefone já está em uso.');
+        }
+        throw new Error(`Erro ao criar perfil: ${insertError.message}`);
       }
 
-      // 3. Fazer login automático
-      const { error: loginError } = await supabase.auth.signInWithPassword({
-        email: form.email.toLowerCase().trim(),
-        password: form.senha,
-      });
+      console.log('Candidato criado:', novoCandidato?.id);
 
-      if (loginError) {
-        // Login falhou, mas cadastro foi criado
+      // 3. Verificar se precisa confirmar email
+      // Se a sessão foi criada, significa que não precisa confirmar
+      const { data: sessionData } = await supabase.auth.getSession();
+
+      if (!sessionData.session) {
+        // Precisa confirmar email
         toast({
           title: 'Cadastro criado!',
-          description: 'Confirme seu e-mail e faça login para continuar.',
+          description: 'Verifique seu e-mail para confirmar a conta e fazer login.',
         });
-        navigate('/recrutamento/candidato/login');
+        navigate('/recrutamento/candidato/login', {
+          state: { email: emailLower, mensagem: 'Verifique seu e-mail para confirmar a conta.' }
+        });
         return;
       }
 
       // 4. Processar indicação se houver
       if (ref && novoCandidato) {
         try {
-          await supabase.rpc('processar_indicacao' as any, {
+          await supabase.rpc('processar_indicacao', {
             p_codigo_indicacao: ref,
             p_candidato_id: novoCandidato.id,
           });
@@ -251,8 +291,8 @@ export default function CadastroRapido() {
     } catch (error) {
       console.error('Erro ao criar cadastro:', error);
       toast({
-        title: 'Erro ao cadastrar',
-        description: error instanceof Error ? error.message : 'Tente novamente.',
+        title: 'Não foi possível criar sua conta',
+        description: error instanceof Error ? error.message : 'Verifique os dados e tente novamente.',
         variant: 'destructive',
       });
     } finally {
