@@ -221,39 +221,32 @@ export default function CadastroRapido() {
 
       console.log('Usuário Auth criado:', authData.user.id);
 
-      // 2. Criar candidato na tabela
-      console.log('Criando candidato na tabela...');
-      const { data: novoCandidato, error: insertError } = await supabase
-        .from('candidatos_recrutamento')
-        .insert({
-          nome_completo: form.nome_completo.trim(),
-          telefone: telefoneNumeros,
-          email: emailLower,
-          auth_user_id: authData.user.id,
-          status: 'disponivel',
-          cadastro_completo: false,
-          aceite_termos: true,
-          aceite_termos_data: new Date().toISOString(),
-          aceite_lgpd: true,
-          aceite_lgpd_data: new Date().toISOString(),
-          cpf: '00000000000',
-          data_nascimento: '2000-01-01',
-          cidade: 'Não informada',
-          estado: 'PR',
-        } as any)
-        .select()
-        .single();
+      // 2. Criar candidato na tabela usando RPC (bypassa RLS)
+      console.log('Criando candidato na tabela via RPC...');
+      const { data: rpcResult, error: rpcError } = await supabase.rpc('cadastrar_candidato_rapido', {
+        p_nome_completo: form.nome_completo.trim(),
+        p_telefone: telefoneNumeros,
+        p_email: emailLower,
+        p_auth_user_id: authData.user.id,
+        p_codigo_indicacao: ref || null,
+      });
 
-      if (insertError) {
-        console.error('Erro ao inserir candidato:', insertError);
-        // Tentar mostrar erro mais específico
-        if (insertError.message.includes('unique') || insertError.message.includes('duplicate')) {
-          throw new Error('E-mail ou telefone já está em uso.');
-        }
-        throw new Error(`Erro ao criar perfil: ${insertError.message}`);
+      console.log('Resultado RPC:', rpcResult);
+
+      if (rpcError) {
+        console.error('Erro RPC:', rpcError);
+        throw new Error(`Erro ao criar perfil: ${rpcError.message}`);
       }
 
-      console.log('Candidato criado:', novoCandidato?.id);
+      // Verificar se a RPC retornou erro
+      const resultado = rpcResult as { success: boolean; error?: string; candidato_id?: string };
+      if (!resultado.success) {
+        console.error('Erro retornado pela RPC:', resultado.error);
+        throw new Error(resultado.error || 'Erro ao criar perfil');
+      }
+
+      console.log('Candidato criado:', resultado.candidato_id);
+      const novoCandidatoId = resultado.candidato_id;
 
       // 3. Verificar se precisa confirmar email
       // Se a sessão foi criada, significa que não precisa confirmar
@@ -272,12 +265,11 @@ export default function CadastroRapido() {
       }
 
       // 4. Processar indicação se houver
-      if (ref && novoCandidato) {
+      if (ref && novoCandidatoId) {
         try {
-          await (supabase.rpc as any)('processar_indicacao', {
-            p_codigo: ref,
-            p_indicado_tipo: 'candidato',
-            p_indicado_id: novoCandidato.id,
+          await supabase.rpc('processar_indicacao', {
+            p_codigo_indicacao: ref,
+            p_candidato_id: novoCandidatoId,
           });
         } catch (e) {
           console.log('Indicação não processada:', e);
