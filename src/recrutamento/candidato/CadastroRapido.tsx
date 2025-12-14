@@ -267,9 +267,10 @@ export default function CadastroRapido() {
       // 4. Processar indicação se houver
       if (ref && novoCandidatoId) {
         try {
-          await supabase.rpc('processar_indicacao', {
-            p_codigo_indicacao: ref,
-            p_candidato_id: novoCandidatoId,
+          await (supabase.rpc as any)('processar_indicacao', {
+            p_codigo: ref,
+            p_indicado_tipo: 'candidato',
+            p_indicado_id: novoCandidatoId,
           });
         } catch (e) {
           console.log('Indicação não processada:', e);
