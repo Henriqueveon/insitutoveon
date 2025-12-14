@@ -190,14 +190,14 @@ export type Database = {
           categoria_cnh: string | null
           cep: string | null
           certificacoes: string | null
-          cidade: string
+          cidade: string | null
           complemento: string | null
-          cpf: string
+          cpf: string | null
           created_at: string | null
           curriculo_publico: boolean | null
           curriculo_url: string | null
           curso: string | null
-          data_nascimento: string
+          data_nascimento: string | null
           disponibilidade_horario: string | null
           disponibilidade_inicio: string | null
           documento_tipo: string | null
@@ -206,7 +206,7 @@ export type Database = {
           email: string
           escolaridade: string | null
           esta_trabalhando: boolean | null
-          estado: string
+          estado: string | null
           estado_civil: string | null
           etapa_cadastro: number | null
           foto_url: string | null
@@ -269,14 +269,14 @@ export type Database = {
           categoria_cnh?: string | null
           cep?: string | null
           certificacoes?: string | null
-          cidade: string
+          cidade?: string | null
           complemento?: string | null
-          cpf: string
+          cpf?: string | null
           created_at?: string | null
           curriculo_publico?: boolean | null
           curriculo_url?: string | null
           curso?: string | null
-          data_nascimento: string
+          data_nascimento?: string | null
           disponibilidade_horario?: string | null
           disponibilidade_inicio?: string | null
           documento_tipo?: string | null
@@ -285,7 +285,7 @@ export type Database = {
           email: string
           escolaridade?: string | null
           esta_trabalhando?: boolean | null
-          estado: string
+          estado?: string | null
           estado_civil?: string | null
           etapa_cadastro?: number | null
           foto_url?: string | null
@@ -348,14 +348,14 @@ export type Database = {
           categoria_cnh?: string | null
           cep?: string | null
           certificacoes?: string | null
-          cidade?: string
+          cidade?: string | null
           complemento?: string | null
-          cpf?: string
+          cpf?: string | null
           created_at?: string | null
           curriculo_publico?: boolean | null
           curriculo_url?: string | null
           curso?: string | null
-          data_nascimento?: string
+          data_nascimento?: string | null
           disponibilidade_horario?: string | null
           disponibilidade_inicio?: string | null
           documento_tipo?: string | null
@@ -364,7 +364,7 @@ export type Database = {
           email?: string
           escolaridade?: string | null
           esta_trabalhando?: boolean | null
-          estado?: string
+          estado?: string | null
           estado_civil?: string | null
           etapa_cadastro?: number | null
           foto_url?: string | null

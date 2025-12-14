@@ -230,14 +230,17 @@ export default function CadastroRapido() {
           telefone: telefoneNumeros,
           email: emailLower,
           auth_user_id: authData.user.id,
-          status: 'pendente',
+          status: 'disponivel',
           cadastro_completo: false,
           aceite_termos: true,
           aceite_termos_data: new Date().toISOString(),
           aceite_lgpd: true,
           aceite_lgpd_data: new Date().toISOString(),
-          codigo_indicacao: ref || null,
-        })
+          cpf: '00000000000',
+          data_nascimento: '2000-01-01',
+          cidade: 'Não informada',
+          estado: 'PR',
+        } as any)
         .select()
         .single();
 
@@ -271,9 +274,10 @@ export default function CadastroRapido() {
       // 4. Processar indicação se houver
       if (ref && novoCandidato) {
         try {
-          await supabase.rpc('processar_indicacao', {
-            p_codigo_indicacao: ref,
-            p_candidato_id: novoCandidato.id,
+          await (supabase.rpc as any)('processar_indicacao', {
+            p_codigo: ref,
+            p_indicado_tipo: 'candidato',
+            p_indicado_id: novoCandidato.id,
           });
         } catch (e) {
           console.log('Indicação não processada:', e);
