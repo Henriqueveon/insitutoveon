@@ -209,7 +209,7 @@ export default function CurriculoPublico() {
           .single();
 
         if (discData) {
-          setDadosDISC(discData);
+          setDadosDISC(discData as any);
         }
       }
 

@@ -367,7 +367,7 @@ export default function CompletarCadastro() {
               // Atualizar flag de senha criada
               await supabase
                 .from('candidatos_recrutamento')
-                .update({ senha_hash: 'AUTH_SUPABASE' })
+                .update({ status: 'disponivel' } as any)
                 .eq('id', candidatoContext.id);
 
             } catch (authError) {

@@ -39,7 +39,7 @@ export default function CandidatoLogin() {
       // 1. Verificar se o candidato existe
       const { data: candidato, error: candidatoError } = await supabase
         .from('candidatos_recrutamento')
-        .select('id, nome_completo, status, senha_hash')
+        .select('id, nome_completo, status')
         .eq('email', email.toLowerCase().trim())
         .single();
 

@@ -48,7 +48,7 @@ export default function RecuperarSenha({ tipo }: RecuperarSenhaProps) {
     try {
       // 1. Verificar se o email existe na tabela
       const { data: registro, error: registroError } = await supabase
-        .from(tabela)
+        .from(tabela as any)
         .select('id')
         .eq(campoEmail, email.toLowerCase().trim())
         .single();

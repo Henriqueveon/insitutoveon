@@ -40,7 +40,7 @@ interface Empresa {
   socio_nome: string;
   socio_foto_url: string | null;
   creditos: number;
-  cadastro_completo: boolean;
+  cadastro_completo?: boolean;
 }
 
 const menuItems = [
@@ -78,12 +78,12 @@ export default function EmpresaLayout() {
         if (empresaId) {
           const { data } = await supabase
             .from('empresas_recrutamento')
-            .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, cadastro_completo')
+            .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos')
             .eq('id', empresaId)
             .single();
 
           if (data) {
-            setEmpresa(data);
+            setEmpresa(data as any);
             setIsLoading(false);
             return;
           }
@@ -95,7 +95,7 @@ export default function EmpresaLayout() {
       // Buscar empresa pelo email do usuário autenticado
       const { data, error } = await supabase
         .from('empresas_recrutamento')
-        .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, cadastro_completo')
+        .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos')
         .eq('socio_email', user.email)
         .single();
 
@@ -105,12 +105,12 @@ export default function EmpresaLayout() {
         if (empresaId) {
           const { data: dataLocal } = await supabase
             .from('empresas_recrutamento')
-            .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, cadastro_completo')
+            .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos')
             .eq('id', empresaId)
             .single();
 
           if (dataLocal) {
-            setEmpresa(dataLocal);
+            setEmpresa(dataLocal as any);
             setIsLoading(false);
             return;
           }
@@ -124,8 +124,8 @@ export default function EmpresaLayout() {
         return;
       }
 
-      setEmpresa(data);
-      localStorage.setItem('veon_empresa_id', data.id); // Salvar para sessões futuras
+      setEmpresa(data as any);
+      localStorage.setItem('veon_empresa_id', (data as any).id); // Salvar para sessões futuras
     } catch (error) {
       console.error('Erro ao carregar empresa:', error);
     } finally {

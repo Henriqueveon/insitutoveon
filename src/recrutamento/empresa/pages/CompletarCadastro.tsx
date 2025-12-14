@@ -123,6 +123,8 @@ export default function CompletarCadastro() {
           socio_cpf: (context.empresa as any).socio_cpf
             ? aplicarMascaraCPF((context.empresa as any).socio_cpf)
             : '',
+          senha: '',
+          confirmar_senha: '',
         });
         setIsLoading(false);
         return;
@@ -137,7 +139,7 @@ export default function CompletarCadastro() {
 
       const { data, error } = await supabase
         .from('empresas_recrutamento')
-        .select('id, razao_social, nome_fantasia, cadastro_completo, socio_nome, socio_cpf, socio_funcao, socio_email')
+        .select('id, razao_social, nome_fantasia, socio_nome, socio_cpf, socio_funcao, socio_email')
         .eq('id', empresaId)
         .single();
 
@@ -146,11 +148,13 @@ export default function CompletarCadastro() {
         return;
       }
 
-      setEmpresa(data as Empresa);
+      setEmpresa(data as unknown as Empresa);
       setForm({
-        socio_nome: data.socio_nome || '',
-        socio_funcao: data.socio_funcao || '',
-        socio_cpf: data.socio_cpf ? aplicarMascaraCPF(data.socio_cpf) : '',
+        socio_nome: (data as any).socio_nome || '',
+        socio_funcao: (data as any).socio_funcao || '',
+        socio_cpf: (data as any).socio_cpf ? aplicarMascaraCPF((data as any).socio_cpf) : '',
+        senha: '',
+        confirmar_senha: '',
       });
     } catch (error) {
       console.error('Erro ao carregar empresa:', error);
