@@ -9,3 +9,4 @@ export { default as EmProcesso } from './EmProcesso';
 export { default as Contratados } from './Contratados';
 export { default as Creditos } from './Creditos';
 export { default as Configuracoes } from './Configuracoes';
+export { default as NotificacoesEmpresa } from './Notificacoes';

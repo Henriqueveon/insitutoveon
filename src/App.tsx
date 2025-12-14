@@ -39,6 +39,7 @@ import {
   RecrutamentoVagas,
   RecrutamentoEntrevistas,
   RecrutamentoFinanceiro,
+  RecrutamentoNotificacoes,
 } from "./pages/painel/recrutamento";
 
 // Painel do Fundador
@@ -69,6 +70,7 @@ import {
   Contratados,
   Creditos,
   Configuracoes as EmpresaConfiguracoes,
+  NotificacoesEmpresa,
 } from "./recrutamento/empresa/pages";
 
 // Área de Recrutamento - Candidato (Cadastro)
@@ -86,6 +88,7 @@ import {
   PropostasCandidato,
   MeuCurriculoCandidato,
   ConfiguracoesCandidato,
+  NotificacoesCandidato,
 } from "./recrutamento/candidato/pages";
 
 const queryClient = new QueryClient();
@@ -171,6 +174,7 @@ const App = () => (
                   <Route path="recrutamento/vagas" element={<RecrutamentoVagas />} />
                   <Route path="recrutamento/entrevistas" element={<RecrutamentoEntrevistas />} />
                   <Route path="recrutamento/financeiro" element={<RecrutamentoFinanceiro />} />
+                  <Route path="recrutamento/notificacoes" element={<RecrutamentoNotificacoes />} />
                 </Route>
 
                 {/* Área de Recrutamento - Empresa */}
@@ -185,6 +189,7 @@ const App = () => (
                   <Route path="contratados" element={<Contratados />} />
                   <Route path="creditos" element={<Creditos />} />
                   <Route path="configuracoes" element={<EmpresaConfiguracoes />} />
+                  <Route path="notificacoes" element={<NotificacoesEmpresa />} />
                 </Route>
 
                 {/* Área de Recrutamento - Candidato (Cadastro) */}
@@ -202,6 +207,7 @@ const App = () => (
                   <Route path="propostas" element={<PropostasCandidato />} />
                   <Route path="meu-curriculo" element={<MeuCurriculoCandidato />} />
                   <Route path="configuracoes" element={<ConfiguracoesCandidato />} />
+                  <Route path="notificacoes" element={<NotificacoesCandidato />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

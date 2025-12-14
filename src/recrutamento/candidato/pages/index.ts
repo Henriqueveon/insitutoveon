@@ -6,3 +6,4 @@ export { default as Inicio } from './Inicio';
 export { default as PropostasCandidato } from './PropostasCandidato';
 export { default as MeuCurriculoCandidato } from './MeuCurriculoCandidato';
 export { default as ConfiguracoesCandidato } from './ConfiguracoesCandidato';
+export { default as NotificacoesCandidato } from './Notificacoes';
