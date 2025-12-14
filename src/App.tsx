@@ -98,6 +98,7 @@ import {
   ConfiguracoesCandidato,
   NotificacoesCandidato,
   CompletarCadastro as CandidatoCompletarCadastro,
+  CurriculoPublico,
 } from "./recrutamento/candidato/pages";
 
 const queryClient = new QueryClient();
@@ -123,6 +124,9 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/relatorio/:id" element={<RelatorioPublico />} />
                 <Route path="/base-cientifica" element={<BaseCientifica />} />
+
+                {/* Currículo Público - Link compartilhável do candidato */}
+                <Route path="/c/:shortId" element={<CurriculoPublico />} />
 
                 {/* Login unificado para Fundador/Analista */}
                 <Route path="/login" element={<Login />} />
