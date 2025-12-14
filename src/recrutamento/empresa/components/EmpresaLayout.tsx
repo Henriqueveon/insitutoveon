@@ -40,6 +40,7 @@ interface Empresa {
   socio_nome: string;
   socio_foto_url: string | null;
   creditos: number;
+  cadastro_completo: boolean;
 }
 
 const menuItems = [
@@ -78,7 +79,7 @@ export default function EmpresaLayout() {
 
       const { data, error } = await supabase
         .from('empresas_recrutamento')
-        .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos')
+        .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, cadastro_completo')
         .eq('socio_email', user.email)
         .single();
 

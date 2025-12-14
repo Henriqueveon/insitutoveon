@@ -23,7 +23,7 @@ export default function BemVindo() {
   const navigate = useNavigate();
 
   const handleComecar = () => {
-    navigate('/recrutamento/empresa/cadastro');
+    navigate('/recrutamento/empresa/cadastro-rapido');
   };
 
   const handleLogin = () => {

@@ -62,6 +62,7 @@ import BaseCientifica from "./pages/BaseCientifica";
 import EmpresaBemVindo from "./recrutamento/empresa/BemVindo";
 import EmpresaLogin from "./recrutamento/empresa/Login";
 import EmpresaCadastro from "./recrutamento/empresa/Cadastro";
+import EmpresaCadastroRapido from "./recrutamento/empresa/CadastroRapido";
 import EmpresaLayout from "./recrutamento/empresa/components/EmpresaLayout";
 import {
   EmpresaDashboard,
@@ -73,6 +74,7 @@ import {
   Configuracoes as EmpresaConfiguracoes,
   NotificacoesEmpresa,
   SobreEmpresa,
+  EmpresaCompletarCadastro,
 } from "./recrutamento/empresa/pages";
 
 // Área de Recrutamento - Candidato (Cadastro)
@@ -185,6 +187,7 @@ const App = () => (
                 <Route path="/recrutamento/empresa/bem-vindo" element={<EmpresaBemVindo />} />
                 <Route path="/recrutamento/empresa/login" element={<EmpresaLogin />} />
                 <Route path="/recrutamento/empresa/cadastro" element={<EmpresaCadastro />} />
+                <Route path="/recrutamento/empresa/cadastro-rapido" element={<EmpresaCadastroRapido />} />
                 <Route path="/recrutamento/empresa" element={<EmpresaLayout />}>
                   <Route index element={<Navigate to="/recrutamento/empresa/dashboard" replace />} />
                   <Route path="dashboard" element={<EmpresaDashboard />} />
@@ -194,6 +197,7 @@ const App = () => (
                   <Route path="contratados" element={<Contratados />} />
                   <Route path="creditos" element={<Creditos />} />
                   <Route path="sobre-empresa" element={<SobreEmpresa />} />
+                  <Route path="completar-cadastro" element={<EmpresaCompletarCadastro />} />
                   <Route path="configuracoes" element={<EmpresaConfiguracoes />} />
                   <Route path="notificacoes" element={<NotificacoesEmpresa />} />
                 </Route>

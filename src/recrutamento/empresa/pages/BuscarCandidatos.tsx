@@ -64,12 +64,14 @@ import {
 } from 'lucide-react';
 import CandidatoPerfilModal from '../components/CandidatoPerfilModal';
 import ProfissionalCard, { calcularMatchSimples } from '../components/ProfissionalCard';
+import CadastroIncompletoModal from '../components/CadastroIncompletoModal';
 
 interface Empresa {
   id: string;
   razao_social: string;
   nome_fantasia: string;
   creditos: number;
+  cadastro_completo?: boolean;
 }
 
 interface Candidato {
@@ -249,6 +251,7 @@ export default function BuscarCandidatos() {
   const [cidadesSugestoes, setCidadesSugestoes] = useState<CidadeSugestao[]>([]);
   const [buscaCidade, setBuscaCidade] = useState('');
   const [showSugestoes, setShowSugestoes] = useState(false);
+  const [showCadastroIncompleto, setShowCadastroIncompleto] = useState(false);
 
   // Verificar se há candidato selecionado na URL
   useEffect(() => {
@@ -565,6 +568,11 @@ export default function BuscarCandidatos() {
   };
 
   const abrirPerfil = (candidato: Candidato) => {
+    // Verificar se cadastro da empresa está completo
+    if (!empresa?.cadastro_completo) {
+      setShowCadastroIncompleto(true);
+      return;
+    }
     setCandidatoSelecionado(candidato);
     setModalAberto(true);
     setSearchParams({ candidato: candidato.id });
@@ -1335,6 +1343,12 @@ export default function BuscarCandidatos() {
         empresa={empresa}
         isFavorito={candidatoSelecionado ? favoritos.includes(candidatoSelecionado.id) : false}
         onToggleFavorito={toggleFavorito}
+      />
+
+      {/* Modal Cadastro Incompleto */}
+      <CadastroIncompletoModal
+        open={showCadastroIncompleto}
+        onOpenChange={setShowCadastroIncompleto}
       />
     </div>
   );
