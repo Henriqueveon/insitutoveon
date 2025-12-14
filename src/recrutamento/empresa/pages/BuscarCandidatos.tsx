@@ -59,6 +59,8 @@ import {
   Baby,
   ArrowUpDown,
   Navigation,
+  UserCircle,
+  Calendar,
 } from 'lucide-react';
 import CandidatoPerfilModal from '../components/CandidatoPerfilModal';
 import ProfissionalCard, { calcularMatchSimples } from '../components/ProfissionalCard';
@@ -110,6 +112,7 @@ interface Filtros {
   idadeMax: number | null;
   estadoCivil: string;
   temFilhos: boolean | null;
+  sexo: string;
 }
 
 type OrdenacaoOption = 'recentes' | 'proximidade' | 'experiencia' | 'salario' | 'match';
@@ -189,6 +192,12 @@ const ESTADOS_CIVIS = [
   { value: 'uniao_estavel', label: 'União Estável' },
 ];
 
+const OPCOES_SEXO = [
+  { value: '', label: 'Todos' },
+  { value: 'masculino', label: 'Masculino' },
+  { value: 'feminino', label: 'Feminino' },
+];
+
 const ORDENACAO_OPTIONS = [
   { value: 'recentes', label: 'Mais recentes', icon: Clock },
   { value: 'proximidade', label: 'Mais próximos', icon: MapPin },
@@ -233,6 +242,7 @@ export default function BuscarCandidatos() {
     idadeMax: null,
     estadoCivil: '',
     temFilhos: null,
+    sexo: '',
   });
 
   const [ordenacao, setOrdenacao] = useState<OrdenacaoOption>('recentes');
@@ -503,6 +513,23 @@ export default function BuscarCandidatos() {
     if (filtros.temFilhos !== null) {
       query = query.eq('tem_filhos', filtros.temFilhos);
     }
+    if (filtros.sexo) {
+      query = query.eq('sexo', filtros.sexo);
+    }
+    // Filtro de idade baseado em data_nascimento
+    if (filtros.idadeMin !== null || filtros.idadeMax !== null) {
+      const hoje = new Date();
+      if (filtros.idadeMax !== null) {
+        // Para idade máxima, a pessoa deve ter nascido DEPOIS dessa data
+        const dataMinNascimento = new Date(hoje.getFullYear() - filtros.idadeMax - 1, hoje.getMonth(), hoje.getDate());
+        query = query.gte('data_nascimento', dataMinNascimento.toISOString().split('T')[0]);
+      }
+      if (filtros.idadeMin !== null) {
+        // Para idade mínima, a pessoa deve ter nascido ANTES dessa data
+        const dataMaxNascimento = new Date(hoje.getFullYear() - filtros.idadeMin, hoje.getMonth(), hoje.getDate());
+        query = query.lte('data_nascimento', dataMaxNascimento.toISOString().split('T')[0]);
+      }
+    }
     return query;
   };
 
@@ -570,6 +597,7 @@ export default function BuscarCandidatos() {
       idadeMax: null,
       estadoCivil: '',
       temFilhos: null,
+      sexo: '',
     });
     setBuscaCidade('');
     setOrdenacao('recentes');
@@ -960,6 +988,78 @@ export default function BuscarCandidatos() {
                         Aceita Viajar
                       </span>
                     </label>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            {/* Filtro de Sexo */}
+            <div className="space-y-2">
+              <Label className="text-slate-300 flex items-center gap-2">
+                <UserCircle className="w-4 h-4" />
+                Sexo
+              </Label>
+              <Select
+                value={filtros.sexo}
+                onValueChange={(v) => setFiltros(prev => ({ ...prev, sexo: v }))}
+              >
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  {OPCOES_SEXO.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtro de Idade */}
+            <Accordion type="single" collapsible>
+              <AccordionItem value="idade" className="border-slate-700">
+                <AccordionTrigger className="text-slate-300 hover:text-white py-2">
+                  <span className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Faixa Etária
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-slate-400 text-xs">Idade mínima</Label>
+                        <Input
+                          type="number"
+                          placeholder="18"
+                          min={18}
+                          max={65}
+                          value={filtros.idadeMin || ''}
+                          onChange={(e) => {
+                            const val = e.target.value ? parseInt(e.target.value) : null;
+                            setFiltros(prev => ({ ...prev, idadeMin: val }));
+                          }}
+                          className="bg-slate-700 border-slate-600 text-white h-9"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-slate-400 text-xs">Idade máxima</Label>
+                        <Input
+                          type="number"
+                          placeholder="65"
+                          min={18}
+                          max={65}
+                          value={filtros.idadeMax || ''}
+                          onChange={(e) => {
+                            const val = e.target.value ? parseInt(e.target.value) : null;
+                            setFiltros(prev => ({ ...prev, idadeMax: val }));
+                          }}
+                          className="bg-slate-700 border-slate-600 text-white h-9"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Deixe em branco para qualquer idade
+                    </p>
                   </div>
                 </AccordionContent>
               </AccordionItem>

@@ -52,6 +52,7 @@ import {
   VALORES_EMPRESA,
   AREAS_INTERESSE,
   SUGESTOES_CARGOS,
+  OPCOES_SEXO,
 } from '../dadosFormulario';
 
 import { validarCPF } from '../../services/cnpjService';
@@ -143,6 +144,7 @@ export default function CompletarCadastro() {
         aceita_mudanca: candidatoContext.aceita_mudanca || '',
 
         // Vida pessoal
+        sexo: candidatoContext.sexo || '',
         estado_civil: candidatoContext.estado_civil || '',
         tem_filhos: candidatoContext.tem_filhos,
         quantidade_filhos: candidatoContext.quantidade_filhos || 0,
@@ -266,6 +268,7 @@ export default function CompletarCadastro() {
         aceita_mudanca: form.aceita_mudanca || null,
 
         // Vida pessoal
+        sexo: form.sexo || null,
         estado_civil: form.estado_civil || null,
         tem_filhos: form.tem_filhos,
         quantidade_filhos: form.tem_filhos ? form.quantidade_filhos : null,
@@ -399,6 +402,22 @@ export default function CompletarCadastro() {
                 onChange={(e) => updateForm('bairro', e.target.value)}
                 className="bg-slate-900/50 border-slate-600 text-white"
               />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm text-slate-300">Sexo</label>
+              <div className="grid grid-cols-3 gap-2">
+                {OPCOES_SEXO.map((s) => (
+                  <BotaoOpcao
+                    key={s.value}
+                    selecionado={form.sexo === s.value}
+                    onClick={() => updateForm('sexo', s.value)}
+                    small
+                  >
+                    {s.label}
+                  </BotaoOpcao>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-2">

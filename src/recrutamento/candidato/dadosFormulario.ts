@@ -197,6 +197,13 @@ export const ESTADOS_CIVIS = [
   { value: 'viuvo', label: 'Viúvo(a)' },
 ];
 
+// Opções de sexo/gênero
+export const OPCOES_SEXO = [
+  { value: 'masculino', label: 'Masculino' },
+  { value: 'feminino', label: 'Feminino' },
+  { value: 'outro', label: 'Prefiro não informar' },
+];
+
 // Valores em empresa
 export const VALORES_EMPRESA = [
   { value: 'salario', label: 'Salário competitivo', icon: '💰' },

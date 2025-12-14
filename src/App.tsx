@@ -59,6 +59,7 @@ import AnalistaConfiguracoes from "./pages/analista/Configuracoes";
 import BaseCientifica from "./pages/BaseCientifica";
 
 // Área de Recrutamento - Empresa
+import EmpresaBemVindo from "./recrutamento/empresa/BemVindo";
 import EmpresaLogin from "./recrutamento/empresa/Login";
 import EmpresaCadastro from "./recrutamento/empresa/Cadastro";
 import EmpresaLayout from "./recrutamento/empresa/components/EmpresaLayout";
@@ -71,6 +72,7 @@ import {
   Creditos,
   Configuracoes as EmpresaConfiguracoes,
   NotificacoesEmpresa,
+  SobreEmpresa,
 } from "./recrutamento/empresa/pages";
 
 // Área de Recrutamento - Candidato (Cadastro)
@@ -180,6 +182,7 @@ const App = () => (
                 </Route>
 
                 {/* Área de Recrutamento - Empresa */}
+                <Route path="/recrutamento/empresa/bem-vindo" element={<EmpresaBemVindo />} />
                 <Route path="/recrutamento/empresa/login" element={<EmpresaLogin />} />
                 <Route path="/recrutamento/empresa/cadastro" element={<EmpresaCadastro />} />
                 <Route path="/recrutamento/empresa" element={<EmpresaLayout />}>
@@ -190,6 +193,7 @@ const App = () => (
                   <Route path="em-processo" element={<EmProcesso />} />
                   <Route path="contratados" element={<Contratados />} />
                   <Route path="creditos" element={<Creditos />} />
+                  <Route path="sobre-empresa" element={<SobreEmpresa />} />
                   <Route path="configuracoes" element={<EmpresaConfiguracoes />} />
                   <Route path="notificacoes" element={<NotificacoesEmpresa />} />
                 </Route>
