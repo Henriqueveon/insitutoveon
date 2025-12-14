@@ -63,30 +63,24 @@ export default function CNHSelector({
   emProcesso = false,
   onEmProcessoChange,
 }: CNHSelectorProps) {
-  const [naoPossuo, setNaoPossuo] = useState(value.includes('nenhuma') || value.length === 0);
+  // naoPossuo só é true quando explicitamente selecionado "nenhuma"
+  // Array vazio significa "não respondeu ainda", não "não possui"
+  const [naoPossuo, setNaoPossuo] = useState(value.includes('nenhuma'));
 
-  // Sincronizar estado
+  // Sincronizar estado - apenas se value contém 'nenhuma'
   useEffect(() => {
-    if (value.includes('nenhuma') || value.length === 0) {
-      setNaoPossuo(true);
-    } else {
-      setNaoPossuo(false);
-    }
+    setNaoPossuo(value.includes('nenhuma'));
   }, [value]);
 
   const toggleCategoria = (categoria: string) => {
     if (naoPossuo) {
-      // Se não possuía, agora vai possuir
+      // Se estava marcado "não possuo", desmarcar e selecionar a categoria
       setNaoPossuo(false);
       onChange([categoria]);
     } else if (value.includes(categoria)) {
+      // Desselecionar categoria - permite ficar vazio (usuário deve escolher algo para avançar)
       const newValue = value.filter((v) => v !== categoria);
-      if (newValue.length === 0) {
-        setNaoPossuo(true);
-        onChange(['nenhuma']);
-      } else {
-        onChange(newValue);
-      }
+      onChange(newValue);
     } else {
       // Adicionar categoria
       const newValue = value.filter((v) => v !== 'nenhuma');
