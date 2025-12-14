@@ -120,7 +120,14 @@ export default function EmpresaLogin() {
         throw authError;
       }
 
-      // 3. Login bem-sucedido
+      // 3. Login bem-sucedido - vincular auth_user_id se necessário
+      try {
+        await supabase.rpc('vincular_auth_empresa');
+      } catch (e) {
+        // Ignora erro - pode não existir a função ainda
+        console.log('Vinculação auth:', e);
+      }
+
       toast({
         title: 'Bem-vindo!',
         description: `Olá, ${empresa.razao_social}`,

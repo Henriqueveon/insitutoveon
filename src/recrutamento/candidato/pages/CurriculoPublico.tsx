@@ -215,16 +215,43 @@ export default function CurriculoPublico() {
 
       // 3. Verificar empresa logada
       const { data: { user } } = await supabase.auth.getUser();
+      let empresaEncontrada = false;
+
       if (user) {
-        const { data: empresaData } = await supabase
+        // Tentar vincular auth_user_id se ainda não estiver vinculado
+        try {
+          await supabase.rpc('vincular_auth_empresa');
+        } catch (e) {
+          // Ignora - função pode não existir ainda
+        }
+
+        // Primeiro, tentar buscar por auth_user_id
+        const { data: empresaByAuth } = await supabase
           .from('empresas_recrutamento')
           .select('id, razao_social, nome_fantasia')
           .eq('auth_user_id', user.id)
           .single();
-        if (empresaData) setEmpresa(empresaData);
+
+        if (empresaByAuth) {
+          setEmpresa(empresaByAuth);
+          empresaEncontrada = true;
+        } else {
+          // Fallback: buscar por email
+          const { data: empresaByEmail } = await supabase
+            .from('empresas_recrutamento')
+            .select('id, razao_social, nome_fantasia')
+            .eq('socio_email', user.email?.toLowerCase())
+            .single();
+
+          if (empresaByEmail) {
+            setEmpresa(empresaByEmail);
+            empresaEncontrada = true;
+          }
+        }
       }
 
-      if (!empresa) {
+      // Fallback localStorage
+      if (!empresaEncontrada) {
         const empresaId = localStorage.getItem('veon_empresa_id');
         if (empresaId) {
           const { data: empresaData } = await supabase
