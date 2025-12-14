@@ -33,6 +33,7 @@ interface Candidato {
   id: string;
   nome_completo: string;
   foto_url: string | null;
+  video_url?: string | null;
   email: string;
   telefone: string;
   cidade: string;

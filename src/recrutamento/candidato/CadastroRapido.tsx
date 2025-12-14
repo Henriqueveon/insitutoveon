@@ -101,14 +101,17 @@ export default function CadastroRapido() {
           nome_completo: form.nome_completo.trim(),
           telefone: form.telefone.replace(/\D/g, ''),
           email: form.email.toLowerCase().trim(),
-          status: 'pendente', // Status pendente até completar cadastro
+          cpf: '',
+          cidade: '',
+          estado: '',
+          data_nascimento: '2000-01-01',
+          status: 'pendente',
           cadastro_completo: false,
           aceite_termos: true,
           aceite_termos_data: new Date().toISOString(),
           aceite_lgpd: true,
           aceite_lgpd_data: new Date().toISOString(),
-          codigo_indicacao: ref || null,
-        })
+        } as any)
         .select()
         .single();
 
@@ -121,7 +124,7 @@ export default function CadastroRapido() {
 
       // Processar indicação se houver
       if (ref && novoCandidato) {
-        await supabase.rpc('processar_indicacao', {
+        await supabase.rpc('processar_indicacao' as any, {
           p_codigo: ref,
           p_indicado_tipo: 'candidato',
           p_indicado_id: novoCandidato.id,

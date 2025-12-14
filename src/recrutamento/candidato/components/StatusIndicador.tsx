@@ -23,7 +23,7 @@ interface Candidato {
   id: string;
   nome_completo: string;
   foto_url: string | null;
-  video_url: string | null;
+  video_url?: string | null;
   perfil_disc: string | null;
   cadastro_completo: boolean;
   // Campos do cadastro completo

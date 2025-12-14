@@ -138,9 +138,9 @@ export default function NotificacoesCandidato() {
 
   const marcarTodasComoLidas = async () => {
     try {
-      const { data, error } = await supabase.rpc('marcar_todas_notificacoes_lidas', {
-        p_destinatario_id: candidato.id,
-        p_tipo_destinatario: 'candidato',
+      const { data, error } = await supabase.rpc('marcar_todas_notificacoes_lidas' as any, {
+        p_usuario_id: candidato.id,
+        p_tipo_usuario: 'candidato',
       });
 
       if (error) throw error;
