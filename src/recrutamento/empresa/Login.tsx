@@ -136,7 +136,26 @@ export default function EmpresaLogin() {
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#003DA5]/10 rounded-full blur-3xl" />
       </div>
 
-      <Card className="w-full max-w-md bg-slate-800/80 border-slate-700 backdrop-blur-sm relative z-10">
+      <div className="w-full max-w-4xl grid md:grid-cols-2 gap-8 relative z-10">
+        {/* Lado esquerdo - Slogan */}
+        <div className="hidden md:flex flex-col justify-center">
+          <h1 className="text-4xl font-bold text-white mb-4">
+            Os candidatos que você precisa{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E31E24] to-[#00D9FF]">
+              estão aqui
+            </span>
+          </h1>
+          <p className="text-lg text-slate-300 mb-6">
+            Conheça 90% do comportamento de quem vai trabalhar na sua empresa antes mesmo da entrevista.
+          </p>
+          <div className="flex items-center gap-2 text-slate-400">
+            <Building2 className="w-5 h-5 text-[#E31E24]" />
+            <span>Recruta Veon - Recrutamento Inteligente</span>
+          </div>
+        </div>
+
+        {/* Lado direito - Formulário */}
+        <Card className="bg-slate-800/80 border-slate-700 backdrop-blur-sm">
         <CardHeader className="text-center space-y-4">
           {/* Logo */}
           <div className="flex justify-center">
@@ -147,10 +166,10 @@ export default function EmpresaLogin() {
 
           <div>
             <CardTitle className="text-2xl font-bold text-white">
-              Veon Recrutamento
+              Área da Empresa
             </CardTitle>
             <CardDescription className="text-slate-400 mt-2">
-              Acesse sua conta empresarial
+              Acesse sua conta e encontre talentos
             </CardDescription>
           </div>
         </CardHeader>
@@ -248,7 +267,8 @@ export default function EmpresaLogin() {
             </p>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -162,9 +162,9 @@ export default function SecaoIndicacaoCandidato({ candidato }: Props) {
               💰 Indique Amigos e Ganhe R$ 30,00
             </h2>
             <p className="text-slate-300 leading-relaxed">
-              Conhece alguém que está procurando emprego? Compartilhe seu link e ganhe{' '}
+              Ajude um amigo a encontrar o emprego dos sonhos! Compartilhe seu link e ganhe{' '}
               <strong className="text-green-400">R$ 30,00 em créditos</strong>{' '}
-              quando seu amigo completar o cadastro!
+              quando ele completar o cadastro.
             </p>
           </div>
         </div>

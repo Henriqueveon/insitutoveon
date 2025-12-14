@@ -84,15 +84,14 @@ export default function BemVindo() {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
-            Encontre a Vaga{' '}
+            Descubra seus talentos naturais e encontre a{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E31E24] to-[#00D9FF]">
-              Perfeita
-            </span>{' '}
-            para Você
+              vaga perfeita
+            </span>
           </h1>
 
           <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto">
-            Cadastre-se e seja encontrado por centenas de empresas que buscam profissionais como você
+            Cadastre-se gratuitamente e seja encontrado por centenas de empresas que buscam profissionais como você
           </p>
         </div>
 
