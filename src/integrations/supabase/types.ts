@@ -184,6 +184,7 @@ export type Database = {
           anos_experiencia: number | null
           areas_experiencia: string[] | null
           areas_interesse: string[] | null
+          auth_user_id: string | null
           bairro: string | null
           cadastro_completo: boolean | null
           categoria_cnh: string | null
@@ -193,6 +194,7 @@ export type Database = {
           complemento: string | null
           cpf: string
           created_at: string | null
+          curriculo_publico: boolean | null
           curriculo_url: string | null
           curso: string | null
           data_nascimento: string
@@ -210,6 +212,8 @@ export type Database = {
           foto_url: string | null
           id: string
           idade_filhos: string | null
+          indicado_por_candidato_id: string | null
+          indicado_por_empresa_id: string | null
           instagram: string | null
           instituicao: string | null
           logradouro: string | null
@@ -230,6 +234,8 @@ export type Database = {
           regime_atual: string | null
           regime_preferido: string | null
           salario_atual: string | null
+          sexo: Database["public"]["Enums"]["sexo_tipo"] | null
+          slug_publico: string | null
           status: string | null
           telefone: string
           tem_filhos: boolean | null
@@ -244,6 +250,7 @@ export type Database = {
           video_duracao: number | null
           video_tipo: string | null
           video_url: string | null
+          visualizacoes_perfil: number | null
         }
         Insert: {
           aceita_mudanca?: string | null
@@ -256,6 +263,7 @@ export type Database = {
           anos_experiencia?: number | null
           areas_experiencia?: string[] | null
           areas_interesse?: string[] | null
+          auth_user_id?: string | null
           bairro?: string | null
           cadastro_completo?: boolean | null
           categoria_cnh?: string | null
@@ -265,6 +273,7 @@ export type Database = {
           complemento?: string | null
           cpf: string
           created_at?: string | null
+          curriculo_publico?: boolean | null
           curriculo_url?: string | null
           curso?: string | null
           data_nascimento: string
@@ -282,6 +291,8 @@ export type Database = {
           foto_url?: string | null
           id?: string
           idade_filhos?: string | null
+          indicado_por_candidato_id?: string | null
+          indicado_por_empresa_id?: string | null
           instagram?: string | null
           instituicao?: string | null
           logradouro?: string | null
@@ -302,6 +313,8 @@ export type Database = {
           regime_atual?: string | null
           regime_preferido?: string | null
           salario_atual?: string | null
+          sexo?: Database["public"]["Enums"]["sexo_tipo"] | null
+          slug_publico?: string | null
           status?: string | null
           telefone: string
           tem_filhos?: boolean | null
@@ -316,6 +329,7 @@ export type Database = {
           video_duracao?: number | null
           video_tipo?: string | null
           video_url?: string | null
+          visualizacoes_perfil?: number | null
         }
         Update: {
           aceita_mudanca?: string | null
@@ -328,6 +342,7 @@ export type Database = {
           anos_experiencia?: number | null
           areas_experiencia?: string[] | null
           areas_interesse?: string[] | null
+          auth_user_id?: string | null
           bairro?: string | null
           cadastro_completo?: boolean | null
           categoria_cnh?: string | null
@@ -337,6 +352,7 @@ export type Database = {
           complemento?: string | null
           cpf?: string
           created_at?: string | null
+          curriculo_publico?: boolean | null
           curriculo_url?: string | null
           curso?: string | null
           data_nascimento?: string
@@ -354,6 +370,8 @@ export type Database = {
           foto_url?: string | null
           id?: string
           idade_filhos?: string | null
+          indicado_por_candidato_id?: string | null
+          indicado_por_empresa_id?: string | null
           instagram?: string | null
           instituicao?: string | null
           logradouro?: string | null
@@ -374,6 +392,8 @@ export type Database = {
           regime_atual?: string | null
           regime_preferido?: string | null
           salario_atual?: string | null
+          sexo?: Database["public"]["Enums"]["sexo_tipo"] | null
+          slug_publico?: string | null
           status?: string | null
           telefone?: string
           tem_filhos?: boolean | null
@@ -388,8 +408,75 @@ export type Database = {
           video_duracao?: number | null
           video_tipo?: string | null
           video_url?: string | null
+          visualizacoes_perfil?: number | null
         }
         Relationships: []
+      }
+      candidaturas: {
+        Row: {
+          candidato_id: string | null
+          carta_apresentacao: string | null
+          comentario_recrutador: string | null
+          created_at: string | null
+          data_candidatura: string | null
+          data_entrevista: string | null
+          data_visualizacao: string | null
+          fit_score: number | null
+          historico_status: Json | null
+          id: string
+          nota_recrutador: number | null
+          status: string | null
+          updated_at: string | null
+          vaga_id: string | null
+        }
+        Insert: {
+          candidato_id?: string | null
+          carta_apresentacao?: string | null
+          comentario_recrutador?: string | null
+          created_at?: string | null
+          data_candidatura?: string | null
+          data_entrevista?: string | null
+          data_visualizacao?: string | null
+          fit_score?: number | null
+          historico_status?: Json | null
+          id?: string
+          nota_recrutador?: number | null
+          status?: string | null
+          updated_at?: string | null
+          vaga_id?: string | null
+        }
+        Update: {
+          candidato_id?: string | null
+          carta_apresentacao?: string | null
+          comentario_recrutador?: string | null
+          created_at?: string | null
+          data_candidatura?: string | null
+          data_entrevista?: string | null
+          data_visualizacao?: string | null
+          fit_score?: number | null
+          historico_status?: Json | null
+          id?: string
+          nota_recrutador?: number | null
+          status?: string | null
+          updated_at?: string | null
+          vaga_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidaturas_candidato_id_fkey"
+            columns: ["candidato_id"]
+            isOneToOne: false
+            referencedRelation: "candidatos_recrutamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidaturas_vaga_id_fkey"
+            columns: ["vaga_id"]
+            isOneToOne: false
+            referencedRelation: "vagas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cidades_brasil: {
         Row: {
@@ -544,6 +631,7 @@ export type Database = {
           aceite_lgpd_data: string | null
           aceite_termos: boolean | null
           aceite_termos_data: string | null
+          auth_user_id: string | null
           bairro: string | null
           capital_social: number | null
           cartao_token: string | null
@@ -570,6 +658,8 @@ export type Database = {
           porque_trabalhar: string | null
           porte: string | null
           razao_social: string
+          responsavel_cargo: string | null
+          responsavel_nome: string | null
           segmento: string | null
           senha_hash: string
           site_url: string | null
@@ -578,6 +668,7 @@ export type Database = {
           socio_cpf: string
           socio_email: string
           socio_foto_url: string | null
+          socio_funcao: string | null
           socio_nome: string
           socio_telefone: string
           status: string | null
@@ -585,12 +676,14 @@ export type Database = {
           tempo_mercado: string | null
           total_acessos_link: number | null
           updated_at: string | null
+          verificado: boolean | null
         }
         Insert: {
           aceite_lgpd?: boolean | null
           aceite_lgpd_data?: string | null
           aceite_termos?: boolean | null
           aceite_termos_data?: string | null
+          auth_user_id?: string | null
           bairro?: string | null
           capital_social?: number | null
           cartao_token?: string | null
@@ -617,6 +710,8 @@ export type Database = {
           porque_trabalhar?: string | null
           porte?: string | null
           razao_social: string
+          responsavel_cargo?: string | null
+          responsavel_nome?: string | null
           segmento?: string | null
           senha_hash: string
           site_url?: string | null
@@ -625,6 +720,7 @@ export type Database = {
           socio_cpf: string
           socio_email: string
           socio_foto_url?: string | null
+          socio_funcao?: string | null
           socio_nome: string
           socio_telefone: string
           status?: string | null
@@ -632,12 +728,14 @@ export type Database = {
           tempo_mercado?: string | null
           total_acessos_link?: number | null
           updated_at?: string | null
+          verificado?: boolean | null
         }
         Update: {
           aceite_lgpd?: boolean | null
           aceite_lgpd_data?: string | null
           aceite_termos?: boolean | null
           aceite_termos_data?: string | null
+          auth_user_id?: string | null
           bairro?: string | null
           capital_social?: number | null
           cartao_token?: string | null
@@ -664,6 +762,8 @@ export type Database = {
           porque_trabalhar?: string | null
           porte?: string | null
           razao_social?: string
+          responsavel_cargo?: string | null
+          responsavel_nome?: string | null
           segmento?: string | null
           senha_hash?: string
           site_url?: string | null
@@ -672,6 +772,7 @@ export type Database = {
           socio_cpf?: string
           socio_email?: string
           socio_foto_url?: string | null
+          socio_funcao?: string | null
           socio_nome?: string
           socio_telefone?: string
           status?: string | null
@@ -679,6 +780,7 @@ export type Database = {
           tempo_mercado?: string | null
           total_acessos_link?: number | null
           updated_at?: string | null
+          verificado?: boolean | null
         }
         Relationships: []
       }
@@ -1445,6 +1547,98 @@ export type Database = {
         }
         Relationships: []
       }
+      vagas: {
+        Row: {
+          beneficios: string | null
+          cargo: string | null
+          cidade: string | null
+          created_at: string | null
+          data_encerramento: string | null
+          data_publicacao: string | null
+          descricao: string | null
+          destaque: boolean | null
+          empresa_id: string | null
+          estado: string | null
+          id: string
+          modelo: string | null
+          nivel: string | null
+          perfil_disc_ideal: string | null
+          regime: string | null
+          requisitos: string | null
+          salario_max: number | null
+          salario_min: number | null
+          salario_visivel: boolean | null
+          status: string | null
+          titulo: string
+          total_candidaturas: number | null
+          updated_at: string | null
+          urgente: boolean | null
+          visualizacoes: number | null
+        }
+        Insert: {
+          beneficios?: string | null
+          cargo?: string | null
+          cidade?: string | null
+          created_at?: string | null
+          data_encerramento?: string | null
+          data_publicacao?: string | null
+          descricao?: string | null
+          destaque?: boolean | null
+          empresa_id?: string | null
+          estado?: string | null
+          id?: string
+          modelo?: string | null
+          nivel?: string | null
+          perfil_disc_ideal?: string | null
+          regime?: string | null
+          requisitos?: string | null
+          salario_max?: number | null
+          salario_min?: number | null
+          salario_visivel?: boolean | null
+          status?: string | null
+          titulo: string
+          total_candidaturas?: number | null
+          updated_at?: string | null
+          urgente?: boolean | null
+          visualizacoes?: number | null
+        }
+        Update: {
+          beneficios?: string | null
+          cargo?: string | null
+          cidade?: string | null
+          created_at?: string | null
+          data_encerramento?: string | null
+          data_publicacao?: string | null
+          descricao?: string | null
+          destaque?: boolean | null
+          empresa_id?: string | null
+          estado?: string | null
+          id?: string
+          modelo?: string | null
+          nivel?: string | null
+          perfil_disc_ideal?: string | null
+          regime?: string | null
+          requisitos?: string | null
+          salario_max?: number | null
+          salario_min?: number | null
+          salario_visivel?: boolean | null
+          status?: string | null
+          titulo?: string
+          total_candidaturas?: number | null
+          updated_at?: string | null
+          urgente?: boolean | null
+          visualizacoes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vagas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas_recrutamento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vagas_recrutamento: {
         Row: {
           areas_conhecimento: string[] | null
@@ -1561,6 +1755,61 @@ export type Database = {
           },
         ]
       }
+      visualizacoes_perfil: {
+        Row: {
+          candidato_id: string | null
+          empresa_id: string | null
+          id: string
+          ip_address: string | null
+          origem: string | null
+          user_agent: string | null
+          vaga_id: string | null
+          visualizado_em: string | null
+        }
+        Insert: {
+          candidato_id?: string | null
+          empresa_id?: string | null
+          id?: string
+          ip_address?: string | null
+          origem?: string | null
+          user_agent?: string | null
+          vaga_id?: string | null
+          visualizado_em?: string | null
+        }
+        Update: {
+          candidato_id?: string | null
+          empresa_id?: string | null
+          id?: string
+          ip_address?: string | null
+          origem?: string | null
+          user_agent?: string | null
+          vaga_id?: string | null
+          visualizado_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visualizacoes_perfil_candidato_id_fkey"
+            columns: ["candidato_id"]
+            isOneToOne: false
+            referencedRelation: "candidatos_recrutamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visualizacoes_perfil_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas_recrutamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visualizacoes_perfil_vaga_id_fkey"
+            columns: ["vaga_id"]
+            isOneToOne: false
+            referencedRelation: "vagas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       estatisticas_validacao: {
@@ -1660,6 +1909,9 @@ export type Database = {
         Args: { p_tipo_usuario: string; p_usuario_id: string }
         Returns: Json
       }
+      get_candidato_logado: { Args: never; Returns: Json }
+      get_empresa_logada: { Args: never; Returns: Json }
+      get_tipo_usuario: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1674,6 +1926,10 @@ export type Database = {
       }
       marcar_todas_notificacoes_lidas: {
         Args: { p_tipo_usuario: string; p_usuario_id: string }
+        Returns: Json
+      }
+      obter_estatisticas_sexo: {
+        Args: { p_empresa_id?: string }
         Returns: Json
       }
       processar_indicacao: {
@@ -1698,9 +1954,18 @@ export type Database = {
         Args: { p_codigo: string; p_email: string; p_tipo?: string }
         Returns: Json
       }
+      vincular_auth_candidato: {
+        Args: { p_auth_user_id?: string; p_candidato_id: string }
+        Returns: Json
+      }
+      vincular_auth_empresa: {
+        Args: { p_auth_user_id?: string; p_empresa_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"
+      sexo_tipo: "masculino" | "feminino" | "outro" | "prefiro_nao_informar"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1829,6 +2094,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      sexo_tipo: ["masculino", "feminino", "outro", "prefiro_nao_informar"],
     },
   },
 } as const

@@ -162,7 +162,7 @@ export default function CadastroRapido() {
       }
 
       // Criar empresa com cadastro incompleto (via RPC para bypassar RLS)
-      const { data: rpcResult, error: rpcError } = await supabase.rpc('cadastrar_empresa_rapido', {
+      const { data: rpcResult, error: rpcError } = await (supabase.rpc as any)('cadastrar_empresa_rapido', {
         p_cnpj: dadosCNPJ.cnpj,
         p_razao_social: dadosCNPJ.razao_social,
         p_nome_fantasia: dadosCNPJ.nome_fantasia || null,
