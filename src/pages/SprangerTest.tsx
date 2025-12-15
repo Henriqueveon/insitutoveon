@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAssessment } from '@/context/AssessmentContext';
 import { sprangerQuestions } from '@/data/sprangerQuestions';
@@ -16,7 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Mail, Phone, Briefcase, Instagram, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-type Phase = 'instructions' | 'test' | 'form';
+type Phase = 'instructions' | 'test' | 'form' | 'redirecting';
 
 // Lista de cargos em ordem alfabética
 const CARGO_OPTIONS = [
@@ -66,6 +66,39 @@ export default function SprangerTest() {
     empresa_instagram: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [candidatoRecrutamento, setCandidatoRecrutamento] = useState<{
+    id: string;
+    nome_completo: string;
+  } | null>(null);
+
+  // Check if user is a candidate from recruitment platform
+  const checkCandidatoRecrutamento = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      // Try to find candidate by auth_user_id
+      let { data } = await supabase
+        .from('candidatos_recrutamento')
+        .select('id, nome_completo')
+        .eq('auth_user_id', user.id)
+        .single();
+
+      // Fallback: try by email
+      if (!data) {
+        const { data: dataByEmail } = await supabase
+          .from('candidatos_recrutamento')
+          .select('id, nome_completo')
+          .eq('email', user.email)
+          .single();
+        data = dataByEmail;
+      }
+
+      return data;
+    } catch (error) {
+      return null;
+    }
+  }, []);
 
   // Redirect if previous tests not completed
   useEffect(() => {
@@ -80,6 +113,28 @@ export default function SprangerTest() {
       return;
     }
   }, [answers, situationalAnswers, navigate]);
+
+  // When entering form phase, check if user is a recruitment candidate
+  useEffect(() => {
+    const handleCandidatoRedirect = async () => {
+      if (phase !== 'form') return;
+
+      const candidato = await checkCandidatoRecrutamento();
+      if (candidato) {
+        // User is a candidate from recruitment - skip form and redirect
+        setCandidatoRecrutamento(candidato);
+        setPhase('redirecting');
+
+        // Calculate Spranger profile before redirecting
+        calculateSprangerProfile();
+
+        // Redirect to disc-concluido page (profile will be saved there)
+        navigate('/recrutamento/candidato/disc-concluido');
+      }
+    };
+
+    handleCandidatoRedirect();
+  }, [phase, checkCandidatoRecrutamento, navigate, calculateSprangerProfile]);
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -384,6 +439,18 @@ export default function SprangerTest() {
 
   if (phase === 'instructions') {
     return <SprangerInstructions onStart={handleStart} />;
+  }
+
+  // Redirecting phase for recruitment candidates
+  if (phase === 'redirecting') {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-white/20 border-t-[#E31E24] mx-auto mb-4" />
+          <p className="text-white font-medium">Processando seu resultado...</p>
+        </div>
+      </div>
+    );
   }
 
   if (phase === 'form') {

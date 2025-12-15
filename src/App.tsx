@@ -94,12 +94,14 @@ import CandidatoLayout from "./recrutamento/candidato/components/CandidatoLayout
 import {
   Inicio as CandidatoInicio,
   PropostasCandidato,
+  FeedVagas,
   MeuCurriculoCandidato,
   ConfiguracoesCandidato,
   NotificacoesCandidato,
   CompletarCadastro as CandidatoCompletarCadastro,
   CurriculoPublico,
 } from "./recrutamento/candidato/pages";
+import DiscConcluido from "./recrutamento/candidato/pages/DiscConcluido";
 
 const queryClient = new QueryClient();
 
@@ -225,11 +227,13 @@ const App = () => (
                 <Route path="/recrutamento/candidato" element={<CandidatoLayout />}>
                   <Route index element={<Navigate to="/recrutamento/candidato/inicio" replace />} />
                   <Route path="inicio" element={<CandidatoInicio />} />
+                  <Route path="vagas" element={<FeedVagas />} />
                   <Route path="propostas" element={<PropostasCandidato />} />
                   <Route path="meu-curriculo" element={<MeuCurriculoCandidato />} />
                   <Route path="configuracoes" element={<ConfiguracoesCandidato />} />
                   <Route path="notificacoes" element={<NotificacoesCandidato />} />
                   <Route path="completar-cadastro" element={<CandidatoCompletarCadastro />} />
+                  <Route path="disc-concluido" element={<DiscConcluido />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

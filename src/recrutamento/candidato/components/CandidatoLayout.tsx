@@ -24,6 +24,8 @@ import {
   User,
   LogOut,
   Settings,
+  Gift,
+  Briefcase,
 } from 'lucide-react';
 import NotificationBell from '@/components/recrutamento/NotificationBell';
 import { StatusBadge } from './StatusIndicador';
@@ -44,7 +46,7 @@ interface Candidato {
 
 const menuItems = [
   { path: '/recrutamento/candidato/inicio', label: 'Início', icon: Home },
-  { path: '/recrutamento/candidato/propostas', label: 'Propostas', icon: Mail },
+  { path: '/recrutamento/candidato/vagas', label: 'Vagas', icon: Briefcase },
   { path: '/recrutamento/candidato/meu-curriculo', label: 'Currículo', icon: FileText },
   { path: '/recrutamento/candidato/configuracoes', label: 'Perfil', icon: Settings },
 ];
@@ -160,6 +162,17 @@ export default function CandidatoLayout() {
 
           {/* Ações - Maiores para touch */}
           <div className="flex items-center gap-1">
+            {/* Botão de Indicação */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 relative"
+              onClick={() => navigate('/recrutamento/candidato/inicio#indicacao')}
+            >
+              <Gift className="w-5 h-5" />
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse" />
+            </Button>
+
             {candidato && (
               <NotificationBell
                 usuarioId={candidato.id}
@@ -210,7 +223,7 @@ export default function CandidatoLayout() {
         <div className="flex items-center justify-around h-14 max-w-lg mx-auto">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
-            const showBadge = item.path.includes('propostas') && propostasNovas > 0;
+            const showBadge = item.path.includes('vagas') && propostasNovas > 0;
 
             return (
               <NavLink
