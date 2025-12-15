@@ -8,6 +8,13 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
   MapPin,
   DollarSign,
   Clock,
@@ -22,7 +29,9 @@ import {
   Briefcase,
   Users,
   TrendingUp,
+  Eye,
 } from 'lucide-react';
+import EmpresaPerfilCard from '@/components/recrutamento/EmpresaPerfilCard';
 
 interface Candidato {
   id: string;
@@ -31,11 +40,30 @@ interface Candidato {
   status: string;
 }
 
+interface EmpresaPerfil {
+  id: string;
+  razao_social: string;
+  nome_fantasia: string;
+  logo_url?: string | null;
+  segmento?: string | null;
+  tempo_mercado?: string | null;
+  num_colaboradores?: string | null;
+  site_url?: string | null;
+  instagram_empresa?: string | null;
+  sobre_empresa?: string | null;
+  diferenciais?: string[] | null;
+  porque_trabalhar?: string | null;
+  fotos_ambiente?: string[] | null;
+  cidade?: string | null;
+  estado?: string | null;
+}
+
 interface Vaga {
   id: string;
   titulo: string;
   empresa_nome: string;
   empresa_logo: string | null;
+  empresa: EmpresaPerfil | null;
   cidade: string;
   estado: string;
   salario_min: number | null;
@@ -65,6 +93,10 @@ export default function FeedVagas() {
   const [vagasCurtidas, setVagasCurtidas] = useState<Set<string>>(new Set());
   const [vagasSalvas, setVagasSalvas] = useState<Set<string>>(new Set());
 
+  // Modal de perfil da empresa
+  const [modalEmpresa, setModalEmpresa] = useState(false);
+  const [empresaSelecionada, setEmpresaSelecionada] = useState<EmpresaPerfil | null>(null);
+
   useEffect(() => {
     carregarDados();
   }, [candidato?.id]);
@@ -73,7 +105,7 @@ export default function FeedVagas() {
     setIsLoading(true);
 
     try {
-      // Carregar vagas disponíveis
+      // Carregar vagas disponíveis com dados completos da empresa
       const { data: vagasData } = await supabase
         .from('vagas_recrutamento')
         .select(`
@@ -88,7 +120,11 @@ export default function FeedVagas() {
           descricao,
           modalidade,
           created_at,
-          empresa:empresas_recrutamento(nome_fantasia, logo_url)
+          empresa:empresas_recrutamento(
+            id, razao_social, nome_fantasia, logo_url, segmento, tempo_mercado,
+            num_colaboradores, site_url, instagram_empresa, sobre_empresa,
+            diferenciais, porque_trabalhar, fotos_ambiente, cidade, estado
+          )
         `)
         .eq('status', 'ativa')
         .order('created_at', { ascending: false })
@@ -100,6 +136,7 @@ export default function FeedVagas() {
           titulo: v.titulo,
           empresa_nome: v.empresa?.nome_fantasia || 'Empresa',
           empresa_logo: v.empresa?.logo_url,
+          empresa: v.empresa as EmpresaPerfil | null,
           cidade: v.cidade,
           estado: v.estado,
           salario_min: v.faixa_salarial_min,
@@ -293,7 +330,15 @@ export default function FeedVagas() {
             >
               {/* Header do Card */}
               <div className="flex items-center gap-3 p-4 border-b border-zinc-800">
-                <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden">
+                <button
+                  onClick={() => {
+                    if (vaga.empresa) {
+                      setEmpresaSelecionada(vaga.empresa);
+                      setModalEmpresa(true);
+                    }
+                  }}
+                  className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-white/30 transition-all"
+                >
                   {vaga.empresa_logo ? (
                     <img
                       src={vaga.empresa_logo}
@@ -303,7 +348,7 @@ export default function FeedVagas() {
                   ) : (
                     <Building2 className="w-5 h-5 text-zinc-400" />
                   )}
-                </div>
+                </button>
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-semibold text-sm truncate">
                     {vaga.empresa_nome}
@@ -315,11 +360,26 @@ export default function FeedVagas() {
                     <span className="text-xs">{formatarData(vaga.created_at)}</span>
                   </div>
                 </div>
-                {vaga.match_score && (
-                  <div className={`px-2.5 py-1 rounded-full bg-gradient-to-r ${getMatchColor(vaga.match_score)} text-white text-xs font-bold`}>
-                    {vaga.match_score}% match
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  {/* Botão Ver Empresa */}
+                  {vaga.empresa && (
+                    <button
+                      onClick={() => {
+                        setEmpresaSelecionada(vaga.empresa);
+                        setModalEmpresa(true);
+                      }}
+                      className="p-2 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors"
+                      title="Ver empresa"
+                    >
+                      <Eye className="w-4 h-4 text-blue-400" />
+                    </button>
+                  )}
+                  {vaga.match_score && (
+                    <div className={`px-2.5 py-1 rounded-full bg-gradient-to-r ${getMatchColor(vaga.match_score)} text-white text-xs font-bold`}>
+                      {vaga.match_score}%
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Conteúdo */}
@@ -412,6 +472,32 @@ export default function FeedVagas() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Perfil da Empresa */}
+      <Dialog open={modalEmpresa} onOpenChange={setModalEmpresa}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-lg max-h-[90vh] overflow-y-auto p-0">
+          <DialogHeader className="p-4 border-b border-zinc-800">
+            <DialogTitle className="text-white flex items-center">
+              <Building2 className="w-5 h-5 mr-2 text-blue-400" />
+              Conheça a empresa
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-4">
+            {empresaSelecionada && (
+              <EmpresaPerfilCard empresa={empresaSelecionada} />
+            )}
+          </div>
+          <DialogFooter className="p-4 border-t border-zinc-800">
+            <Button
+              variant="outline"
+              onClick={() => setModalEmpresa(false)}
+              className="w-full border-zinc-700 text-white hover:bg-zinc-800 rounded-xl"
+            >
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
