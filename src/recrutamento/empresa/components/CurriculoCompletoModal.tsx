@@ -185,24 +185,40 @@ export default function CurriculoCompletoModal({
   const getNaturalProfile = (): Profile | null => {
     if (!candidato) return null;
 
-    // Se tem perfil_natural no banco
+    // Se tem perfil_natural no banco (pode ser objeto ou string JSON)
     if (candidato.perfil_natural) {
-      const pn = candidato.perfil_natural;
-      return {
-        D: pn.D ?? pn.d ?? 10,
-        I: pn.I ?? pn.i ?? 10,
-        S: pn.S ?? pn.s ?? 10,
-        C: pn.C ?? pn.c ?? 10,
-      };
+      let pn = candidato.perfil_natural;
+
+      // Se for string, converter para objeto
+      if (typeof pn === 'string') {
+        try {
+          pn = JSON.parse(pn);
+        } catch (e) {
+          console.error('Erro ao parsear perfil_natural:', e);
+        }
+      }
+
+      if (typeof pn === 'object' && pn !== null) {
+        return {
+          D: Number(pn.D ?? pn.d ?? 10),
+          I: Number(pn.I ?? pn.i ?? 10),
+          S: Number(pn.S ?? pn.s ?? 10),
+          C: Number(pn.C ?? pn.c ?? 10),
+        };
+      }
     }
 
-    // Gerar a partir do perfil_disc
+    // Gerar a partir do perfil_disc (sempre gera se tiver perfil_disc)
     if (candidato.perfil_disc) {
-      const primary = candidato.perfil_disc.charAt(0) as 'D' | 'I' | 'S' | 'C';
-      const secondary = candidato.perfil_disc.charAt(1) as 'D' | 'I' | 'S' | 'C' | undefined;
+      const discStr = String(candidato.perfil_disc).toUpperCase();
+      const primary = discStr.charAt(0) as 'D' | 'I' | 'S' | 'C';
+      const secondary = discStr.charAt(1) as 'D' | 'I' | 'S' | 'C' | undefined;
 
       const profile: Profile = { D: 5, I: 5, S: 5, C: 5 };
-      profile[primary] = 20;
+
+      if (['D', 'I', 'S', 'C'].includes(primary)) {
+        profile[primary] = 20;
+      }
 
       if (secondary && ['D', 'I', 'S', 'C'].includes(secondary)) {
         profile[secondary] = 12;
@@ -215,6 +231,9 @@ export default function CurriculoCompletoModal({
   };
 
   const naturalProfile = getNaturalProfile();
+
+  // Debug - verificar se temos os dados necessários
+  const temDISC = candidato?.perfil_disc || candidato?.perfil_natural;
   const primeiroNome = candidato?.nome_completo?.split(' ')[0] || 'Profissional';
 
   if (!isOpen) return null;
@@ -419,8 +438,8 @@ export default function CurriculoCompletoModal({
                 </div>
               )}
 
-              {/* Relatório DISC Completo */}
-              {naturalProfile && (
+              {/* Relatório DISC Completo - Sempre mostrar se tiver perfil DISC */}
+              {(naturalProfile || temDISC) && (
                 <div className="space-y-4">
                   <button
                     onClick={() => setShowDISCReport(!showDISCReport)}
@@ -442,13 +461,22 @@ export default function CurriculoCompletoModal({
                     )}
                   </button>
 
-                  {showDISCReport && (
+                  {showDISCReport && naturalProfile && (
                     <CurriculoDISCReport
                       naturalProfile={naturalProfile}
                       nomeCompleto={candidato.nome_completo || 'Profissional'}
                       confiabilidade={confiabilidade}
                       onAgendarEntrevista={onEnviarProposta ? () => onEnviarProposta(candidato.id) : undefined}
                     />
+                  )}
+
+                  {/* Fallback se não conseguiu gerar o profile */}
+                  {showDISCReport && !naturalProfile && candidato.perfil_disc && (
+                    <div className="bg-zinc-800/60 rounded-xl p-4 text-center">
+                      <p className="text-zinc-400">
+                        Perfil DISC: <span className="text-white font-bold text-xl">{candidato.perfil_disc}</span>
+                      </p>
+                    </div>
                   )}
                 </div>
               )}
