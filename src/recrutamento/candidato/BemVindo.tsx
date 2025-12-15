@@ -169,34 +169,38 @@ export default function BemVindo() {
         </div>
 
         {/* CTA */}
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto">
+          {/* Botão principal - Login */}
           <Button
-            onClick={handleComecar}
+            onClick={() => navigate('/recrutamento/candidato/login')}
             size="lg"
-            className="bg-gradient-to-r from-[#E31E24] to-[#B91C1C] hover:from-[#C91920] hover:to-[#991B1B] text-white font-bold text-lg px-10 py-7 rounded-xl shadow-2xl shadow-red-500/20 transition-all duration-300 hover:scale-105"
+            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-lg px-10 py-7 rounded-xl shadow-2xl shadow-green-500/20 transition-all duration-300 hover:scale-105"
           >
-            COMEÇAR MEU CADASTRO
+            ENTRAR NA MINHA CONTA
             <ArrowRight className="w-6 h-6 ml-2" />
           </Button>
 
-          <div className="flex items-center justify-center gap-2 mt-4 text-slate-400">
-            <Clock className="w-4 h-4" />
-            <span className="text-sm">Cadastro rápido em 30 segundos</span>
-          </div>
-
-          <p className="text-xs text-slate-500 mt-4">
+          <p className="text-xs text-slate-500 mt-3">
             Seus dados estão protegidos pela LGPD
           </p>
 
-          <p className="text-sm text-slate-400 mt-6">
-            Já tem uma conta?{' '}
+          {/* Destaque para cadastro */}
+          <div className="mt-6 p-5 bg-gradient-to-r from-[#E31E24]/10 to-[#003DA5]/10 rounded-xl border border-[#E31E24]/30">
+            <p className="text-white font-medium mb-2">
+              Ainda não tem conta?
+            </p>
             <button
-              onClick={() => navigate('/recrutamento/candidato/login')}
-              className="text-[#00D9FF] hover:underline"
+              onClick={handleComecar}
+              className="inline-flex items-center gap-2 text-[#00D9FF] hover:text-[#00D9FF]/80 font-semibold text-lg transition-colors"
             >
-              Fazer login
+              Faça seu cadastro aqui
+              <ArrowRight className="w-5 h-5" />
             </button>
-          </p>
+            <div className="flex items-center justify-center gap-2 mt-2 text-slate-500">
+              <Clock className="w-4 h-4" />
+              <span className="text-sm">Cadastro rápido em 30 segundos</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

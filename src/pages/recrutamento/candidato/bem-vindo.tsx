@@ -57,43 +57,33 @@ const CandidatoBemVindo = () => {
               Cadastre-se grátis e seja encontrado por empresas
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                <div>
-                  <p className="text-white font-medium">Cadastro 100% gratuito</p>
-                  <p className="text-slate-400 text-sm">Preencha suas informações em poucos minutos</p>
-                </div>
+          <CardContent className="space-y-5">
+            {/* Benefícios compactos */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                <span className="text-white text-sm">100% gratuito</span>
               </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                <div>
-                  <p className="text-white font-medium">Teste DISC incluído</p>
-                  <p className="text-slate-400 text-sm">Descubra seu perfil comportamental</p>
-                </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                <span className="text-white text-sm">Teste DISC</span>
               </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                <div>
-                  <p className="text-white font-medium">Empresas te encontram</p>
-                  <p className="text-slate-400 text-sm">Receba propostas de empresas interessadas</p>
-                </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                <span className="text-white text-sm">Match inteligente</span>
               </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                <div>
-                  <p className="text-white font-medium">Match inteligente</p>
-                  <p className="text-slate-400 text-sm">Conectamos você com vagas compatíveis</p>
-                </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                <span className="text-white text-sm">Propostas diretas</span>
               </div>
             </div>
 
+            {/* Botão principal - Login */}
             <Button
-              className="w-full bg-green-500 hover:bg-green-600 py-5 font-semibold"
-              onClick={() => navigate('/recrutamento/candidato/cadastro-rapido')}
+              className="w-full bg-green-500 hover:bg-green-600 py-6 font-semibold text-base"
+              onClick={() => navigate('/recrutamento/candidato/login')}
             >
-              Criar minha conta grátis <ArrowRight className="ml-2 w-4 h-4" />
+              Entrar na minha conta <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
 
             {/* Divisor */}
@@ -106,16 +96,20 @@ const CandidatoBemVindo = () => {
               </div>
             </div>
 
-            {/* Link login */}
-            <div className="text-center">
-              <p className="text-slate-400 text-sm">
-                Já tem conta?{' '}
-                <Link
-                  to="/recrutamento/candidato/login"
-                  className="text-green-400 hover:text-green-300 font-medium transition-colors"
-                >
-                  Fazer login
-                </Link>
+            {/* Link cadastro - Destacado */}
+            <div className="text-center p-4 bg-gradient-to-r from-[#E31E24]/10 to-[#003DA5]/10 rounded-xl border border-[#E31E24]/30">
+              <p className="text-white font-medium mb-2">
+                Ainda não tem conta?
+              </p>
+              <Link
+                to="/recrutamento/candidato/cadastro-rapido"
+                className="inline-flex items-center gap-2 text-[#00D9FF] hover:text-[#00D9FF]/80 font-semibold text-lg transition-colors"
+              >
+                Faça seu cadastro aqui
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              <p className="text-slate-500 text-xs mt-2">
+                Cadastro rápido em 30 segundos
               </p>
             </div>
           </CardContent>
