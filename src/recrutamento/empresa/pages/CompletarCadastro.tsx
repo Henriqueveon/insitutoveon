@@ -200,7 +200,7 @@ export default function CompletarCadastro() {
 
       // 1. Tentar usar RPC para completar cadastro (bypassa RLS)
       try {
-        const { data: rpcResult, error: rpcError } = await (supabase.rpc as any)('completar_cadastro_empresa', {
+        const { data: rpcResult, error: rpcError } = await (supabase.rpc as any)('completar_cadastro_empresa_v2', {
           p_empresa_id: empresa.id,
           p_socio_nome: form.socio_nome.trim(),
           p_socio_funcao: form.socio_funcao,

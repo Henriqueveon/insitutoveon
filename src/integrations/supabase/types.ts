@@ -663,6 +663,7 @@ export type Database = {
           aceite_termos_data: string | null
           auth_user_id: string | null
           bairro: string | null
+          cadastro_completo: boolean | null
           capital_social: number | null
           cartao_token: string | null
           cep: string | null
@@ -715,6 +716,7 @@ export type Database = {
           aceite_termos_data?: string | null
           auth_user_id?: string | null
           bairro?: string | null
+          cadastro_completo?: boolean | null
           capital_social?: number | null
           cartao_token?: string | null
           cep?: string | null
@@ -767,6 +769,7 @@ export type Database = {
           aceite_termos_data?: string | null
           auth_user_id?: string | null
           bairro?: string | null
+          cadastro_completo?: boolean | null
           capital_social?: number | null
           cartao_token?: string | null
           cep?: string | null
@@ -1987,6 +1990,16 @@ export type Database = {
           p_nome_fantasia?: string
           p_porte?: string
           p_segmento?: string
+        }
+        Returns: Json
+      }
+      completar_cadastro_empresa_v2: {
+        Args: {
+          p_empresa_id: string
+          p_senha?: string
+          p_socio_cpf?: string
+          p_socio_funcao?: string
+          p_socio_nome?: string
         }
         Returns: Json
       }
