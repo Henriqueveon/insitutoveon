@@ -184,9 +184,22 @@ export default function Candidatos() {
 
   // Excluir candidato
   const excluirCandidato = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este candidato?')) return;
+    if (!confirm('Tem certeza que deseja excluir este candidato? Esta ação não pode ser desfeita.')) return;
 
     try {
+      // 1. Primeiro deletar registros relacionados (solicitações de entrevista)
+      await supabase
+        .from('solicitacoes_entrevista')
+        .delete()
+        .eq('candidato_id', id);
+
+      // 2. Deletar indicações relacionadas
+      await supabase
+        .from('indicacoes_candidatos')
+        .delete()
+        .eq('candidato_id', id);
+
+      // 3. Agora deletar o candidato
       const { error } = await supabase
         .from('candidatos_recrutamento')
         .delete()
@@ -200,11 +213,11 @@ export default function Candidatos() {
       });
 
       fetchCandidatos();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao excluir candidato:', error);
       toast({
-        title: 'Erro',
-        description: 'Não foi possível excluir o candidato.',
+        title: 'Erro ao excluir',
+        description: error?.message || 'Não foi possível excluir o candidato. Verifique permissões.',
         variant: 'destructive',
       });
     }
