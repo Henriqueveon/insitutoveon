@@ -58,6 +58,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import CandidatoPerfilModal from '../components/CandidatoPerfilModal';
+import CurriculoCompletoModal from '../components/CurriculoCompletoModal';
 import ProfissionalCard, { calcularMatchSimples } from '../components/ProfissionalCard';
 import CadastroIncompletoModal from '../components/CadastroIncompletoModal';
 
@@ -198,6 +199,8 @@ export default function BuscarCandidatos() {
   const [candidatos, setCandidatos] = useState<Candidato[]>([]);
   const [candidatoSelecionado, setCandidatoSelecionado] = useState<Candidato | null>(null);
   const [modalAberto, setModalAberto] = useState(false);
+  const [modalCurriculoAberto, setModalCurriculoAberto] = useState(false);
+  const [candidatoIdCurriculo, setCandidatoIdCurriculo] = useState<string | null>(null);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [paginaAtual, setPaginaAtual] = useState(1);
@@ -563,6 +566,30 @@ export default function BuscarCandidatos() {
     setSearchParams({});
   };
 
+  // Funções para o modal de currículo completo
+  const abrirCurriculoCompleto = (candidatoId: string) => {
+    if (!empresa?.cadastro_completo) {
+      setShowCadastroIncompleto(true);
+      return;
+    }
+    setCandidatoIdCurriculo(candidatoId);
+    setModalCurriculoAberto(true);
+  };
+
+  const fecharCurriculoCompleto = () => {
+    setModalCurriculoAberto(false);
+    setCandidatoIdCurriculo(null);
+  };
+
+  const handleEnviarPropostaCurriculo = (candidatoId: string) => {
+    fecharCurriculoCompleto();
+    // Abrir o modal de proposta
+    const candidato = candidatos.find(c => c.id === candidatoId);
+    if (candidato) {
+      abrirPerfil(candidato);
+    }
+  };
+
   const limparFiltros = () => {
     setFiltros({
       busca: '',
@@ -784,11 +811,11 @@ export default function BuscarCandidatos() {
                 {/* Ações */}
                 <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-800 bg-zinc-900/50">
                   <button
-                    onClick={() => abrirPerfil(candidato)}
+                    onClick={() => abrirCurriculoCompleto(candidato.id)}
                     className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors text-sm"
                   >
                     <Eye className="w-4 h-4" />
-                    Ver perfil
+                    Ver currículo
                   </button>
                   <Button
                     onClick={() => {
@@ -1148,7 +1175,7 @@ export default function BuscarCandidatos() {
         </SheetContent>
       </Sheet>
 
-      {/* Modal de Perfil */}
+      {/* Modal de Perfil (para enviar proposta) */}
       <CandidatoPerfilModal
         candidato={candidatoSelecionado as any}
         isOpen={modalAberto}
@@ -1156,6 +1183,15 @@ export default function BuscarCandidatos() {
         empresa={empresa}
         isFavorito={candidatoSelecionado ? favoritos.includes(candidatoSelecionado.id) : false}
         onToggleFavorito={toggleFavorito}
+      />
+
+      {/* Modal de Currículo Completo com DISC */}
+      <CurriculoCompletoModal
+        candidatoId={candidatoIdCurriculo}
+        isOpen={modalCurriculoAberto}
+        onClose={fecharCurriculoCompleto}
+        empresa={empresa}
+        onEnviarProposta={handleEnviarPropostaCurriculo}
       />
 
       {/* Modal Cadastro Incompleto */}

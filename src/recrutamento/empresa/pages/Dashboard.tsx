@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import SecaoIndicacao from '../components/SecaoIndicacao';
 import LinkRecrutamento from '../components/LinkRecrutamento';
-import CandidatoPerfilModal from '../components/CandidatoPerfilModal';
+import CurriculoCompletoModal from '../components/CurriculoCompletoModal';
 
 interface Empresa {
   id: string;
@@ -89,9 +89,9 @@ export default function EmpresaDashboard() {
   const [atividades, setAtividades] = useState<Atividade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Estados para o modal de perfil
-  const [candidatoSelecionado, setCandidatoSelecionado] = useState<any>(null);
-  const [modalAberto, setModalAberto] = useState(false);
+  // Estados para o modal de currículo completo
+  const [candidatoIdSelecionado, setCandidatoIdSelecionado] = useState<string | null>(null);
+  const [modalCurriculoAberto, setModalCurriculoAberto] = useState(false);
   const [favoritos, setFavoritos] = useState<string[]>([]);
 
   useEffect(() => {
@@ -221,28 +221,20 @@ export default function EmpresaDashboard() {
 
   const primeiroNome = empresa?.socio_nome?.split(' ')[0] || empresa?.nome_fantasia || 'Empresa';
 
-  // Função para abrir o perfil completo do candidato
-  const abrirPerfil = async (candidato: CandidatoMatch) => {
-    try {
-      // Buscar dados completos do candidato
-      const { data } = await supabase
-        .from('candidatos_recrutamento')
-        .select('*')
-        .eq('id', candidato.id)
-        .single();
-
-      if (data) {
-        setCandidatoSelecionado(data);
-        setModalAberto(true);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar perfil:', error);
-    }
+  // Função para abrir o currículo completo do candidato
+  const abrirCurriculo = (candidatoId: string) => {
+    setCandidatoIdSelecionado(candidatoId);
+    setModalCurriculoAberto(true);
   };
 
-  const fecharModal = () => {
-    setModalAberto(false);
-    setCandidatoSelecionado(null);
+  const fecharModalCurriculo = () => {
+    setModalCurriculoAberto(false);
+    setCandidatoIdSelecionado(null);
+  };
+
+  const handleEnviarProposta = (candidatoId: string) => {
+    fecharModalCurriculo();
+    navigate(`/recrutamento/empresa/buscar-candidatos?candidato=${candidatoId}`);
   };
 
   const toggleFavorito = (id: string) => {
@@ -473,7 +465,7 @@ export default function EmpresaDashboard() {
                       <Heart className={`w-5 h-5 ${favoritos.includes(candidato.id) ? 'fill-current' : ''}`} />
                     </button>
                     <button
-                      onClick={() => abrirPerfil(candidato)}
+                      onClick={() => abrirCurriculo(candidato.id)}
                       className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors active:scale-95"
                     >
                       <Eye className="w-5 h-5" />
@@ -575,14 +567,13 @@ export default function EmpresaDashboard() {
         </div>
       </div>
 
-      {/* Modal de Perfil do Candidato */}
-      <CandidatoPerfilModal
-        candidato={candidatoSelecionado}
-        isOpen={modalAberto}
-        onClose={fecharModal}
+      {/* Modal de Currículo Completo com DISC */}
+      <CurriculoCompletoModal
+        candidatoId={candidatoIdSelecionado}
+        isOpen={modalCurriculoAberto}
+        onClose={fecharModalCurriculo}
         empresa={empresa}
-        isFavorito={candidatoSelecionado ? favoritos.includes(candidatoSelecionado.id) : false}
-        onToggleFavorito={toggleFavorito}
+        onEnviarProposta={handleEnviarProposta}
       />
     </div>
   );
