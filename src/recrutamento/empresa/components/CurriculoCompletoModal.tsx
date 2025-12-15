@@ -181,59 +181,6 @@ export default function CurriculoCompletoModal({
     return disps[disp] || disp;
   };
 
-  // Gerar perfil DISC a partir dos dados
-  const getNaturalProfile = (): Profile | null => {
-    if (!candidato) return null;
-
-    // Se tem perfil_natural no banco (pode ser objeto ou string JSON)
-    if (candidato.perfil_natural) {
-      let pn = candidato.perfil_natural;
-
-      // Se for string, converter para objeto
-      if (typeof pn === 'string') {
-        try {
-          pn = JSON.parse(pn);
-        } catch (e) {
-          console.error('Erro ao parsear perfil_natural:', e);
-        }
-      }
-
-      if (typeof pn === 'object' && pn !== null) {
-        return {
-          D: Number(pn.D ?? pn.d ?? 10),
-          I: Number(pn.I ?? pn.i ?? 10),
-          S: Number(pn.S ?? pn.s ?? 10),
-          C: Number(pn.C ?? pn.c ?? 10),
-        };
-      }
-    }
-
-    // Gerar a partir do perfil_disc (sempre gera se tiver perfil_disc)
-    if (candidato.perfil_disc) {
-      const discStr = String(candidato.perfil_disc).toUpperCase();
-      const primary = discStr.charAt(0) as 'D' | 'I' | 'S' | 'C';
-      const secondary = discStr.charAt(1) as 'D' | 'I' | 'S' | 'C' | undefined;
-
-      const profile: Profile = { D: 5, I: 5, S: 5, C: 5 };
-
-      if (['D', 'I', 'S', 'C'].includes(primary)) {
-        profile[primary] = 20;
-      }
-
-      if (secondary && ['D', 'I', 'S', 'C'].includes(secondary)) {
-        profile[secondary] = 12;
-      }
-
-      return profile;
-    }
-
-    return null;
-  };
-
-  const naturalProfile = getNaturalProfile();
-
-  // Debug - verificar se temos os dados necessários
-  const temDISC = candidato?.perfil_disc || candidato?.perfil_natural;
   const primeiroNome = candidato?.nome_completo?.split(' ')[0] || 'Profissional';
 
   if (!isOpen) return null;
@@ -438,48 +385,83 @@ export default function CurriculoCompletoModal({
                 </div>
               )}
 
-              {/* Relatório DISC Completo - Sempre mostrar se tiver perfil DISC */}
-              {(naturalProfile || temDISC) && (
-                <div className="space-y-4">
-                  <button
-                    onClick={() => setShowDISCReport(!showDISCReport)}
-                    className="w-full flex items-center justify-between bg-gradient-to-r from-[#E31E24]/20 to-[#003DA5]/20 border border-[#E31E24]/30 rounded-2xl p-4 text-left hover:border-[#E31E24]/50 transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#E31E24] to-[#003DA5] flex items-center justify-center">
-                        <Brain className="w-6 h-6 text-white" />
+              {/* Relatório DISC Completo - MESMA LÓGICA do painel do candidato */}
+              {(candidato.perfil_natural || candidato.perfil_disc) && (() => {
+                // Gerar perfil a partir do perfil_disc se não tiver perfil_natural
+                const getProfileFromDisc = (disc: string): Profile => {
+                  const primary = disc.charAt(0) as 'D' | 'I' | 'S' | 'C';
+                  const secondary = disc.charAt(1) as 'D' | 'I' | 'S' | 'C' | undefined;
+
+                  // Valores base padrão
+                  const profile: Profile = { D: 5, I: 5, S: 5, C: 5 };
+
+                  // Aumentar valor do perfil primário
+                  profile[primary] = 20;
+
+                  // Aumentar valor do perfil secundário se existir
+                  if (secondary && ['D', 'I', 'S', 'C'].includes(secondary)) {
+                    profile[secondary] = 12;
+                  }
+
+                  return profile;
+                };
+
+                // Converter Record<string, number> para Profile
+                const convertToProfile = (data: any): Profile | null => {
+                  if (!data) return null;
+                  // Se for string, tentar parsear
+                  if (typeof data === 'string') {
+                    try {
+                      data = JSON.parse(data);
+                    } catch (e) {
+                      return null;
+                    }
+                  }
+                  if (typeof data !== 'object') return null;
+                  return {
+                    D: data.D ?? data.d ?? 10,
+                    I: data.I ?? data.i ?? 10,
+                    S: data.S ?? data.s ?? 10,
+                    C: data.C ?? data.c ?? 10,
+                  };
+                };
+
+                const discProfile: Profile = convertToProfile(candidato.perfil_natural) ||
+                  (candidato.perfil_disc ? getProfileFromDisc(candidato.perfil_disc) : { D: 10, I: 10, S: 10, C: 10 });
+
+                return (
+                  <div className="space-y-4">
+                    <button
+                      onClick={() => setShowDISCReport(!showDISCReport)}
+                      className="w-full flex items-center justify-between bg-gradient-to-r from-[#E31E24]/20 to-[#003DA5]/20 border border-[#E31E24]/30 rounded-2xl p-4 text-left hover:border-[#E31E24]/50 transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#E31E24] to-[#003DA5] flex items-center justify-center">
+                          <Brain className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-white font-bold text-lg">Relatório DISC Completo</h3>
+                          <p className="text-zinc-400 text-sm">Análise comportamental detalhada</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-white font-bold text-lg">Relatório DISC Completo</h3>
-                        <p className="text-zinc-400 text-sm">Análise comportamental detalhada</p>
-                      </div>
-                    </div>
-                    {showDISCReport ? (
-                      <ChevronUp className="w-6 h-6 text-white/70" />
-                    ) : (
-                      <ChevronDown className="w-6 h-6 text-white/70" />
+                      {showDISCReport ? (
+                        <ChevronUp className="w-6 h-6 text-white/70" />
+                      ) : (
+                        <ChevronDown className="w-6 h-6 text-white/70" />
+                      )}
+                    </button>
+
+                    {showDISCReport && (
+                      <CurriculoDISCReport
+                        naturalProfile={discProfile}
+                        nomeCompleto={candidato.nome_completo || 'Profissional'}
+                        confiabilidade={confiabilidade}
+                        onAgendarEntrevista={onEnviarProposta ? () => onEnviarProposta(candidato.id) : undefined}
+                      />
                     )}
-                  </button>
-
-                  {showDISCReport && naturalProfile && (
-                    <CurriculoDISCReport
-                      naturalProfile={naturalProfile}
-                      nomeCompleto={candidato.nome_completo || 'Profissional'}
-                      confiabilidade={confiabilidade}
-                      onAgendarEntrevista={onEnviarProposta ? () => onEnviarProposta(candidato.id) : undefined}
-                    />
-                  )}
-
-                  {/* Fallback se não conseguiu gerar o profile */}
-                  {showDISCReport && !naturalProfile && candidato.perfil_disc && (
-                    <div className="bg-zinc-800/60 rounded-xl p-4 text-center">
-                      <p className="text-zinc-400">
-                        Perfil DISC: <span className="text-white font-bold text-xl">{candidato.perfil_disc}</span>
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Footer fixo com botão de proposta - compacto */}
