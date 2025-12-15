@@ -58,7 +58,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import CandidatoPerfilModal from '../components/CandidatoPerfilModal';
-import CurriculoCompletoModal from '../components/CurriculoCompletoModal';
+// CurriculoCompletoModal removido - agora usa página dedicada
 import ProfissionalCard, { calcularMatchSimples } from '../components/ProfissionalCard';
 import CadastroIncompletoModal from '../components/CadastroIncompletoModal';
 
@@ -199,8 +199,7 @@ export default function BuscarCandidatos() {
   const [candidatos, setCandidatos] = useState<Candidato[]>([]);
   const [candidatoSelecionado, setCandidatoSelecionado] = useState<Candidato | null>(null);
   const [modalAberto, setModalAberto] = useState(false);
-  const [modalCurriculoAberto, setModalCurriculoAberto] = useState(false);
-  const [candidatoIdCurriculo, setCandidatoIdCurriculo] = useState<string | null>(null);
+  // Estados do modal removidos - agora usa página dedicada
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [paginaAtual, setPaginaAtual] = useState(1);
@@ -566,28 +565,13 @@ export default function BuscarCandidatos() {
     setSearchParams({});
   };
 
-  // Funções para o modal de currículo completo
+  // Função para abrir currículo completo - agora navega para página dedicada
   const abrirCurriculoCompleto = (candidatoId: string) => {
     if (!empresa?.cadastro_completo) {
       setShowCadastroIncompleto(true);
       return;
     }
-    setCandidatoIdCurriculo(candidatoId);
-    setModalCurriculoAberto(true);
-  };
-
-  const fecharCurriculoCompleto = () => {
-    setModalCurriculoAberto(false);
-    setCandidatoIdCurriculo(null);
-  };
-
-  const handleEnviarPropostaCurriculo = (candidatoId: string) => {
-    fecharCurriculoCompleto();
-    // Abrir o modal de proposta
-    const candidato = candidatos.find(c => c.id === candidatoId);
-    if (candidato) {
-      abrirPerfil(candidato);
-    }
+    navigate(`/recrutamento/empresa/candidato/${candidatoId}`);
   };
 
   const limparFiltros = () => {
@@ -1183,15 +1167,6 @@ export default function BuscarCandidatos() {
         empresa={empresa}
         isFavorito={candidatoSelecionado ? favoritos.includes(candidatoSelecionado.id) : false}
         onToggleFavorito={toggleFavorito}
-      />
-
-      {/* Modal de Currículo Completo com DISC */}
-      <CurriculoCompletoModal
-        candidatoId={candidatoIdCurriculo}
-        isOpen={modalCurriculoAberto}
-        onClose={fecharCurriculoCompleto}
-        empresa={empresa}
-        onEnviarProposta={handleEnviarPropostaCurriculo}
       />
 
       {/* Modal Cadastro Incompleto */}

@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import SecaoIndicacao from '../components/SecaoIndicacao';
 import LinkRecrutamento from '../components/LinkRecrutamento';
-import CurriculoCompletoModal from '../components/CurriculoCompletoModal';
+// CurriculoCompletoModal removido - agora usa página dedicada
 
 interface Empresa {
   id: string;
@@ -89,9 +89,7 @@ export default function EmpresaDashboard() {
   const [atividades, setAtividades] = useState<Atividade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Estados para o modal de currículo completo
-  const [candidatoIdSelecionado, setCandidatoIdSelecionado] = useState<string | null>(null);
-  const [modalCurriculoAberto, setModalCurriculoAberto] = useState(false);
+  // Estado de favoritos
   const [favoritos, setFavoritos] = useState<string[]>([]);
 
   useEffect(() => {
@@ -222,19 +220,9 @@ export default function EmpresaDashboard() {
   const primeiroNome = empresa?.socio_nome?.split(' ')[0] || empresa?.nome_fantasia || 'Empresa';
 
   // Função para abrir o currículo completo do candidato
+  // Função para abrir currículo - agora navega para página dedicada
   const abrirCurriculo = (candidatoId: string) => {
-    setCandidatoIdSelecionado(candidatoId);
-    setModalCurriculoAberto(true);
-  };
-
-  const fecharModalCurriculo = () => {
-    setModalCurriculoAberto(false);
-    setCandidatoIdSelecionado(null);
-  };
-
-  const handleEnviarProposta = (candidatoId: string) => {
-    fecharModalCurriculo();
-    navigate(`/recrutamento/empresa/buscar-candidatos?candidato=${candidatoId}`);
+    navigate(`/recrutamento/empresa/candidato/${candidatoId}`);
   };
 
   const toggleFavorito = (id: string) => {
@@ -567,14 +555,6 @@ export default function EmpresaDashboard() {
         </div>
       </div>
 
-      {/* Modal de Currículo Completo com DISC */}
-      <CurriculoCompletoModal
-        candidatoId={candidatoIdSelecionado}
-        isOpen={modalCurriculoAberto}
-        onClose={fecharModalCurriculo}
-        empresa={empresa}
-        onEnviarProposta={handleEnviarProposta}
-      />
     </div>
   );
 }

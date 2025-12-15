@@ -12,3 +12,4 @@ export { default as Configuracoes } from './Configuracoes';
 export { default as NotificacoesEmpresa } from './Notificacoes';
 export { default as SobreEmpresa } from './SobreEmpresa';
 export { default as EmpresaCompletarCadastro } from './CompletarCadastro';
+export { default as VerCurriculoCandidato } from './VerCurriculoCandidato';

@@ -76,6 +76,7 @@ import {
   NotificacoesEmpresa,
   SobreEmpresa,
   EmpresaCompletarCadastro,
+  VerCurriculoCandidato,
 } from "./recrutamento/empresa/pages";
 
 // Área de Recrutamento - Candidato (Cadastro)
@@ -198,6 +199,7 @@ const App = () => (
                 <Route path="/recrutamento/empresa/cadastro" element={<EmpresaCadastro />} />
                 <Route path="/recrutamento/empresa/cadastro-rapido" element={<EmpresaCadastroRapido />} />
                 <Route path="/recrutamento/empresa/recuperar-senha" element={<EmpresaRecuperarSenha />} />
+                <Route path="/recrutamento/empresa/candidato/:candidatoId" element={<VerCurriculoCandidato />} />
                 <Route path="/recrutamento/empresa" element={<EmpresaLayout />}>
                   <Route index element={<Navigate to="/recrutamento/empresa/dashboard" replace />} />
                   <Route path="dashboard" element={<EmpresaDashboard />} />

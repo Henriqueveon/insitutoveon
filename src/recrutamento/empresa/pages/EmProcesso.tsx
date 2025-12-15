@@ -4,7 +4,7 @@
 // =====================================================
 
 import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -53,7 +53,7 @@ import {
   Play,
   Mail,
 } from 'lucide-react';
-import CurriculoCompletoModal from '../components/CurriculoCompletoModal';
+// CurriculoCompletoModal removido - agora usa página dedicada
 
 interface Empresa {
   id: string;
@@ -101,6 +101,7 @@ const DISC_COLORS: Record<string, { bg: string; text: string }> = {
 
 export default function EmProcesso() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { empresa, recarregarEmpresa } = useOutletContext<{
     empresa: Empresa | null;
     recarregarEmpresa: () => void;
@@ -129,18 +130,9 @@ export default function EmProcesso() {
   // Contatos desbloqueados
   const [contatoDesbloqueado, setContatoDesbloqueado] = useState<string[]>([]);
 
-  // Modal de currículo completo
-  const [modalCurriculoAberto, setModalCurriculoAberto] = useState(false);
-  const [candidatoIdCurriculo, setCandidatoIdCurriculo] = useState<string | null>(null);
-
+  // Função para abrir currículo - agora navega para página dedicada
   const abrirCurriculo = (candidatoId: string) => {
-    setCandidatoIdCurriculo(candidatoId);
-    setModalCurriculoAberto(true);
-  };
-
-  const fecharCurriculo = () => {
-    setModalCurriculoAberto(false);
-    setCandidatoIdCurriculo(null);
+    navigate(`/recrutamento/empresa/candidato/${candidatoId}`);
   };
 
   useEffect(() => {
@@ -882,13 +874,6 @@ export default function EmProcesso() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Currículo Completo com DISC */}
-      <CurriculoCompletoModal
-        candidatoId={candidatoIdCurriculo}
-        isOpen={modalCurriculoAberto}
-        onClose={fecharCurriculo}
-        empresa={empresa}
-      />
     </div>
   );
 }
