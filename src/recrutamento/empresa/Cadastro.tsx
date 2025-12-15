@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { buscarCNPJ, formatarCNPJ, validarCNPJ } from '../services/cnpjService';
 import { CNPJResponse } from '../types/recrutamento.types';
+import { obterMensagemErro } from '../utils/traduzirErro';
 
 // URL base das Edge Functions do Supabase
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://xpvbwmtkvomccnnqzyqe.supabase.co';
@@ -543,7 +544,7 @@ export default function EmpresaCadastro() {
       console.error('Erro no cadastro:', error);
       toast({
         title: 'Erro no cadastro',
-        description: error instanceof Error ? error.message : 'Erro ao cadastrar empresa. Tente novamente.',
+        description: obterMensagemErro(error),
         variant: 'destructive',
       });
     } finally {

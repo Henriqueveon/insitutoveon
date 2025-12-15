@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Loader2, Building2, User, ArrowRight } from 'lucide-react';
+import { obterMensagemErro } from '../utils/traduzirErro';
 
 export default function EmpresaLogin() {
   const navigate = useNavigate();
@@ -140,7 +141,7 @@ export default function EmpresaLogin() {
       console.error('Erro no login:', error);
       toast({
         title: 'Erro ao entrar',
-        description: error instanceof Error ? error.message : 'Verifique suas credenciais.',
+        description: obterMensagemErro(error),
         variant: 'destructive',
       });
     } finally {

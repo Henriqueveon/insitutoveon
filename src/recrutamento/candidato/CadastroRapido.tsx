@@ -29,6 +29,7 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react';
+import { obterMensagemErro } from '../utils/traduzirErro';
 
 // Máscara para telefone
 const aplicarMascaraTelefone = (value: string) => {
@@ -289,7 +290,7 @@ export default function CadastroRapido() {
       console.error('Erro ao criar cadastro:', error);
       toast({
         title: 'Não foi possível criar sua conta',
-        description: error instanceof Error ? error.message : 'Verifique os dados e tente novamente.',
+        description: obterMensagemErro(error),
         variant: 'destructive',
       });
     } finally {

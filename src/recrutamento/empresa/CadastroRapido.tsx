@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { buscarCNPJ, formatarCNPJ, validarCNPJ } from '../services/cnpjService';
 import { CNPJResponse } from '../types/recrutamento.types';
+import { obterMensagemErro } from '../utils/traduzirErro';
 
 // Máscaras
 const aplicarMascaraCNPJ = (value: string) => {
@@ -210,7 +211,7 @@ export default function CadastroRapido() {
       console.error('Erro ao criar cadastro:', error);
       toast({
         title: 'Erro ao cadastrar',
-        description: error instanceof Error ? error.message : 'Tente novamente.',
+        description: obterMensagemErro(error),
         variant: 'destructive',
       });
     } finally {

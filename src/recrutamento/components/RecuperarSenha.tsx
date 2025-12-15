@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Mail, ArrowLeft, CheckCircle, Building2, User } from 'lucide-react';
+import { obterMensagemErro } from '../utils/traduzirErro';
 
 interface RecuperarSenhaProps {
   tipo: 'empresa' | 'candidato';
@@ -79,7 +80,7 @@ export default function RecuperarSenha({ tipo }: RecuperarSenhaProps) {
       console.error('Erro ao recuperar senha:', error);
       toast({
         title: 'Erro',
-        description: error instanceof Error ? error.message : 'Tente novamente.',
+        description: obterMensagemErro(error),
         variant: 'destructive',
       });
     } finally {

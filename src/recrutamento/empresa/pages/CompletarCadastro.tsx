@@ -33,6 +33,7 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react';
+import { obterMensagemErro } from '../../utils/traduzirErro';
 
 interface Empresa {
   id: string;
@@ -254,7 +255,7 @@ export default function CompletarCadastro() {
       console.error('Erro ao salvar:', error);
       toast({
         title: 'Erro ao salvar',
-        description: error instanceof Error ? error.message : 'Não foi possível completar o cadastro.',
+        description: obterMensagemErro(error),
         variant: 'destructive',
       });
     } finally {
