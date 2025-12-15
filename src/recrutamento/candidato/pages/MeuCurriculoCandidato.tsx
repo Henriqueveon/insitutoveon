@@ -135,23 +135,13 @@ export default function MeuCurriculoCandidato() {
       // Gerar link de compartilhamento
       setLinkCompartilhamento(`${window.location.origin}/c/${data.id.substring(0, 8)}`);
 
-      // Buscar dados de confiabilidade do teste DISC pelo email
-      if (data.email) {
-        const { data: discData } = await supabase
-          .from('candidatos_disc')
-          .select('confiabilidade_score, confiabilidade_nivel, flags_detectadas')
-          .eq('email', data.email)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-
-        if (discData) {
-          setConfiabilidade({
-            score: discData.confiabilidade_score,
-            nivel: discData.confiabilidade_nivel,
-            flags: discData.flags_detectadas as string[] | null,
-          });
-        }
+      // Usar dados de confiabilidade diretamente do candidatos_recrutamento
+      if (data.confiabilidade_score !== null) {
+        setConfiabilidade({
+          score: data.confiabilidade_score,
+          nivel: data.confiabilidade_nivel,
+          flags: data.confiabilidade_flags as string[] | null,
+        });
       }
     } catch (error) {
       console.error('Erro ao carregar:', error);

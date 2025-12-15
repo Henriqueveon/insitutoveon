@@ -32,7 +32,7 @@ export default function DiscConcluido() {
     recarregarCandidato: () => void;
   }>();
 
-  const { naturalProfile, resetAssessment } = useAssessment();
+  const { naturalProfile, resetAssessment, calculateReliabilityScore, reliabilityResult } = useAssessment();
   const [perfilSalvo, setPerfilSalvo] = useState(false);
   const [perfilInfo, setPerfilInfo] = useState<{
     tipo: string;
@@ -68,7 +68,11 @@ export default function DiscConcluido() {
           naturalProfile.C
         );
 
-        // Atualizar candidato com perfil DISC e status disponivel (ONLINE)
+        // Calcular score de confiabilidade
+        const reliability = calculateReliabilityScore();
+        console.log('📊 Confiabilidade calculada:', reliability);
+
+        // Atualizar candidato com perfil DISC, confiabilidade e status disponivel (ONLINE)
         const { error } = await supabase
           .from('candidatos_recrutamento')
           .update({
@@ -80,6 +84,10 @@ export default function DiscConcluido() {
               S: naturalProfile.S,
               C: naturalProfile.C,
             },
+            // Salvar dados de confiabilidade
+            confiabilidade_score: reliability?.score ?? null,
+            confiabilidade_nivel: reliability?.nivel ?? null,
+            confiabilidade_flags: reliability?.warnings ?? [],
           })
           .eq('id', candidato.id);
 
@@ -87,6 +95,7 @@ export default function DiscConcluido() {
           console.error('Erro ao salvar perfil DISC:', error);
         } else {
           console.log('✅ Perfil DISC salvo e candidato está ONLINE!');
+          console.log('✅ Confiabilidade:', reliability?.nivel, reliability?.score);
           setPerfilInfo({
             tipo: perfilTipo,
             nome: profile.nome,
@@ -103,7 +112,7 @@ export default function DiscConcluido() {
     };
 
     salvarPerfil();
-  }, [candidato?.id, naturalProfile, perfilSalvo, recarregarCandidato]);
+  }, [candidato?.id, naturalProfile, perfilSalvo, recarregarCandidato, calculateReliabilityScore]);
 
   const handleVoltar = () => {
     resetAssessment();
