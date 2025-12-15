@@ -221,59 +221,46 @@ export default function CurriculoCompletoModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[95vh] overflow-hidden bg-zinc-900 border-zinc-700 p-0">
+      <DialogContent className="w-[95vw] max-w-2xl h-[85vh] max-h-[700px] overflow-hidden bg-zinc-900 border-zinc-700 p-0 rounded-2xl my-auto">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-[#E31E24]" />
           </div>
         ) : candidato ? (
-          <div className="flex flex-col max-h-[95vh]">
-            {/* Header fixo */}
-            <div className="bg-gradient-to-r from-[#E31E24]/20 to-[#003DA5]/20 p-4 border-b border-zinc-800 flex-shrink-0">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-white">Currículo Profissional</h2>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setIsFavorito(!isFavorito)}
-                    className={`p-2 rounded-full transition-colors ${isFavorito ? 'text-red-500' : 'text-zinc-400 hover:text-red-400'}`}
-                  >
-                    <Heart className={`w-5 h-5 ${isFavorito ? 'fill-current' : ''}`} />
-                  </button>
-                  <button
-                    onClick={onClose}
-                    className="p-2 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16 border-2 border-white/20">
+          <div className="flex flex-col h-full">
+            {/* Header fixo - compacto para mobile */}
+            <div className="bg-gradient-to-r from-[#E31E24]/20 to-[#003DA5]/20 p-3 border-b border-zinc-800 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-12 w-12 border-2 border-white/20 flex-shrink-0">
                   <AvatarImage src={candidato.foto_url || undefined} />
-                  <AvatarFallback className="bg-zinc-700 text-white text-xl">
+                  <AvatarFallback className="bg-zinc-700 text-white text-lg">
                     {primeiroNome.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-white">{primeiroNome}</h3>
-                  <p className="text-zinc-400 flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-bold text-white truncate">{primeiroNome}</h3>
+                  <p className="text-zinc-400 text-sm flex items-center gap-1 truncate">
+                    <MapPin className="w-3 h-3 flex-shrink-0" />
                     {candidato.cidade || 'Não informado'}, {candidato.estado || ''}
                     {candidato.data_nascimento && ` • ${calcularIdade(candidato.data_nascimento)} anos`}
                   </p>
                 </div>
                 {candidato.perfil_disc && (
-                  <div className={`w-14 h-14 rounded-xl ${getCorPerfil(candidato.perfil_disc)} flex flex-col items-center justify-center`}>
-                    <span className="text-xl font-bold text-white">{candidato.perfil_disc}</span>
-                    <span className="text-[10px] text-white/80">{getNomePerfil(candidato.perfil_disc)?.slice(0, 3)}</span>
+                  <div className={`w-11 h-11 rounded-lg ${getCorPerfil(candidato.perfil_disc)} flex flex-col items-center justify-center flex-shrink-0`}>
+                    <span className="text-lg font-bold text-white">{candidato.perfil_disc}</span>
                   </div>
                 )}
+                <button
+                  onClick={onClose}
+                  className="p-2 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 flex-shrink-0"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
             </div>
 
             {/* Conteúdo scrollável */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
               {/* Objetivo */}
               {candidato.objetivo_profissional && (
                 <div className="bg-zinc-800/60 rounded-xl p-4">
@@ -467,14 +454,14 @@ export default function CurriculoCompletoModal({
               )}
             </div>
 
-            {/* Footer fixo com botão de proposta */}
-            <div className="p-4 border-t border-zinc-800 bg-zinc-900 flex-shrink-0">
+            {/* Footer fixo com botão de proposta - compacto */}
+            <div className="p-3 border-t border-zinc-800 bg-zinc-900 flex-shrink-0 safe-area-bottom">
               <Button
                 onClick={() => onEnviarProposta?.(candidato.id)}
-                className="w-full h-12 bg-gradient-to-r from-[#E31E24] to-[#003DA5] text-white font-bold rounded-xl hover:opacity-90"
+                className="w-full h-11 bg-gradient-to-r from-[#E31E24] to-[#003DA5] text-white font-bold rounded-xl hover:opacity-90"
               >
-                <Send className="w-5 h-5 mr-2" />
-                Enviar Proposta para {primeiroNome}
+                <Send className="w-4 h-4 mr-2" />
+                Enviar Proposta
               </Button>
             </div>
           </div>
