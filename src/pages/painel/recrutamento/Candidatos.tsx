@@ -182,34 +182,29 @@ export default function Candidatos() {
     });
   };
 
-  // Excluir candidato
+  // Excluir candidato usando RPC para garantir exclusão de dependências
   const excluirCandidato = async (id: string) => {
     if (!confirm('Tem certeza que deseja excluir este candidato? Esta ação não pode ser desfeita.')) return;
 
     try {
-      // 1. Primeiro deletar registros relacionados (solicitações de entrevista)
-      await supabase
-        .from('solicitacoes_entrevista')
-        .delete()
-        .eq('candidato_id', id);
-
-      // 2. Deletar indicações relacionadas
-      await supabase
-        .from('indicacoes_candidatos')
-        .delete()
-        .eq('candidato_id', id);
-
-      // 3. Agora deletar o candidato
-      const { error } = await supabase
-        .from('candidatos_recrutamento')
-        .delete()
-        .eq('id', id);
+      // Usar função RPC que deleta candidato e todas as dependências
+      const { data, error } = await supabase.rpc('delete_candidato_completo', {
+        p_candidato_id: id
+      });
 
       if (error) throw error;
 
+      const result = data as { success: boolean; error?: string; candidato_nome?: string } | null;
+
+      if (result && !result.success) {
+        throw new Error(result.error || 'Erro ao excluir candidato');
+      }
+
       toast({
         title: 'Candidato excluído',
-        description: 'O candidato foi excluído com sucesso.',
+        description: result?.candidato_nome 
+          ? `${result.candidato_nome} foi excluído com sucesso.`
+          : 'O candidato foi excluído com sucesso.',
       });
 
       fetchCandidatos();
@@ -217,7 +212,7 @@ export default function Candidatos() {
       console.error('Erro ao excluir candidato:', error);
       toast({
         title: 'Erro ao excluir',
-        description: error?.message || 'Não foi possível excluir o candidato. Verifique permissões.',
+        description: error?.message || 'Não foi possível excluir o candidato.',
         variant: 'destructive',
       });
     }
