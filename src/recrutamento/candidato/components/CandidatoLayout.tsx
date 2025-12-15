@@ -1,6 +1,6 @@
 // =====================================================
 // LAYOUT CANDIDATO - Área de Recrutamento VEON
-// Mobile-first com menu inferior
+// Design Instagram-like com contraste otimizado
 // =====================================================
 
 import { useState, useEffect } from 'react';
@@ -21,10 +21,9 @@ import {
   Home,
   Mail,
   FileText,
-  Settings,
-  LogOut,
-  ChevronRight,
   User,
+  LogOut,
+  Settings,
 } from 'lucide-react';
 import NotificationBell from '@/components/recrutamento/NotificationBell';
 import { StatusBadge } from './StatusIndicador';
@@ -132,37 +131,35 @@ export default function CandidatoLayout() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E31E24]" />
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-[#E31E24]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-40 h-16 bg-slate-800/95 backdrop-blur border-b border-slate-700">
-        <div className="flex items-center justify-between h-full px-4">
-          {/* Saudação */}
-          <div className="flex items-center space-x-3">
-            <Avatar className="h-10 w-10">
+    <div className="min-h-screen bg-black flex flex-col">
+      {/* Header - Instagram Style */}
+      <header className="sticky top-0 z-40 bg-black/95 backdrop-blur-xl border-b border-white/10">
+        <div className="flex items-center justify-between h-14 px-4">
+          {/* Logo e Saudação */}
+          <div className="flex items-center gap-3">
+            <Avatar className="h-9 w-9 ring-2 ring-[#E31E24] ring-offset-2 ring-offset-black">
               <AvatarImage src={candidato?.foto_url || undefined} />
-              <AvatarFallback className="bg-[#E31E24] text-white">
-                {candidato?.nome_completo?.charAt(0) || 'C'}
+              <AvatarFallback className="bg-gradient-to-br from-[#E31E24] to-[#003DA5] text-white font-bold text-sm">
+                {candidato?.nome_completo?.charAt(0) || 'V'}
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sm text-white font-medium">
-                Olá, {candidato?.nome_completo?.split(' ')[0]}!
+              <p className="text-white font-semibold text-base leading-tight">
+                {candidato?.nome_completo?.split(' ')[0]}
               </p>
-              {/* Status Badge - OFF/Disponível */}
               {candidato && <StatusBadge candidato={candidato} />}
             </div>
           </div>
 
-          {/* Ações */}
-          <div className="flex items-center space-x-2">
-            {/* Notificações */}
+          {/* Ações - Maiores para touch */}
+          <div className="flex items-center gap-1">
             {candidato && (
               <NotificationBell
                 usuarioId={candidato.id}
@@ -171,33 +168,31 @@ export default function CandidatoLayout() {
               />
             )}
 
-            {/* Menu do usuário */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
+                <Button variant="ghost" size="icon" className="h-10 w-10 text-white/70 hover:text-white hover:bg-white/10">
                   <User className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-slate-800 border-slate-700">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium text-white">{candidato?.nome_completo}</p>
-                  <p className="text-xs text-slate-400">{candidato?.email}</p>
+              <DropdownMenuContent align="end" className="w-60 bg-zinc-900 border-zinc-800 shadow-2xl">
+                <div className="px-3 py-2.5 border-b border-zinc-800">
+                  <p className="font-semibold text-white text-sm">{candidato?.nome_completo}</p>
+                  <p className="text-zinc-400 text-xs mt-0.5">{candidato?.email}</p>
                 </div>
-                <DropdownMenuSeparator className="bg-slate-700" />
                 <DropdownMenuItem
-                  className="text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer"
+                  className="text-white hover:bg-white/10 cursor-pointer py-3 px-3"
                   onClick={() => navigate('/recrutamento/candidato/configuracoes')}
                 >
-                  <Settings className="w-4 h-4 mr-2" />
+                  <Settings className="w-4 h-4 mr-3 text-zinc-400" />
                   Configurações
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-slate-700" />
+                <DropdownMenuSeparator className="bg-zinc-800" />
                 <DropdownMenuItem
-                  className="text-red-400 hover:text-red-300 hover:bg-slate-700 cursor-pointer"
+                  className="text-red-400 hover:bg-red-500/10 cursor-pointer py-3 px-3"
                   onClick={handleLogout}
                 >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sair
+                  <LogOut className="w-4 h-4 mr-3" />
+                  Sair da conta
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -205,14 +200,14 @@ export default function CandidatoLayout() {
         </div>
       </header>
 
-      {/* Page Content */}
-      <main className="flex-1 p-4 pb-24">
+      {/* Page Content - Mais padding */}
+      <main className="flex-1 px-4 py-5 pb-24">
         <Outlet context={{ candidato, recarregarCandidato: carregarCandidato, propostasNovas }} />
       </main>
 
-      {/* Bottom Navigation - Mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-slate-800 border-t border-slate-700 safe-area-bottom">
-        <div className="flex items-center justify-around h-16">
+      {/* Bottom Navigation - Instagram Style */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t border-white/10 safe-area-bottom">
+        <div className="flex items-center justify-around h-14 max-w-lg mx-auto">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
             const showBadge = item.path.includes('propostas') && propostasNovas > 0;
@@ -221,24 +216,26 @@ export default function CandidatoLayout() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center w-full h-full relative transition-colors ${
-                  isActive
-                    ? 'text-[#E31E24]'
-                    : 'text-slate-400 hover:text-white'
-                }`}
+                className="flex flex-col items-center justify-center py-2 px-5 relative"
               >
                 <div className="relative">
-                  <item.icon className="w-6 h-6" />
+                  <item.icon
+                    className={`w-6 h-6 transition-all ${
+                      isActive ? 'text-white scale-110' : 'text-zinc-500'
+                    }`}
+                    strokeWidth={isActive ? 2.5 : 1.5}
+                  />
                   {showBadge && (
-                    <Badge className="absolute -top-2 -right-2 h-4 w-4 flex items-center justify-center p-0 bg-[#E31E24] text-[10px]">
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-[#E31E24] text-white text-[10px] font-bold rounded-full px-1">
                       {propostasNovas}
-                    </Badge>
+                    </span>
                   )}
                 </div>
-                <span className="text-xs mt-1">{item.label}</span>
-                {isActive && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-[#E31E24] rounded-b-full" />
-                )}
+                <span className={`text-[10px] mt-1 font-medium ${
+                  isActive ? 'text-white' : 'text-zinc-500'
+                }`}>
+                  {item.label}
+                </span>
               </NavLink>
             );
           })}

@@ -1,25 +1,24 @@
 // =====================================================
 // INÍCIO CANDIDATO - Área de Recrutamento VEON
-// Dashboard com status e progresso do perfil
+// Design Instagram-like com alto contraste
 // =====================================================
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import {
   Eye,
   Mail,
   Video,
   FileText,
-  Sparkles,
   ArrowRight,
-  CheckCircle,
-  AlertCircle,
+  CheckCircle2,
+  AlertTriangle,
   TrendingUp,
-  Lightbulb,
+  Camera,
+  Zap,
+  ChevronRight,
 } from 'lucide-react';
 import SecaoIndicacaoCandidato from '../components/SecaoIndicacaoCandidato';
 import StatusIndicador from '../components/StatusIndicador';
@@ -206,24 +205,6 @@ export default function InicioCandidato() {
 
   const statusConfig = getStatusConfig();
 
-  const dicas = [
-    {
-      icon: Video,
-      text: 'Profissionais com vídeo recebem 3x mais propostas',
-      action: () => navigate('/recrutamento/candidato/configuracoes'),
-    },
-    {
-      icon: FileText,
-      text: 'Mantenha seu currículo sempre atualizado',
-      action: () => navigate('/recrutamento/candidato/meu-curriculo'),
-    },
-    {
-      icon: TrendingUp,
-      text: 'Empresas valorizam perfis completos',
-      action: () => navigate('/recrutamento/candidato/configuracoes'),
-    },
-  ];
-
   // Verificar se precisa mostrar indicador de status OFF
   const mostrarStatusOff = candidato && (
     !candidato.cadastro_completo ||
@@ -231,182 +212,199 @@ export default function InicioCandidato() {
     !candidato.perfil_disc
   );
 
+  // Ações rápidas
+  const acoesRapidas = [
+    {
+      icon: Video,
+      label: 'Gravar vídeo',
+      descricao: '3x mais propostas',
+      ativo: !candidato?.video_url,
+      action: () => navigate('/recrutamento/candidato/configuracoes'),
+      cor: 'from-purple-500 to-pink-500',
+    },
+    {
+      icon: Camera,
+      label: 'Adicionar foto',
+      descricao: 'Foto profissional',
+      ativo: !candidato?.foto_url,
+      action: () => navigate('/recrutamento/candidato/configuracoes'),
+      cor: 'from-blue-500 to-cyan-500',
+    },
+    {
+      icon: FileText,
+      label: 'Currículo',
+      descricao: 'Ver ou editar',
+      ativo: true,
+      action: () => navigate('/recrutamento/candidato/meu-curriculo'),
+      cor: 'from-emerald-500 to-teal-500',
+    },
+  ];
+
   return (
-    <div className="space-y-6 max-w-lg mx-auto">
-      {/* Indicador de Status OFF - Aparece primeiro se incompleto */}
+    <div className="space-y-5 max-w-lg mx-auto">
+      {/* Indicador de Status OFF */}
       {mostrarStatusOff && candidato && (
         <StatusIndicador candidato={candidato} />
       )}
 
-      {/* Card de Status */}
-      <Card className={`${statusConfig.bgColor} border ${statusConfig.borderColor}`}>
-        <CardContent className="p-6">
-          <div className="flex items-start space-x-3 mb-4">
-            <span className="text-2xl">{statusConfig.icon}</span>
-            <div>
-              <h2 className="text-lg font-bold text-white">
-                {statusConfig.text}
-              </h2>
-              <p className="text-sm text-slate-400">
-                {statusConfig.subtext}
-              </p>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            <div className="bg-slate-800/50 rounded-lg p-3">
-              <div className="flex items-center space-x-2 text-slate-400 mb-1">
-                <Eye className="w-4 h-4" />
-                <span className="text-xs">Visualizações hoje</span>
-              </div>
-              <p className="text-2xl font-bold text-white">
-                {stats.visualizacoes}
-              </p>
-            </div>
-            <div className="bg-slate-800/50 rounded-lg p-3">
-              <div className="flex items-center space-x-2 text-slate-400 mb-1">
-                <Mail className="w-4 h-4" />
-                <span className="text-xs">Propostas aguardando</span>
-              </div>
-              <p className="text-2xl font-bold text-white">
-                {stats.propostasNovas}
-              </p>
-            </div>
-          </div>
-
-          {stats.propostasNovas > 0 && (
-            <Button
-              onClick={() => navigate('/recrutamento/candidato/propostas')}
-              className="w-full mt-4 bg-gradient-to-r from-[#E31E24] to-[#B91C1C]"
-            >
-              Ver Propostas
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Progresso do Perfil */}
-      {progressoPerfil < 100 && (
-        <Card className="bg-slate-800/60 border-slate-700">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-2">
-                <Sparkles className="w-5 h-5 text-yellow-400" />
-                <h3 className="font-medium text-white">Complete seu perfil</h3>
-              </div>
-              <span className="text-sm text-slate-400">{Math.round(progressoPerfil)}%</span>
-            </div>
-
-            <Progress value={progressoPerfil} className="h-2 mb-4" />
-
-            <div className="space-y-2">
-              {itensIncompletos.slice(0, 2).map((item, index) => (
-                <div key={index} className="flex items-center space-x-2 text-sm">
-                  <AlertCircle className="w-4 h-4 text-yellow-400" />
-                  <span className="text-slate-300">{item}</span>
-                </div>
-              ))}
-            </div>
-
-            {!candidato?.video_url && (
-              <Button
-                onClick={() => navigate('/recrutamento/candidato/configuracoes')}
-                variant="outline"
-                className="w-full mt-4 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
-              >
-                <Video className="w-4 h-4 mr-2" />
-                Gravar Vídeo
-              </Button>
+      {/* Card Principal de Status - Estilo Stories */}
+      <div className={`rounded-2xl p-5 ${
+        perfilCompleto
+          ? 'bg-gradient-to-br from-emerald-600/20 to-emerald-900/20 border border-emerald-500/30'
+          : 'bg-gradient-to-br from-red-600/20 to-red-900/20 border border-red-500/30'
+      }`}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+            perfilCompleto ? 'bg-emerald-500' : 'bg-red-500'
+          }`}>
+            {perfilCompleto ? (
+              <CheckCircle2 className="w-6 h-6 text-white" />
+            ) : (
+              <AlertTriangle className="w-6 h-6 text-white" />
             )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Perfil completo */}
-      {progressoPerfil === 100 && (
-        <Card className="bg-green-500/10 border-green-500/30">
-          <CardContent className="p-6 text-center">
-            <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-3" />
-            <h3 className="font-medium text-white mb-1">Perfil completo!</h3>
-            <p className="text-sm text-slate-400">
-              Seu perfil está 100% completo. Continue assim!
+          </div>
+          <div className="flex-1">
+            <h2 className="text-lg font-bold text-white">
+              {statusConfig.text}
+            </h2>
+            <p className="text-sm text-white/60">
+              {statusConfig.subtext}
             </p>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </div>
 
-      {/* Dicas */}
-      <Card className="bg-slate-800/60 border-slate-700">
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-2 mb-4">
-            <Lightbulb className="w-5 h-5 text-blue-400" />
-            <h3 className="font-medium text-white">Dicas para você</h3>
+        {/* Stats Grid - Alto contraste */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-black/30 backdrop-blur rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Eye className="w-4 h-4 text-white/50" />
+              <span className="text-xs text-white/50 font-medium">Visualizações</span>
+            </div>
+            <p className="text-3xl font-bold text-white">
+              {stats.visualizacoes}
+            </p>
+          </div>
+          <div className="bg-black/30 backdrop-blur rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Mail className="w-4 h-4 text-white/50" />
+              <span className="text-xs text-white/50 font-medium">Propostas</span>
+            </div>
+            <p className="text-3xl font-bold text-white">
+              {stats.propostasNovas}
+            </p>
+          </div>
+        </div>
+
+        {stats.propostasNovas > 0 && (
+          <Button
+            onClick={() => navigate('/recrutamento/candidato/propostas')}
+            className="w-full mt-4 bg-white text-black font-bold h-12 rounded-xl hover:bg-white/90"
+          >
+            Ver {stats.propostasNovas} proposta{stats.propostasNovas > 1 ? 's' : ''}
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+        )}
+      </div>
+
+      {/* Progresso do Perfil - Design moderno */}
+      {progressoPerfil < 100 && (
+        <div className="bg-zinc-900 rounded-2xl p-5 border border-zinc-800">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-amber-400" />
+              <span className="font-semibold text-white">Complete seu perfil</span>
+            </div>
+            <span className="text-sm font-bold text-white bg-white/10 px-2.5 py-1 rounded-full">
+              {Math.round(progressoPerfil)}%
+            </span>
           </div>
 
-          <div className="space-y-3">
-            {dicas.map((dica, index) => (
-              <div
-                key={index}
-                onClick={dica.action}
-                className="flex items-center space-x-3 p-3 bg-slate-700/30 rounded-lg cursor-pointer hover:bg-slate-700/50 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                  <dica.icon className="w-5 h-5 text-blue-400" />
-                </div>
-                <p className="flex-1 text-sm text-slate-300">{dica.text}</p>
-                <ArrowRight className="w-4 h-4 text-slate-500" />
+          {/* Barra de progresso customizada */}
+          <div className="h-2 bg-zinc-800 rounded-full overflow-hidden mb-4">
+            <div
+              className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all duration-500"
+              style={{ width: `${progressoPerfil}%` }}
+            />
+          </div>
+
+          <div className="space-y-2.5">
+            {itensIncompletos.slice(0, 2).map((item, index) => (
+              <div key={index} className="flex items-center gap-3 text-white/80">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span className="text-sm">{item}</span>
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
 
-      {/* Perfil DISC */}
-      {candidato?.perfil_disc && (
-        <Card className="bg-slate-800/60 border-slate-700">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-white">Seu Perfil DISC</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/recrutamento/candidato/meu-curriculo')}
-                className="text-slate-400"
-              >
-                Ver completo
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
+      {/* Ações Rápidas - Grid estilo Instagram */}
+      <div className="grid grid-cols-3 gap-3">
+        {acoesRapidas.filter(a => a.ativo).slice(0, 3).map((acao, index) => (
+          <button
+            key={index}
+            onClick={acao.action}
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 text-center hover:bg-zinc-800 transition-all active:scale-95"
+          >
+            <div className={`w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br ${acao.cor} flex items-center justify-center`}>
+              <acao.icon className="w-6 h-6 text-white" />
             </div>
+            <p className="text-white font-medium text-sm">{acao.label}</p>
+            <p className="text-zinc-500 text-xs mt-0.5">{acao.descricao}</p>
+          </button>
+        ))}
+      </div>
 
-            <div className="flex items-center space-x-4">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white ${
-                candidato.perfil_disc === 'D' ? 'bg-red-500' :
-                candidato.perfil_disc === 'I' ? 'bg-yellow-500' :
-                candidato.perfil_disc === 'S' ? 'bg-green-500' :
-                'bg-blue-500'
+      {/* Perfil DISC - Card moderno */}
+      {candidato?.perfil_disc && (
+        <button
+          onClick={() => navigate('/recrutamento/candidato/meu-curriculo')}
+          className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-5 text-left hover:bg-zinc-800 transition-all"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold text-white ${
+                candidato.perfil_disc === 'D' ? 'bg-gradient-to-br from-red-500 to-rose-600' :
+                candidato.perfil_disc === 'I' ? 'bg-gradient-to-br from-amber-500 to-orange-600' :
+                candidato.perfil_disc === 'S' ? 'bg-gradient-to-br from-emerald-500 to-teal-600' :
+                'bg-gradient-to-br from-blue-500 to-indigo-600'
               }`}>
                 {candidato.perfil_disc}
               </div>
               <div>
-                <p className="text-white font-medium">
-                  {candidato.perfil_disc === 'D' ? 'Dominância' :
-                   candidato.perfil_disc === 'I' ? 'Influência' :
-                   candidato.perfil_disc === 'S' ? 'Estabilidade' :
-                   'Conformidade'}
+                <p className="text-white font-semibold text-base">
+                  Perfil {candidato.perfil_disc === 'D' ? 'Dominante' :
+                   candidato.perfil_disc === 'I' ? 'Influente' :
+                   candidato.perfil_disc === 'S' ? 'Estável' :
+                   'Analítico'}
                 </p>
-                <p className="text-sm text-slate-400">
-                  {candidato.perfil_disc === 'D' ? 'Direto, decisivo, orientado a resultados' :
-                   candidato.perfil_disc === 'I' ? 'Comunicativo, entusiasta, otimista' :
-                   candidato.perfil_disc === 'S' ? 'Calmo, paciente, bom ouvinte' :
-                   'Analítico, preciso, detalhista'}
+                <p className="text-zinc-400 text-sm mt-0.5">
+                  {candidato.perfil_disc === 'D' ? 'Focado em resultados' :
+                   candidato.perfil_disc === 'I' ? 'Comunicativo e entusiasta' :
+                   candidato.perfil_disc === 'S' ? 'Calmo e paciente' :
+                   'Preciso e detalhista'}
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+            <ChevronRight className="w-5 h-5 text-zinc-500" />
+          </div>
+        </button>
       )}
+
+      {/* Dica do dia - Minimalista */}
+      <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+            <TrendingUp className="w-5 h-5 text-blue-400" />
+          </div>
+          <div>
+            <p className="text-white text-sm font-medium">Dica do dia</p>
+            <p className="text-zinc-400 text-sm mt-1">
+              Profissionais com vídeo de apresentação recebem até 3x mais propostas de empresas.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Seção de Indicação */}
       {candidato && (

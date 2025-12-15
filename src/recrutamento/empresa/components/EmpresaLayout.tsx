@@ -148,56 +148,56 @@ export default function EmpresaLayout() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E31E24]" />
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-[#E31E24]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex">
+    <div className="min-h-screen bg-black flex">
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-slate-800 border-r border-slate-700">
+      <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-zinc-900 border-r border-zinc-800">
         {/* Logo */}
-        <div className="flex items-center h-16 px-6 border-b border-slate-700">
+        <div className="flex items-center h-16 px-6 border-b border-zinc-800">
           <div className="w-10 h-10 bg-gradient-to-br from-[#E31E24] to-[#003DA5] rounded-xl flex items-center justify-center">
             <Building2 className="w-5 h-5 text-white" />
           </div>
           <span className="ml-3 text-lg font-bold text-white">Veon</span>
-          <span className="ml-1 text-sm text-slate-400">Recrutamento</span>
+          <span className="ml-1 text-sm text-zinc-500">Empresa</span>
         </div>
 
         {/* Menu */}
-        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={`flex items-center px-4 py-3 rounded-lg transition-all ${
+                className={`flex items-center px-4 py-3 rounded-xl transition-all ${
                   isActive
-                    ? 'bg-[#E31E24]/20 text-[#E31E24] border-l-4 border-[#E31E24]'
-                    : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                    ? 'bg-white text-black font-semibold'
+                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
                 }`}
               >
-                <item.icon className="w-5 h-5 mr-3" />
-                {item.label}
+                <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-black' : ''}`} />
+                <span className="text-sm">{item.label}</span>
               </NavLink>
             );
           })}
         </nav>
 
         {/* Créditos */}
-        <div className="p-4 border-t border-slate-700">
-          <div className="bg-slate-700/50 rounded-lg p-4">
-            <p className="text-xs text-slate-400 mb-1">Saldo disponível</p>
-            <p className="text-xl font-bold text-green-400">
+        <div className="p-4 border-t border-zinc-800">
+          <div className="bg-gradient-to-br from-emerald-600/20 to-emerald-900/20 border border-emerald-500/30 rounded-xl p-4">
+            <p className="text-xs text-emerald-400/70 mb-1 font-medium">Saldo disponível</p>
+            <p className="text-2xl font-bold text-emerald-400">
               {formatarCreditos(empresa?.creditos || 0)}
             </p>
             <Button
               size="sm"
-              className="w-full mt-3 bg-gradient-to-r from-[#E31E24] to-[#B91C1C]"
+              className="w-full mt-3 bg-white text-black font-semibold hover:bg-white/90"
               onClick={() => navigate('/recrutamento/empresa/creditos')}
             >
               Adicionar Créditos
@@ -209,21 +209,21 @@ export default function EmpresaLayout() {
       {/* Sidebar - Mobile */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
-          <aside className="fixed inset-y-0 left-0 w-64 bg-slate-800 border-r border-slate-700">
-            <div className="flex items-center justify-between h-16 px-6 border-b border-slate-700">
-              <div className="flex items-center">
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+          <aside className="fixed inset-y-0 left-0 w-72 bg-zinc-900 border-r border-zinc-800">
+            <div className="flex items-center justify-between h-16 px-5 border-b border-zinc-800">
+              <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-[#E31E24] to-[#003DA5] rounded-xl flex items-center justify-center">
                   <Building2 className="w-5 h-5 text-white" />
                 </div>
-                <span className="ml-3 text-lg font-bold text-white">Veon</span>
+                <span className="text-lg font-bold text-white">Veon</span>
               </div>
-              <button onClick={() => setSidebarOpen(false)}>
-                <X className="w-6 h-6 text-slate-400" />
+              <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-zinc-800 rounded-lg">
+                <X className="w-5 h-5 text-zinc-400" />
               </button>
             </div>
 
-            <nav className="px-4 py-4 space-y-1">
+            <nav className="px-3 py-4 space-y-1">
               {menuItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
@@ -231,18 +231,28 @@ export default function EmpresaLayout() {
                     key={item.path}
                     to={item.path}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center px-4 py-3 rounded-lg transition-all ${
+                    className={`flex items-center px-4 py-3.5 rounded-xl transition-all ${
                       isActive
-                        ? 'bg-[#E31E24]/20 text-[#E31E24]'
-                        : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                        ? 'bg-white text-black font-semibold'
+                        : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
                     }`}
                   >
-                    <item.icon className="w-5 h-5 mr-3" />
-                    {item.label}
+                    <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-black' : ''}`} />
+                    <span>{item.label}</span>
                   </NavLink>
                 );
               })}
             </nav>
+
+            {/* Créditos mobile */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-zinc-800">
+              <div className="bg-gradient-to-br from-emerald-600/20 to-emerald-900/20 border border-emerald-500/30 rounded-xl p-4">
+                <p className="text-xs text-emerald-400/70 mb-1">Saldo</p>
+                <p className="text-xl font-bold text-emerald-400">
+                  {formatarCreditos(empresa?.creditos || 0)}
+                </p>
+              </div>
+            </div>
           </aside>
         </div>
       )}
@@ -250,11 +260,11 @@ export default function EmpresaLayout() {
       {/* Main Content */}
       <div className="flex-1 lg:ml-64">
         {/* Header */}
-        <header className="sticky top-0 z-40 h-16 bg-slate-800/95 backdrop-blur border-b border-slate-700">
+        <header className="sticky top-0 z-40 h-14 bg-black/95 backdrop-blur-xl border-b border-white/10">
           <div className="flex items-center justify-between h-full px-4 lg:px-6">
             {/* Mobile menu button */}
             <button
-              className="lg:hidden p-2 text-slate-400 hover:text-white"
+              className="lg:hidden p-2 -ml-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className="w-6 h-6" />
@@ -262,21 +272,20 @@ export default function EmpresaLayout() {
 
             {/* Breadcrumb */}
             <div className="hidden lg:flex items-center text-sm">
-              <span className="text-slate-400">
+              <span className="text-zinc-500">
                 {empresa?.nome_fantasia || empresa?.razao_social}
               </span>
-              <ChevronRight className="w-4 h-4 mx-2 text-slate-600" />
+              <ChevronRight className="w-4 h-4 mx-2 text-zinc-700" />
               <span className="text-white font-medium">
                 {menuItems.find(i => i.path === location.pathname)?.label || 'Dashboard'}
               </span>
             </div>
 
             {/* Right side */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-3">
               {/* Créditos - Mobile */}
-              <div className="lg:hidden bg-slate-700/50 rounded-lg px-3 py-1">
-                <span className="text-xs text-slate-400">Saldo:</span>
-                <span className="ml-1 text-sm font-bold text-green-400">
+              <div className="lg:hidden bg-emerald-500/20 border border-emerald-500/30 rounded-lg px-3 py-1.5">
+                <span className="text-sm font-bold text-emerald-400">
                   {formatarCreditos(empresa?.creditos || 0)}
                 </span>
               </div>
@@ -293,38 +302,37 @@ export default function EmpresaLayout() {
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-2 text-slate-300 hover:text-white">
-                    <Avatar className="h-8 w-8">
+                  <Button variant="ghost" className="flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 h-10 px-2">
+                    <Avatar className="h-8 w-8 ring-2 ring-white/20">
                       <AvatarImage src={empresa?.socio_foto_url || undefined} />
-                      <AvatarFallback className="bg-[#E31E24] text-white">
+                      <AvatarFallback className="bg-gradient-to-br from-[#E31E24] to-[#003DA5] text-white font-bold text-sm">
                         {empresa?.socio_nome?.charAt(0) || 'E'}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden md:block text-sm">
+                    <span className="hidden md:block text-sm font-medium">
                       {empresa?.socio_nome?.split(' ')[0]}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-slate-800 border-slate-700">
-                  <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium text-white">{empresa?.socio_nome}</p>
-                    <p className="text-xs text-slate-400">{empresa?.nome_fantasia}</p>
+                <DropdownMenuContent align="end" className="w-60 bg-zinc-900 border-zinc-800 shadow-2xl">
+                  <div className="px-3 py-2.5 border-b border-zinc-800">
+                    <p className="font-semibold text-white text-sm">{empresa?.socio_nome}</p>
+                    <p className="text-zinc-400 text-xs mt-0.5">{empresa?.nome_fantasia}</p>
                   </div>
-                  <DropdownMenuSeparator className="bg-slate-700" />
                   <DropdownMenuItem
-                    className="text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer"
+                    className="text-white hover:bg-white/10 cursor-pointer py-3 px-3"
                     onClick={() => navigate('/recrutamento/empresa/configuracoes')}
                   >
-                    <Settings className="w-4 h-4 mr-2" />
+                    <Settings className="w-4 h-4 mr-3 text-zinc-400" />
                     Configurações
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-slate-700" />
+                  <DropdownMenuSeparator className="bg-zinc-800" />
                   <DropdownMenuItem
-                    className="text-red-400 hover:text-red-300 hover:bg-slate-700 cursor-pointer"
+                    className="text-red-400 hover:bg-red-500/10 cursor-pointer py-3 px-3"
                     onClick={handleLogout}
                   >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sair
+                    <LogOut className="w-4 h-4 mr-3" />
+                    Sair da conta
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

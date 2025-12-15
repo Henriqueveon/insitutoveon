@@ -1,16 +1,12 @@
 // =====================================================
 // STATUS INDICADOR - Mostra se candidato está OFF/ON
-// Baseado em cadastro completo + teste DISC + foto
+// Design moderno com alto contraste
 // =====================================================
 
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import {
-  AlertCircle,
-  CheckCircle,
+  AlertTriangle,
+  CheckCircle2,
   User,
   FileText,
   Camera,
@@ -69,7 +65,7 @@ export default function StatusIndicador({ candidato, onFechar }: Props) {
     pendencias.push({
       id: 'dados_pessoais',
       titulo: 'Dados pessoais',
-      descricao: 'Preencha seus dados básicos',
+      descricao: 'Nome, CPF, localização',
       icon: User,
       completo: dadosPessoaisCompletos,
       acao: 'Completar',
@@ -84,8 +80,8 @@ export default function StatusIndicador({ candidato, onFechar }: Props) {
     );
     pendencias.push({
       id: 'experiencia',
-      titulo: 'Experiência profissional',
-      descricao: 'Adicione sua experiência e formação',
+      titulo: 'Experiência',
+      descricao: 'Formação e experiências',
       icon: FileText,
       completo: experienciaCompleta,
       acao: 'Completar',
@@ -96,7 +92,7 @@ export default function StatusIndicador({ candidato, onFechar }: Props) {
     pendencias.push({
       id: 'foto',
       titulo: 'Foto de perfil',
-      descricao: 'Adicione uma foto profissional',
+      descricao: 'Foto profissional',
       icon: Camera,
       completo: !!candidato.foto_url,
       acao: 'Adicionar',
@@ -107,7 +103,7 @@ export default function StatusIndicador({ candidato, onFechar }: Props) {
     pendencias.push({
       id: 'disc',
       titulo: 'Teste DISC',
-      descricao: 'Descubra seu perfil comportamental',
+      descricao: 'Perfil comportamental',
       icon: Brain,
       completo: !!candidato.perfil_disc,
       acao: 'Fazer teste',
@@ -123,121 +119,124 @@ export default function StatusIndicador({ candidato, onFechar }: Props) {
   const progresso = (pendenciasCompletas / totalPendencias) * 100;
   const estaOnline = progresso === 100;
 
-  // Se está completo, não mostrar nada (ou mostrar badge verde no header)
   if (estaOnline) {
     return null;
   }
 
   return (
-    <Card className="bg-gradient-to-r from-red-500/10 via-orange-500/10 to-yellow-500/10 border-red-500/30 relative overflow-hidden">
-      {/* Botão fechar opcional */}
+    <div className="bg-gradient-to-br from-red-950 to-zinc-900 border border-red-500/30 rounded-2xl relative overflow-hidden">
+      {/* Botão fechar */}
       {onFechar && (
         <button
           onClick={onFechar}
-          className="absolute top-3 right-3 text-slate-400 hover:text-white z-10"
+          className="absolute top-4 right-4 text-white/40 hover:text-white z-10 p-1"
         >
-          <X className="w-4 h-4" />
+          <X className="w-5 h-5" />
         </button>
       )}
 
-      <CardContent className="p-5">
-        {/* Status Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
-            <AlertCircle className="w-5 h-5 text-red-400" />
+      <div className="p-5">
+        {/* Header com status */}
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-11 h-11 rounded-full bg-red-500 flex items-center justify-center">
+            <AlertTriangle className="w-5 h-5 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-              <span className="font-semibold text-white">Você está OFF</span>
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+              </span>
+              <span className="font-bold text-white text-base">Você está OFFLINE</span>
             </div>
-            <p className="text-sm text-slate-400">
-              Complete seu perfil para aparecer para empresas
+            <p className="text-white/60 text-sm">
+              Empresas não podem ver seu perfil
             </p>
           </div>
         </div>
 
         {/* Barra de progresso */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-slate-400">Progresso do perfil</span>
-            <span className="text-white font-medium">{Math.round(progresso)}%</span>
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-white/70 text-sm font-medium">Progresso</span>
+            <span className="text-white font-bold text-sm">{Math.round(progresso)}%</span>
           </div>
-          <Progress value={progresso} className="h-2" />
+          <div className="h-2.5 bg-black/40 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-red-500 to-amber-500 rounded-full transition-all duration-500"
+              style={{ width: `${progresso}%` }}
+            />
+          </div>
         </div>
 
-        {/* Lista de pendências */}
-        <div className="space-y-2">
+        {/* Lista de pendências - Grid moderno */}
+        <div className="grid grid-cols-2 gap-2">
           {pendencias.map((pendencia) => {
             const Icon = pendencia.icon;
             return (
               <button
                 key={pendencia.id}
                 onClick={() => navigate(pendencia.rota)}
-                className={`w-full flex items-center justify-between p-3 rounded-lg transition-all ${
+                className={`flex items-center gap-3 p-3 rounded-xl transition-all active:scale-95 ${
                   pendencia.completo
-                    ? 'bg-green-500/10 border border-green-500/30'
-                    : 'bg-slate-800/60 border border-slate-700 hover:border-slate-600'
+                    ? 'bg-emerald-500/20 border border-emerald-500/30'
+                    : 'bg-black/30 border border-white/10 hover:border-white/20'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    pendencia.completo
-                      ? 'bg-green-500/20'
-                      : 'bg-slate-700'
-                  }`}>
-                    {pendencia.completo ? (
-                      <CheckCircle className="w-4 h-4 text-green-400" />
-                    ) : (
-                      <Icon className="w-4 h-4 text-slate-400" />
-                    )}
-                  </div>
-                  <div className="text-left">
-                    <p className={`text-sm font-medium ${
-                      pendencia.completo ? 'text-green-400' : 'text-white'
-                    }`}>
-                      {pendencia.titulo}
-                    </p>
-                    {!pendencia.completo && (
-                      <p className="text-xs text-slate-500">{pendencia.descricao}</p>
-                    )}
-                  </div>
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                  pendencia.completo
+                    ? 'bg-emerald-500'
+                    : 'bg-white/10'
+                }`}>
+                  {pendencia.completo ? (
+                    <CheckCircle2 className="w-5 h-5 text-white" />
+                  ) : (
+                    <Icon className="w-5 h-5 text-white/70" />
+                  )}
                 </div>
-                {!pendencia.completo && (
-                  <div className="flex items-center gap-1 text-[#E31E24] text-sm">
-                    <span>{pendencia.acao}</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </div>
-                )}
+                <div className="text-left min-w-0">
+                  <p className={`text-sm font-medium truncate ${
+                    pendencia.completo ? 'text-emerald-400' : 'text-white'
+                  }`}>
+                    {pendencia.titulo}
+                  </p>
+                  {!pendencia.completo && (
+                    <p className="text-xs text-red-400 font-medium">
+                      {pendencia.acao} →
+                    </p>
+                  )}
+                </div>
               </button>
             );
           })}
         </div>
 
         {/* Mensagem motivacional */}
-        <p className="mt-4 text-xs text-center text-slate-500">
-          Profissionais com perfil completo recebem 5x mais propostas
+        <p className="mt-4 text-xs text-center text-white/40">
+          Complete para receber até 5x mais propostas
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
-// Componente compacto para o header
+// Componente compacto para o header - Design moderno
 export function StatusBadge({ candidato }: { candidato: Candidato }) {
-  // Primeiro verificar se o perfil está completo
   const perfilCompleto = !!(
     candidato.cadastro_completo &&
     candidato.foto_url &&
     candidato.perfil_disc
   );
 
-  // Se perfil incompleto, sempre mostrar OFF
+  // Se perfil incompleto, mostrar OFF
   if (!perfilCompleto) {
     return (
-      <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400">
-        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-        <span>OFF</span>
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-400 border border-red-500/30">
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+        </span>
+        <span>Offline</span>
       </div>
     );
   }
@@ -245,19 +244,22 @@ export function StatusBadge({ candidato }: { candidato: Candidato }) {
   // Perfil completo - mostrar status real
   const statusConfig = {
     disponivel: {
-      bg: 'bg-green-500/20',
-      text: 'text-green-400',
-      dot: 'bg-green-500',
-      label: 'Disponível',
+      bg: 'bg-emerald-500/20',
+      border: 'border-emerald-500/30',
+      text: 'text-emerald-400',
+      dot: 'bg-emerald-500',
+      label: 'Online',
     },
     pausado: {
-      bg: 'bg-slate-500/20',
-      text: 'text-slate-400',
-      dot: 'bg-slate-500',
+      bg: 'bg-zinc-500/20',
+      border: 'border-zinc-500/30',
+      text: 'text-zinc-400',
+      dot: 'bg-zinc-500',
       label: 'Pausado',
     },
     contratado: {
       bg: 'bg-blue-500/20',
+      border: 'border-blue-500/30',
       text: 'text-blue-400',
       dot: 'bg-blue-500',
       label: 'Contratado',
@@ -267,7 +269,7 @@ export function StatusBadge({ candidato }: { candidato: Candidato }) {
   const config = statusConfig[candidato.status as keyof typeof statusConfig] || statusConfig.disponivel;
 
   return (
-    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${config.bg} ${config.text} border ${config.border}`}>
       <div className={`w-2 h-2 rounded-full ${config.dot}`} />
       <span>{config.label}</span>
     </div>
