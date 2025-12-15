@@ -501,7 +501,7 @@ export default function CurriculoPublico() {
                 <Avatar className="h-32 w-32 mx-auto md:mx-0 border-4 border-white/10 shadow-2xl">
                   <AvatarImage src={candidato.foto_url || undefined} />
                   <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-4xl font-bold">
-                    {candidato.nome_completo.charAt(0)}
+                    {(candidato.nome_completo || 'P').charAt(0)}
                   </AvatarFallback>
                 </Avatar>
 

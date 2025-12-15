@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import SecaoIndicacao from '../components/SecaoIndicacao';
 import LinkRecrutamento from '../components/LinkRecrutamento';
+import CandidatoPerfilModal from '../components/CandidatoPerfilModal';
 
 interface Empresa {
   id: string;
@@ -87,6 +88,11 @@ export default function EmpresaDashboard() {
   const [candidatosMatch, setCandidatosMatch] = useState<CandidatoMatch[]>([]);
   const [atividades, setAtividades] = useState<Atividade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Estados para o modal de perfil
+  const [candidatoSelecionado, setCandidatoSelecionado] = useState<any>(null);
+  const [modalAberto, setModalAberto] = useState(false);
+  const [favoritos, setFavoritos] = useState<string[]>([]);
 
   useEffect(() => {
     if (empresa?.id) {
@@ -214,6 +220,36 @@ export default function EmpresaDashboard() {
   };
 
   const primeiroNome = empresa?.socio_nome?.split(' ')[0] || empresa?.nome_fantasia || 'Empresa';
+
+  // Função para abrir o perfil completo do candidato
+  const abrirPerfil = async (candidato: CandidatoMatch) => {
+    try {
+      // Buscar dados completos do candidato
+      const { data } = await supabase
+        .from('candidatos_recrutamento')
+        .select('*')
+        .eq('id', candidato.id)
+        .single();
+
+      if (data) {
+        setCandidatoSelecionado(data);
+        setModalAberto(true);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar perfil:', error);
+    }
+  };
+
+  const fecharModal = () => {
+    setModalAberto(false);
+    setCandidatoSelecionado(null);
+  };
+
+  const toggleFavorito = (id: string) => {
+    setFavoritos(prev =>
+      prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]
+    );
+  };
 
   if (isLoading) {
     return (
@@ -428,11 +464,16 @@ export default function EmpresaDashboard() {
                 {/* Ações */}
                 <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-800">
                   <div className="flex items-center gap-4">
-                    <button className="flex items-center gap-1.5 text-white/70 hover:text-red-400 transition-colors active:scale-95">
-                      <Heart className="w-5 h-5" />
+                    <button
+                      onClick={() => toggleFavorito(candidato.id)}
+                      className={`flex items-center gap-1.5 transition-colors active:scale-95 ${
+                        favoritos.includes(candidato.id) ? 'text-red-500' : 'text-white/70 hover:text-red-400'
+                      }`}
+                    >
+                      <Heart className={`w-5 h-5 ${favoritos.includes(candidato.id) ? 'fill-current' : ''}`} />
                     </button>
                     <button
-                      onClick={() => navigate(`/c/${candidato.id.substring(0, 8)}`)}
+                      onClick={() => abrirPerfil(candidato)}
                       className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors active:scale-95"
                     >
                       <Eye className="w-5 h-5" />
@@ -533,6 +574,16 @@ export default function EmpresaDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Perfil do Candidato */}
+      <CandidatoPerfilModal
+        candidato={candidatoSelecionado}
+        isOpen={modalAberto}
+        onClose={fecharModal}
+        empresa={empresa}
+        isFavorito={candidatoSelecionado ? favoritos.includes(candidatoSelecionado.id) : false}
+        onToggleFavorito={toggleFavorito}
+      />
     </div>
   );
 }
