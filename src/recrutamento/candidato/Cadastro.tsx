@@ -218,7 +218,7 @@ export default function CadastroCandidato() {
     if (etapaAtual === 5) {
       switch (perguntaAtual) {
         case 1: return !!form.veiculo;
-        case 2: return form.cnh.length > 0; // CNH agora é array
+        case 2: return form.cnh.length > 0; // CNH é array, aceita categorias OU 'nenhuma'
         case 3: return form.disponibilidade_horario.length > 0;
         case 4: return !!form.aceita_viajar;
         case 5: return !!form.aceita_mudanca;

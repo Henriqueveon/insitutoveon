@@ -2,24 +2,79 @@
 // LOGIN CANDIDATO - Área de Recrutamento VEON
 // =====================================================
 
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Loader2, User } from 'lucide-react';
+import { Eye, EyeOff, Loader2, User, CheckCircle } from 'lucide-react';
 
 export default function CandidatoLogin() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [showSenha, setShowSenha] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailVerificado, setEmailVerificado] = useState(false);
+  const [verificandoSessao, setVerificandoSessao] = useState(true);
+
+  // Verificar se veio de verificação de email ou já tem sessão
+  useEffect(() => {
+    const verificarSessaoECallback = async () => {
+      try {
+        // Verificar se há fragmento de hash (callback do Supabase)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const type = hashParams.get('type');
+
+        // Limpar o hash da URL
+        if (window.location.hash) {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+
+        // Se veio do callback de verificação de email
+        if (type === 'signup' || type === 'email_change') {
+          setEmailVerificado(true);
+          toast({
+            title: 'E-mail verificado!',
+            description: 'Sua conta foi confirmada. Faça login para continuar.',
+          });
+        }
+
+        // Verificar se já tem sessão ativa
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          // Já está logado, redirecionar
+          navigate('/recrutamento/candidato/inicio');
+          return;
+        }
+
+        // Verificar se veio do cadastro com mensagem
+        const state = location.state as { email?: string; mensagem?: string } | null;
+        if (state?.email) {
+          setEmail(state.email);
+        }
+        if (state?.mensagem) {
+          toast({
+            title: 'Atenção',
+            description: state.mensagem,
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao verificar sessão:', error);
+      } finally {
+        setVerificandoSessao(false);
+      }
+    };
+
+    verificarSessaoECallback();
+  }, [navigate, location.state, toast]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +159,15 @@ export default function CandidatoLogin() {
     }
   };
 
+  // Loading enquanto verifica sessão
+  if (verificandoSessao) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E31E24]" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
       {/* Background decorativo */}
@@ -151,6 +215,16 @@ export default function CandidatoLogin() {
           </CardHeader>
 
           <CardContent>
+            {/* Banner de email verificado */}
+            {emailVerificado && (
+              <div className="mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+                <p className="text-sm text-green-400">
+                  E-mail verificado com sucesso! Faça login para continuar.
+                </p>
+              </div>
+            )}
+
             <form onSubmit={handleLogin} className="space-y-4">
               {/* E-mail */}
               <div className="space-y-2">

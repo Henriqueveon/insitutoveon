@@ -26,6 +26,7 @@ interface Candidato {
   video_url?: string | null;
   perfil_disc: string | null;
   cadastro_completo: boolean;
+  status?: string; // 'disponivel', 'pausado', 'contratado'
   // Campos do cadastro completo
   data_nascimento?: string | null;
   cpf?: string | null;
@@ -224,22 +225,51 @@ export default function StatusIndicador({ candidato, onFechar }: Props) {
 
 // Componente compacto para o header
 export function StatusBadge({ candidato }: { candidato: Candidato }) {
-  const estaOnline = !!(
+  // Primeiro verificar se o perfil está completo
+  const perfilCompleto = !!(
     candidato.cadastro_completo &&
     candidato.foto_url &&
     candidato.perfil_disc
   );
 
+  // Se perfil incompleto, sempre mostrar OFF
+  if (!perfilCompleto) {
+    return (
+      <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400">
+        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+        <span>OFF</span>
+      </div>
+    );
+  }
+
+  // Perfil completo - mostrar status real
+  const statusConfig = {
+    disponivel: {
+      bg: 'bg-green-500/20',
+      text: 'text-green-400',
+      dot: 'bg-green-500',
+      label: 'Disponível',
+    },
+    pausado: {
+      bg: 'bg-slate-500/20',
+      text: 'text-slate-400',
+      dot: 'bg-slate-500',
+      label: 'Pausado',
+    },
+    contratado: {
+      bg: 'bg-blue-500/20',
+      text: 'text-blue-400',
+      dot: 'bg-blue-500',
+      label: 'Contratado',
+    },
+  };
+
+  const config = statusConfig[candidato.status as keyof typeof statusConfig] || statusConfig.disponivel;
+
   return (
-    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
-      estaOnline
-        ? 'bg-green-500/20 text-green-400'
-        : 'bg-red-500/20 text-red-400'
-    }`}>
-      <div className={`w-2 h-2 rounded-full ${
-        estaOnline ? 'bg-green-500' : 'bg-red-500 animate-pulse'
-      }`} />
-      <span>{estaOnline ? 'Disponível' : 'OFF'}</span>
+    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+      <div className={`w-2 h-2 rounded-full ${config.dot}`} />
+      <span>{config.label}</span>
     </div>
   );
 }

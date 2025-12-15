@@ -19,6 +19,7 @@ import {
   Loader2,
   Shield,
   AlertCircle,
+  SkipForward,
 } from 'lucide-react';
 
 type TipoDocumento = 'cnh' | 'rg';
@@ -171,6 +172,22 @@ export default function DocumentoCandidato() {
     reader.readAsDataURL(documentoBlob);
   };
 
+  // Fazer depois - pular documento
+  const fazerDepois = () => {
+    navigate('/recrutamento/candidato/termos', {
+      state: {
+        form,
+        ref,
+        fotoBlob,
+        videoBlob,
+        videoDuracao,
+        videoTipo,
+        documentoBlob: null,
+        documentoTipo: null,
+      },
+    });
+  };
+
   // Cleanup ao desmontar
   useEffect(() => {
     return () => {
@@ -252,6 +269,23 @@ export default function DocumentoCandidato() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Botão Fazer Depois */}
+            <Button
+              variant="ghost"
+              onClick={fazerDepois}
+              className="w-full text-slate-400 hover:text-slate-300 hover:bg-slate-800/50 py-6 mt-4"
+            >
+              <SkipForward className="w-5 h-5 mr-2" />
+              Enviar documento depois
+            </Button>
+
+            {/* Aviso */}
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+              <p className="text-sm text-amber-400 text-center">
+                Candidatos com documento verificado têm mais credibilidade
+              </p>
+            </div>
           </div>
         ) : documentoUrl ? (
           /* Preview do documento */

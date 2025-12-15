@@ -143,7 +143,27 @@ export default function InicioCandidato() {
     setItensIncompletos(itens);
   };
 
+  // Verificar se perfil está completo (mesma lógica do StatusIndicador)
+  const perfilCompleto = !!(
+    candidato?.cadastro_completo &&
+    candidato?.foto_url &&
+    candidato?.perfil_disc
+  );
+
   const getStatusConfig = () => {
+    // Se perfil incompleto, mostrar como OFF
+    if (!perfilCompleto) {
+      return {
+        color: 'from-red-500 to-red-600',
+        bgColor: 'bg-red-500/10',
+        borderColor: 'border-red-500/30',
+        icon: '🔴',
+        text: 'Você está OFFLINE para empresas',
+        subtext: 'Complete seu perfil para aparecer nas buscas',
+      };
+    }
+
+    // Perfil completo - mostrar status real
     switch (candidato?.status) {
       case 'disponivel':
         return {
@@ -159,7 +179,7 @@ export default function InicioCandidato() {
           color: 'from-slate-500 to-slate-600',
           bgColor: 'bg-slate-500/10',
           borderColor: 'border-slate-500/30',
-          icon: '⚫',
+          icon: '⏸️',
           text: 'Seu perfil está PAUSADO',
           subtext: 'Você não está recebendo novas propostas',
         };
