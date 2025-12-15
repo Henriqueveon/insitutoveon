@@ -1,10 +1,11 @@
 // =====================================================
-// CURRÍCULO DISC REPORT - Relatório DISC completo para currículo
-// 85% do relatório original com linguagem personalizada
+// CURRÍCULO DISC REPORT - Relatório DISC para recrutadores
+// 100% igual ao relatório público, com linguagem auto-explicativa
 // =====================================================
 
 import { useMemo } from 'react';
-import { discProfiles, getProfileType, getProfileDescription, ProfileData } from '@/data/discProfiles';
+import { discProfiles, getProfileType, getProfileDescription } from '@/data/discProfiles';
+import { Button } from '@/components/ui/button';
 import {
   Target,
   AlertTriangle,
@@ -26,6 +27,9 @@ import {
   ShieldX,
   CheckCircle2,
   XCircle,
+  Check,
+  Calendar,
+  BookOpen,
 } from 'lucide-react';
 
 // Cores oficiais DISC
@@ -41,6 +45,14 @@ const DISC_NAMES = {
   I: 'Influência',
   S: 'Estabilidade',
   C: 'Conformidade',
+};
+
+// Descrições de cada dimensão para recrutadores
+const DISC_DESCRIPTIONS = {
+  D: 'Como este profissional enfrenta desafios e toma decisões',
+  I: 'Como este profissional se comunica e influencia pessoas',
+  S: 'Como este profissional lida com mudanças e ritmo de trabalho',
+  C: 'Como este profissional segue regras e analisa informações',
 };
 
 interface Profile {
@@ -61,11 +73,36 @@ interface CurriculoDISCReportProps {
   adaptedProfile?: Profile;
   nomeCompleto: string;
   confiabilidade?: ConfiabilidadeData | null;
+  onAgendarEntrevista?: () => void;
 }
 
 // Normaliza score de -25/+25 para 0-100
 const normalizeScore = (score: number): number => {
   return Math.round(((score + 25) / 50) * 100);
+};
+
+// Gera interpretação da amplitude (adaptação)
+const getAmplitudeInterpretation = (factor: string, natural: number, adapted: number, nome: string): string => {
+  const diff = adapted - natural;
+  const firstName = nome.split(' ')[0];
+
+  if (factor === 'D') {
+    if (diff < -15) return `No trabalho, ${firstName} está se contendo e sendo mais cauteloso do que normalmente é. Isso pode causar cansaço se mantido por muito tempo.`;
+    if (diff > 15) return `${firstName} está forçando a barra para ser mais decisivo e firme no trabalho. Importante respeitar o ritmo natural.`;
+  }
+  if (factor === 'I') {
+    if (diff < -15) return `${firstName} está se segurando para falar menos e ser mais reservado. A energia social natural está sendo contida.`;
+    if (diff > 15) return `${firstName} está fazendo esforço extra para ser mais comunicativo e sociável no trabalho.`;
+  }
+  if (factor === 'S') {
+    if (diff < -15) return `${firstName} está correndo mais do que gostaria. O ritmo natural é mais calmo, mas o ambiente está acelerando.`;
+    if (diff > 15) return `${firstName} está buscando mais calma e estabilidade do que naturalmente tem. Pode estar evitando mudanças.`;
+  }
+  if (factor === 'C') {
+    if (diff < -15) return `${firstName} está sendo menos detalhista do que gostaria. O ambiente não permite ser tão cuidadoso quanto quer.`;
+    if (diff > 15) return `${firstName} está se esforçando para ser mais organizado e preciso do que naturalmente é.`;
+  }
+  return `Tudo certo! ${firstName} está agindo no trabalho de forma parecida com seu jeito natural.`;
 };
 
 // Helper para obter estilo da confiabilidade
@@ -124,24 +161,15 @@ const getConfiabilidadeStyle = (nivel: string | null) => {
   }
 };
 
-// Mapeamento das flags para descrições em português
-const FLAG_DESCRIPTIONS: Record<string, string> = {
-  'fake_responses': 'Detectadas respostas socialmente desejáveis',
-  'attention_failed': 'Falha no controle de atenção',
-  'inconsistent': 'Respostas inconsistentes detectadas',
-  'rushed': 'Tempo de resposta muito rápido',
-  'slow': 'Tempo de resposta muito lento',
-  'flat_profile': 'Perfil muito uniforme (neutro)',
-  'contradictory': 'Padrões contraditórios detectados',
-};
-
 export default function CurriculoDISCReport({
   naturalProfile,
   adaptedProfile,
   nomeCompleto,
   confiabilidade,
+  onAgendarEntrevista,
 }: CurriculoDISCReportProps) {
   const adapted = adaptedProfile || naturalProfile;
+  const firstName = nomeCompleto.split(' ')[0];
 
   // Dados calculados
   const profileData = useMemo(() => {
@@ -203,60 +231,37 @@ export default function CurriculoDISCReport({
   }, [normalizedNatural]);
 
   const dominantLeadership = leadershipStyles.reduce((prev, curr) => curr.value > prev.value ? curr : prev);
-
-  const firstName = nomeCompleto.split(' ')[0];
-
-  // Cor principal do perfil
   const profileColor = DISC_COLORS[profileData.tipo.charAt(0) as keyof typeof DISC_COLORS] || DISC_COLORS.D;
 
   return (
     <div className="space-y-6">
-      {/* Seção 1: Gráfico DISC Horizontal */}
+      {/* Metodologia DISC - Explicação para recrutadores */}
       <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <Brain className="w-5 h-5" style={{ color: profileColor }} />
-          Perfil Comportamental DISC
+        <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-cyan-400" />
+          Metodologia DISC
         </h3>
-
-        <p className="text-sm text-zinc-400 mb-4">
-          Este gráfico mostra como <strong className="text-white">{firstName}</strong> se comporta naturalmente e como se adapta no ambiente de trabalho.
+        <p className="text-sm text-zinc-300 mb-4">
+          O modelo DISC identifica quatro dimensões comportamentais principais. Este relatório mostra como <strong className="text-white">{firstName}</strong> se comporta naturalmente e como se adapta no ambiente de trabalho.
         </p>
-
-        <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
           {(['D', 'I', 'S', 'C'] as const).map((key) => (
-            <div key={key} className="space-y-1.5">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                  style={{ backgroundColor: DISC_COLORS[key] }}
-                >
-                  {key}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-white font-medium">{DISC_NAMES[key]}</span>
-                    <span className="text-xs text-zinc-400">{normalizedNatural[key]}%</span>
-                  </div>
-                  <div className="h-3 bg-zinc-700 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{ width: `${normalizedNatural[key]}%`, backgroundColor: DISC_COLORS[key] }}
-                    />
-                  </div>
-                </div>
+            <div
+              key={key}
+              className="p-3 rounded-xl border"
+              style={{ backgroundColor: `${DISC_COLORS[key]}15`, borderColor: `${DISC_COLORS[key]}40` }}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xl font-bold" style={{ color: DISC_COLORS[key] }}>{key}</span>
+                <span className="text-sm font-medium text-white">{DISC_NAMES[key]}</span>
               </div>
+              <p className="text-xs text-zinc-400">{DISC_DESCRIPTIONS[key].replace('Como este profissional', 'Como')}</p>
             </div>
           ))}
         </div>
-
-        <div className="mt-4 pt-4 border-t border-zinc-700">
-          <p className="text-xs text-zinc-500 text-center">
-            Quanto maior a barra, mais forte é essa característica neste profissional.
-          </p>
-        </div>
       </section>
 
-      {/* Seção: Confiabilidade do Teste */}
+      {/* Confiabilidade do Teste */}
       {confiabilidade && confiabilidade.score !== null && (() => {
         const style = getConfiabilidadeStyle(confiabilidade.nivel);
         const IconComponent = style.icon;
@@ -271,63 +276,15 @@ export default function CurriculoDISCReport({
                 <div className="flex items-center justify-between mb-2">
                   <h3 className={`text-lg font-bold ${style.textColor}`}>{style.label}</h3>
                   <span className={`text-2xl font-bold ${style.textColor}`}>
-                    {confiabilidade.score}%
+                    {confiabilidade.score}/100
                   </span>
                 </div>
                 <p className="text-sm text-zinc-300 mb-3">{style.description}</p>
-
-                {/* Barra de progresso */}
-                <div className="h-3 bg-zinc-700 rounded-full overflow-hidden mb-3">
+                <div className="h-3 bg-zinc-700 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${style.iconBg}`}
                     style={{ width: `${confiabilidade.score}%` }}
                   />
-                </div>
-
-                {/* Flags detectadas */}
-                {confiabilidade.flags && confiabilidade.flags.length > 0 && (
-                  <div className="mt-4 pt-3 border-t border-zinc-700/50">
-                    <p className="text-xs text-zinc-400 font-medium mb-2">Controles de qualidade:</p>
-                    <div className="space-y-1.5">
-                      {confiabilidade.flags.map((flag, i) => {
-                        const isPositive = flag.toLowerCase().includes('passou') || flag.toLowerCase().includes('ok');
-                        return (
-                          <div key={i} className="flex items-center gap-2">
-                            {isPositive ? (
-                              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                            ) : (
-                              <XCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                            )}
-                            <span className="text-xs text-zinc-300">
-                              {FLAG_DESCRIPTIONS[flag] || flag}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Legenda dos níveis */}
-                <div className="mt-4 pt-3 border-t border-zinc-700/50">
-                  <div className="grid grid-cols-4 gap-2 text-xs">
-                    <div className="text-center">
-                      <div className="w-full h-1.5 bg-emerald-500 rounded-full mb-1" />
-                      <span className="text-zinc-500">Alta</span>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-full h-1.5 bg-amber-500 rounded-full mb-1" />
-                      <span className="text-zinc-500">Média</span>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-full h-1.5 bg-orange-500 rounded-full mb-1" />
-                      <span className="text-zinc-500">Baixa</span>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-full h-1.5 bg-red-500 rounded-full mb-1" />
-                      <span className="text-zinc-500">Suspeita</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -335,7 +292,101 @@ export default function CurriculoDISCReport({
         );
       })()}
 
-      {/* Seção 2: Sobre este profissional */}
+      {/* Perfil DISC com barras e comentários */}
+      <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
+        <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+          <Brain className="w-5 h-5" style={{ color: profileColor }} />
+          Perfil DISC de {firstName}
+        </h3>
+        <p className="text-sm text-zinc-400 mb-4">
+          Compare como <strong className="text-white">{firstName}</strong> age naturalmente (barra cheia) com como se adapta no trabalho (barra transparente).
+          <strong className="text-white"> Quanto maior a barra, mais forte é essa característica.</strong>
+        </p>
+
+        {/* Scale labels */}
+        <div className="flex justify-between text-xs text-zinc-500 mb-4 ml-24">
+          <span>Baixo</span>
+          <span>Médio</span>
+          <span>Alto</span>
+        </div>
+
+        <div className="space-y-5">
+          {(['D', 'I', 'S', 'C'] as const).map((key) => {
+            const natural = normalizedNatural[key];
+            const adaptedValue = normalizedAdapted[key];
+            const diff = Math.abs(natural - adaptedValue);
+            const isSignificant = diff > 15;
+
+            return (
+              <div key={key} className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-20">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                        style={{ backgroundColor: DISC_COLORS[key] }}
+                      >
+                        {key}
+                      </div>
+                      <span className="text-sm font-medium text-white">{DISC_NAMES[key]}</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    {/* Natural Bar */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-zinc-500 w-14">Natural</span>
+                      <div className="flex-1 h-5 bg-zinc-700 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full flex items-center justify-end pr-2 transition-all duration-500"
+                          style={{ width: `${natural}%`, backgroundColor: DISC_COLORS[key] }}
+                        >
+                          <span className="text-xs font-bold text-white drop-shadow">{natural}%</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Adapted Bar */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-zinc-500 w-14">Trabalho</span>
+                      <div className="flex-1 h-5 bg-zinc-700 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full flex items-center justify-end pr-2 transition-all duration-500 opacity-60"
+                          style={{ width: `${adaptedValue}%`, backgroundColor: DISC_COLORS[key] }}
+                        >
+                          <span className="text-xs font-bold text-white drop-shadow">{adaptedValue}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* Descrição da dimensão */}
+                <p className="text-xs text-zinc-400 ml-24 italic">{DISC_DESCRIPTIONS[key]}</p>
+                {/* Interpretação de adaptação */}
+                <div className={`ml-24 p-2 rounded-lg text-xs ${isSignificant ? 'bg-amber-500/10 border border-amber-500/30 text-amber-300' : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300'}`}>
+                  {isSignificant && <AlertTriangle className="w-3 h-3 inline mr-1" />}
+                  {!isSignificant && <Check className="w-3 h-3 inline mr-1" />}
+                  {getAmplitudeInterpretation(key, natural, adaptedValue, nomeCompleto)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Legenda */}
+        <div className="mt-5 pt-4 border-t border-zinc-700">
+          <div className="flex items-center justify-center gap-6 text-xs text-zinc-400">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-zinc-500" />
+              <span>Natural (como a pessoa é)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-zinc-500 opacity-60" />
+              <span>Adaptado (no trabalho)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Sobre este profissional */}
       <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <Target className="w-5 h-5" style={{ color: profileColor }} />
@@ -361,34 +412,50 @@ export default function CurriculoDISCReport({
         </div>
       </section>
 
-      {/* Seção 3: Potencialidades */}
+      {/* Potencialidades */}
       <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <Star className="w-5 h-5 text-amber-400" />
+          <TrendingUp className="w-5 h-5 text-emerald-400" />
           Potencialidades de {firstName}
         </h3>
+        <p className="text-sm text-zinc-400 mb-4">Pontos fortes naturais deste profissional:</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {profileData.descricao.potencialidades.map((potencial, i) => (
+          {profileData.descricao.potencialidades.slice(0, 6).map((potencial, i) => (
             <div key={i} className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3">
-              <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <ChevronRight className="w-3 h-3 text-white" />
-              </div>
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
               <span className="text-sm text-emerald-300">{potencial}</span>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Seção 4: Quadro de Competências */}
+      {/* Pontos a Desenvolver */}
       <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-blue-400" />
+          <Target className="w-5 h-5 text-amber-400" />
+          Pontos a Desenvolver
+        </h3>
+        <p className="text-sm text-zinc-400 mb-4">Oportunidades de crescimento:</p>
+
+        <div className="space-y-2">
+          {profileData.descricao.pontosDesenvolver.map((ponto, i) => (
+            <div key={i} className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+              <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+              <span className="text-sm text-amber-200">{ponto}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Quadro de Competências */}
+      <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
+        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <Star className="w-5 h-5 text-blue-400" />
           Quadro de Competências
         </h3>
-
         <p className="text-sm text-zinc-400 mb-4">
-          Avaliação das principais competências comportamentais deste profissional.
+          Avaliação das principais competências comportamentais:
         </p>
 
         <div className="grid grid-cols-2 gap-4">
@@ -432,7 +499,7 @@ export default function CurriculoDISCReport({
         </div>
       </section>
 
-      {/* Seção 5: Estilo de Liderança */}
+      {/* Estilo de Liderança */}
       <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <Users className="w-5 h-5 text-purple-400" />
@@ -487,7 +554,7 @@ export default function CurriculoDISCReport({
         </div>
       </section>
 
-      {/* Seção 6: O que motiva este profissional */}
+      {/* Motivadores */}
       <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <Heart className="w-5 h-5 text-rose-400" />
@@ -506,15 +573,14 @@ export default function CurriculoDISCReport({
         </div>
       </section>
 
-      {/* Seção 7: Medos centrais */}
+      {/* Medos Centrais */}
       <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <Shield className="w-5 h-5 text-yellow-400" />
           Os Medos Centrais de {firstName}
         </h3>
-
         <p className="text-sm text-zinc-400 mb-4">
-          Compreender os medos ajuda a criar um ambiente onde este profissional possa prosperar.
+          Compreender os medos ajuda a criar um ambiente onde este profissional possa prosperar:
         </p>
 
         <div className="space-y-2">
@@ -527,15 +593,14 @@ export default function CurriculoDISCReport({
         </div>
       </section>
 
-      {/* Seção 8: Como pode ser mal interpretado */}
+      {/* Como pode ser mal interpretado */}
       <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <Eye className="w-5 h-5 text-red-400" />
           Como {firstName} Pode Ser Mal Interpretado
         </h3>
-
         <p className="text-sm text-zinc-400 mb-4">
-          Alguns comportamentos naturais podem gerar interpretações equivocadas. Conhecer esses pontos ajuda na comunicação.
+          Alguns comportamentos naturais podem gerar interpretações equivocadas. Conhecer esses pontos ajuda na comunicação:
         </p>
 
         <div className="space-y-2">
@@ -548,24 +613,29 @@ export default function CurriculoDISCReport({
         </div>
       </section>
 
-      {/* Seção 9: Pontos a desenvolver */}
+      {/* Relações Interpessoais */}
       <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-cyan-400" />
-          Pontos de Desenvolvimento
+          <Users className="w-5 h-5 text-pink-400" />
+          Relações Interpessoais
         </h3>
-
-        <div className="space-y-2">
-          {profileData.descricao.pontosDesenvolver.map((ponto, i) => (
-            <div key={i} className="flex items-start gap-2 bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-3">
-              <Lightbulb className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
-              <span className="text-sm text-cyan-200">{ponto}</span>
-            </div>
-          ))}
-        </div>
+        <p className="text-zinc-300 text-sm leading-relaxed">
+          {profileData.descricao.relacoesInterpessoais}
+        </p>
       </section>
 
-      {/* Seção 10: Dicas de comunicação */}
+      {/* Tomada de Decisão */}
+      <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
+        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <Brain className="w-5 h-5 text-cyan-400" />
+          Como {firstName} Toma Decisões
+        </h3>
+        <p className="text-zinc-300 text-sm leading-relaxed">
+          {profileData.descricao.tomadaDecisao}
+        </p>
+      </section>
+
+      {/* Dicas de Comunicação */}
       <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <MessageCircle className="w-5 h-5 text-green-400" />
@@ -584,7 +654,7 @@ export default function CurriculoDISCReport({
         </div>
       </section>
 
-      {/* Seção 11: Funções ideais */}
+      {/* Funções Ideais */}
       <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <Briefcase className="w-5 h-5 text-violet-400" />
@@ -608,34 +678,40 @@ export default function CurriculoDISCReport({
         </div>
       </section>
 
-      {/* Seção 12: Relacionamentos interpessoais */}
-      <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <Users className="w-5 h-5 text-pink-400" />
-          Relacionamentos Interpessoais
-        </h3>
+      {/* Mensagem de Assertividade Científica */}
+      <section className="bg-gradient-to-r from-cyan-900/40 to-blue-900/40 rounded-2xl p-5 border border-cyan-500/30">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-cyan-500 flex items-center justify-center flex-shrink-0">
+            <ShieldCheck className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-cyan-400 mb-2">Assertividade Científica</h3>
+            <p className="text-zinc-300 text-sm leading-relaxed mb-4">
+              Este relatório possui <strong className="text-white">acima de 80% de assertividade científica</strong> baseada na metodologia DISC validada internacionalmente.
+              Independente do resultado apresentado, <strong className="text-white">realize a entrevista e conheça o profissional pessoalmente</strong>.
+              O teste comportamental é uma ferramenta de apoio, não substitui a interação humana.
+            </p>
 
-        <p className="text-zinc-300 text-sm leading-relaxed">
-          {profileData.descricao.relacoesInterpessoais}
-        </p>
-      </section>
-
-      {/* Seção 13: Tomada de decisão */}
-      <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-yellow-400" />
-          Como {firstName} Toma Decisões
-        </h3>
-
-        <p className="text-zinc-300 text-sm leading-relaxed">
-          {profileData.descricao.tomadaDecisao}
-        </p>
+            {onAgendarEntrevista && (
+              <Button
+                onClick={onAgendarEntrevista}
+                className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-xl hover:opacity-90"
+              >
+                <Calendar className="w-5 h-5 mr-2" />
+                Agendar Entrevista
+              </Button>
+            )}
+          </div>
+        </div>
       </section>
 
       {/* Footer */}
       <div className="text-center py-4 border-t border-zinc-800">
         <p className="text-xs text-zinc-500">
           Análise comportamental baseada na metodologia DISC | Instituto VEON
+        </p>
+        <p className="text-xs text-zinc-600 mt-1">
+          "A bússola que aponta para o sucesso!"
         </p>
       </div>
     </div>
