@@ -95,7 +95,7 @@ export default function EmpresaLayout() {
         if (empresaId) {
           const { data } = await supabase
             .from('empresas_recrutamento')
-            .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, logo_url')
+            .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, logo_url, cadastro_completo')
             .eq('id', empresaId)
             .single();
 
@@ -111,7 +111,7 @@ export default function EmpresaLayout() {
 
       const { data, error } = await supabase
         .from('empresas_recrutamento')
-        .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, logo_url')
+        .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, logo_url, cadastro_completo')
         .eq('socio_email', user.email)
         .single();
 
@@ -120,7 +120,7 @@ export default function EmpresaLayout() {
         if (empresaId) {
           const { data: dataLocal } = await supabase
             .from('empresas_recrutamento')
-            .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, logo_url')
+            .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, logo_url, cadastro_completo')
             .eq('id', empresaId)
             .single();
 
