@@ -121,7 +121,6 @@ export default function FeedVagas() {
       const { data: empresasData } = await supabase
         .from('empresas_recrutamento')
         .select('id, nome_fantasia, logo_url')
-        .eq('cadastro_completo', true)
         .limit(10);
 
       if (empresasData) {
