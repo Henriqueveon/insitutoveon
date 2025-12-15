@@ -1,22 +1,57 @@
 // =====================================================
 // BEM-VINDO CANDIDATO - Área de Recrutamento VEON
-// Com slogans e frases motivacionais
+// Design moderno e compacto para público jovem (20-35)
 // =====================================================
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, CheckCircle, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
+import {
+  Crosshair,
+  Brain,
+  FileCheck,
+  Building2,
+  Clock,
+  ArrowRight,
+  ArrowLeft,
+  Zap,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const CandidatoBemVindo = () => {
   const navigate = useNavigate();
 
+  const beneficios = [
+    {
+      icon: Crosshair,
+      title: 'Vagas certas pra você',
+      description: 'Algoritmo encontra oportunidades com seu perfil',
+      gradient: 'from-rose-500 to-pink-600',
+    },
+    {
+      icon: Brain,
+      title: 'Descubra seus talentos',
+      description: 'Teste científico revela suas habilidades',
+      gradient: 'from-violet-500 to-purple-600',
+    },
+    {
+      icon: FileCheck,
+      title: 'Currículo automático',
+      description: 'Gerado profissionalmente para você',
+      gradient: 'from-emerald-500 to-teal-600',
+    },
+    {
+      icon: Building2,
+      title: 'Escolha onde trabalhar',
+      description: 'Conheça propostas antes da entrevista',
+      gradient: 'from-blue-500 to-cyan-600',
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-      {/* Background decorativo */}
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex flex-col">
+      {/* Background sutil */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#E31E24]/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-green-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 right-0 w-72 h-72 bg-[#E31E24]/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#00D9FF]/8 rounded-full blur-3xl" />
       </div>
 
       {/* Botão voltar */}
@@ -28,101 +63,95 @@ const CandidatoBemVindo = () => {
         <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
       </Button>
 
-      <div className="w-full max-w-4xl grid md:grid-cols-2 gap-8 relative z-10">
-        {/* Lado esquerdo - Slogan */}
-        <div className="hidden md:flex flex-col justify-center">
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Descubra seus talentos naturais e encontre a{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-[#00D9FF]">
-              vaga perfeita
-            </span>
-          </h1>
-          <p className="text-lg text-slate-300 mb-6">
-            Seu próximo emprego está mais perto do que você imagina. Cadastre-se e seja encontrado pelas melhores empresas.
-          </p>
-          <div className="flex items-center gap-2 text-slate-400">
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            <span>Recruta Veon - Sua carreira começa aqui</span>
+      <div className="relative z-10 flex-1 flex flex-col justify-center px-4 py-8">
+        <div className="max-w-md mx-auto w-full">
+          {/* Logo compacto */}
+          <div className="flex justify-center mb-5">
+            <div className="w-14 h-14 bg-gradient-to-br from-[#E31E24] to-[#003DA5] rounded-xl flex items-center justify-center shadow-lg shadow-[#E31E24]/20">
+              <span className="text-2xl font-black text-white">V</span>
+            </div>
           </div>
-        </div>
 
-        {/* Lado direito - Card */}
-        <Card className="bg-slate-800/80 border-slate-700 backdrop-blur-sm">
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="w-8 h-8 text-green-500" />
-            </div>
-            <CardTitle className="text-white text-2xl">Área do Profissional</CardTitle>
-            <CardDescription className="text-slate-400 text-lg">
-              Cadastre-se grátis e seja encontrado por empresas
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            {/* Benefícios compactos */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                <span className="text-white text-sm">100% gratuito</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                <span className="text-white text-sm">Teste DISC</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                <span className="text-white text-sm">Match inteligente</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                <span className="text-white text-sm">Propostas diretas</span>
-              </div>
-            </div>
+          {/* Header compacto */}
+          <div className="text-center mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
+              Empresas querem{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E31E24] to-[#00D9FF]">
+                te contratar
+              </span>
+            </h1>
+            <p className="text-slate-400 text-sm">
+              Crie seu perfil e receba propostas de emprego
+            </p>
+          </div>
 
-            {/* Botão principal - Login */}
-            <Button
-              className="w-full bg-green-500 hover:bg-green-600 py-6 font-semibold text-base"
-              onClick={() => navigate('/recrutamento/candidato/login')}
-            >
-              Entrar na minha conta <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-
-            {/* Divisor */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-700" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-slate-800 text-slate-500">ou</span>
-              </div>
-            </div>
-
-            {/* Link cadastro - Destacado */}
-            <div className="text-center p-4 bg-gradient-to-r from-[#E31E24]/10 to-[#003DA5]/10 rounded-xl border border-[#E31E24]/30">
-              <p className="text-white font-medium mb-2">
-                Ainda não tem conta?
-              </p>
-              <Link
-                to="/recrutamento/candidato/cadastro-rapido"
-                className="inline-flex items-center gap-2 text-[#00D9FF] hover:text-[#00D9FF]/80 font-semibold text-lg transition-colors"
+          {/* Grid 2x2 compacto de benefícios */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            {beneficios.map((b, i) => (
+              <div
+                key={i}
+                className="group relative bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 hover:border-slate-600 transition-all"
               >
-                Faça seu cadastro aqui
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <p className="text-slate-500 text-xs mt-2">
-                Cadastro rápido em 30 segundos
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${b.gradient} flex items-center justify-center mb-2.5 shadow-lg`}>
+                  <b.icon className="w-4.5 h-4.5 text-white" strokeWidth={2.5} />
+                </div>
+                <h3 className="text-sm font-semibold text-white mb-0.5 leading-tight">
+                  {b.title}
+                </h3>
+                <p className="text-xs text-slate-500 leading-snug">
+                  {b.description}
+                </p>
+              </div>
+            ))}
+          </div>
 
-      {/* Rodapé motivacional */}
-      <div className="absolute bottom-4 left-0 right-0 text-center">
-        <p className="text-slate-500 text-sm flex items-center justify-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-400" />
-          Seus talentos naturais podem te levar longe. Continue brilhando!
-          <Sparkles className="w-4 h-4 text-amber-400" />
-        </p>
+          {/* Como funciona - versão ultra compacta */}
+          <div className="flex items-center justify-center gap-2 mb-6 text-xs text-slate-500">
+            <Zap className="w-3.5 h-3.5 text-amber-400" />
+            <span>Cadastro em 30s</span>
+            <span className="text-slate-700">•</span>
+            <span>Perfil profissional</span>
+            <span className="text-slate-700">•</span>
+            <span>Propostas diretas</span>
+          </div>
+
+          {/* CTA Principal - Login */}
+          <Button
+            onClick={() => navigate('/recrutamento/candidato/login')}
+            size="lg"
+            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-base py-6 rounded-xl shadow-lg shadow-green-500/20 transition-all hover:scale-[1.02]"
+          >
+            ENTRAR NA MINHA CONTA
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+
+          {/* Cadastro destacado */}
+          <div className="mt-4 p-4 bg-gradient-to-r from-[#E31E24]/10 to-[#003DA5]/10 rounded-xl border border-[#E31E24]/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white text-sm font-medium">
+                  Ainda não tem conta?
+                </p>
+                <div className="flex items-center gap-1.5 text-slate-500 text-xs mt-0.5">
+                  <Clock className="w-3 h-3" />
+                  <span>Cadastro rápido</span>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/recrutamento/candidato/cadastro-rapido')}
+                className="flex items-center gap-1.5 bg-[#00D9FF]/10 hover:bg-[#00D9FF]/20 text-[#00D9FF] px-4 py-2 rounded-lg font-semibold text-sm transition-colors"
+              >
+                Criar conta
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Rodapé discreto */}
+          <p className="text-center text-xs text-slate-600 mt-4">
+            Dados protegidos pela LGPD
+          </p>
+        </div>
       </div>
     </div>
   );
