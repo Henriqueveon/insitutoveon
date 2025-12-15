@@ -1,12 +1,11 @@
 // =====================================================
-// CONTRATADOS - Área de Recrutamento VEON
-// Histórico de contratações realizadas
+// CONTRATADOS - Estilo Rede Social Mobile-First
+// Feed de contratações + Exportação CSV
 // =====================================================
 
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -32,6 +31,8 @@ import {
   Users,
   TrendingUp,
   Award,
+  X,
+  UserCheck,
 } from 'lucide-react';
 
 interface Empresa {
@@ -61,6 +62,14 @@ interface Contratacao {
     titulo: string;
   };
 }
+
+// Cores DISC
+const DISC_COLORS: Record<string, { bg: string; text: string }> = {
+  D: { bg: 'bg-red-500', text: 'text-red-400' },
+  I: { bg: 'bg-yellow-500', text: 'text-yellow-400' },
+  S: { bg: 'bg-green-500', text: 'text-green-400' },
+  C: { bg: 'bg-blue-500', text: 'text-blue-400' },
+};
 
 export default function Contratados() {
   const { toast } = useToast();
@@ -97,7 +106,6 @@ export default function Contratados() {
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-
       setContratacoes(data || []);
     } catch (error) {
       console.error('Erro ao carregar contratações:', error);
@@ -111,16 +119,6 @@ export default function Contratados() {
     }
   };
 
-  const getCorPerfil = (perfil: string | null) => {
-    switch (perfil) {
-      case 'D': return 'bg-red-500';
-      case 'I': return 'bg-yellow-500';
-      case 'S': return 'bg-green-500';
-      case 'C': return 'bg-blue-500';
-      default: return 'bg-slate-500';
-    }
-  };
-
   const formatarMoeda = (valor: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -129,6 +127,10 @@ export default function Contratados() {
   };
 
   const formatarData = (data: string) => {
+    return new Date(data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  };
+
+  const formatarDataCompleta = (data: string) => {
     return new Date(data).toLocaleDateString('pt-BR');
   };
 
@@ -161,11 +163,9 @@ export default function Contratados() {
   };
 
   const exportarCSV = () => {
-    // Função para escapar valores CSV (RFC 4180)
     const escapeCSV = (value: string | number | null | undefined): string => {
       if (value === null || value === undefined) return '';
       const str = String(value);
-      // Se contém vírgula, aspas ou quebra de linha, envolver em aspas
       if (str.includes(',') || str.includes('"') || str.includes('\n')) {
         return `"${str.replace(/"/g, '""')}"`;
       }
@@ -177,14 +177,13 @@ export default function Contratados() {
       escapeCSV(c.candidato?.nome_completo),
       escapeCSV(c.vaga?.titulo),
       escapeCSV(formatarMoeda(c.salario_oferecido)),
-      escapeCSV(formatarData(c.updated_at)),
+      escapeCSV(formatarDataCompleta(c.updated_at)),
       escapeCSV(c.candidato?.cidade),
       escapeCSV(c.candidato?.estado),
       escapeCSV(c.candidato?.telefone),
       escapeCSV(c.candidato?.email),
     ]);
 
-    // BOM para Excel reconhecer UTF-8 corretamente
     const BOM = '\uFEFF';
     const csv = BOM + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
@@ -202,83 +201,79 @@ export default function Contratados() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-lg mx-auto -mx-4 sm:mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Contratados</h1>
-          <p className="text-slate-400">Histórico de contratações realizadas</p>
+      <div className="px-4 py-4 border-b border-zinc-800">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-xl font-bold text-white">Contratados</h1>
+            <p className="text-sm text-zinc-500">Histórico de contratações</p>
+          </div>
+          {contratacoes.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={exportarCSV}
+              className="h-9 border-zinc-700 text-white hover:bg-zinc-800 rounded-xl"
+            >
+              <Download className="w-4 h-4 mr-1.5" />
+              CSV
+            </Button>
+          )}
         </div>
-        {contratacoes.length > 0 && (
-          <Button
-            variant="outline"
-            onClick={exportarCSV}
-            className="border-slate-600 text-slate-300"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Exportar CSV
-          </Button>
-        )}
+
+        {/* Stats compactos */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-zinc-900 p-3 rounded-xl text-center">
+            <div className="w-8 h-8 mx-auto mb-1.5 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+              <UserCheck className="w-4 h-4 text-emerald-400" />
+            </div>
+            <p className="text-lg font-bold text-white">{stats.total}</p>
+            <p className="text-[10px] text-zinc-500">Total</p>
+          </div>
+          <div className="bg-zinc-900 p-3 rounded-xl text-center">
+            <div className="w-8 h-8 mx-auto mb-1.5 rounded-lg bg-blue-500/20 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-blue-400" />
+            </div>
+            <p className="text-lg font-bold text-white">{stats.esteMes}</p>
+            <p className="text-[10px] text-zinc-500">Este mês</p>
+          </div>
+          <div className="bg-zinc-900 p-3 rounded-xl text-center">
+            <div className="w-8 h-8 mx-auto mb-1.5 rounded-lg bg-purple-500/20 flex items-center justify-center">
+              <Award className="w-4 h-4 text-purple-400" />
+            </div>
+            <p className="text-sm font-bold text-white truncate">
+              {formatarMoeda(stats.investimentoTotal / 12)}
+            </p>
+            <p className="text-[10px] text-zinc-500">Folha/mês</p>
+          </div>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-slate-800/60 border-slate-700">
-          <CardContent className="p-4 flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-white">{stats.total}</p>
-              <p className="text-sm text-slate-400">Total de contratações</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-800/60 border-slate-700">
-          <CardContent className="p-4 flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-white">{stats.esteMes}</p>
-              <p className="text-sm text-slate-400">Este mês</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-800/60 border-slate-700">
-          <CardContent className="p-4 flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-              <Award className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-white">
-                {formatarMoeda(stats.investimentoTotal / 12)}
-              </p>
-              <p className="text-sm text-slate-400">Folha mensal média</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+      {/* Busca e Filtros */}
+      <div className="px-4 py-3 border-b border-zinc-800 space-y-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <Input
             placeholder="Buscar por nome ou vaga..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="pl-10 bg-slate-800 border-slate-700 text-white"
+            className="pl-9 h-10 bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500 rounded-xl text-sm"
           />
+          {busca && (
+            <button
+              onClick={() => setBusca('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
         {anosDisponiveis.length > 1 && (
           <Select value={filtroAno} onValueChange={setFiltroAno}>
-            <SelectTrigger className="w-40 bg-slate-800 border-slate-700 text-white">
+            <SelectTrigger className="h-9 bg-zinc-900 border-zinc-800 text-white rounded-xl text-sm">
               <SelectValue placeholder="Ano" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-zinc-900 border-zinc-800">
               <SelectItem value="todos">Todos os anos</SelectItem>
               {anosDisponiveis.map((ano) => (
                 <SelectItem key={ano} value={ano.toString()}>{ano}</SelectItem>
@@ -291,98 +286,104 @@ export default function Contratados() {
       {/* Lista de Contratações */}
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E31E24]" />
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-[#E31E24]" />
         </div>
       ) : contratacoesFiltradas.length > 0 ? (
-        <div className="space-y-4">
-          {contratacoesFiltradas.map((contratacao) => (
-            <Card key={contratacao.id} className="bg-slate-800/60 border-slate-700">
-              <CardContent className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  {/* Info do candidato */}
-                  <div className="flex items-start space-x-4">
+        <div className="px-4 py-4 space-y-3">
+          {contratacoesFiltradas.map((contratacao) => {
+            const discColor = contratacao.candidato.perfil_disc ? DISC_COLORS[contratacao.candidato.perfil_disc] : null;
+
+            return (
+              <div
+                key={contratacao.id}
+                className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden"
+              >
+                {/* Header do Card */}
+                <div className="p-4">
+                  <div className="flex items-start gap-3 mb-3">
                     <div className="relative">
-                      <Avatar className="h-14 w-14">
+                      <Avatar className="h-12 w-12 ring-2 ring-emerald-500/30">
                         <AvatarImage src={contratacao.candidato.foto_url || undefined} />
-                        <AvatarFallback className="bg-slate-600 text-white">
+                        <AvatarFallback className="bg-zinc-700 text-white font-bold">
                           {contratacao.candidato.nome_completo.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
-                      {contratacao.candidato.perfil_disc && (
-                        <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full ${getCorPerfil(contratacao.candidato.perfil_disc)} flex items-center justify-center text-xs font-bold text-white`}>
+                      {contratacao.candidato.perfil_disc && discColor && (
+                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full ${discColor.bg} flex items-center justify-center text-[10px] font-bold text-white ring-2 ring-zinc-900`}>
                           {contratacao.candidato.perfil_disc}
                         </div>
                       )}
                     </div>
-
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-lg font-semibold text-white">
+                        <h3 className="text-white font-semibold text-sm truncate">
                           {contratacao.candidato.nome_completo}
                         </h3>
-                        <Badge className="bg-green-500/20 text-green-400">
+                        <Badge className="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-0.5">
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Contratado
                         </Badge>
                       </div>
-
-                      <div className="flex flex-wrap gap-3 text-sm text-slate-400 mb-2">
-                        <span className="flex items-center">
-                          <Briefcase className="w-4 h-4 mr-1" />
-                          {contratacao.vaga.titulo}
-                        </span>
-                        <span className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {contratacao.candidato.cidade}, {contratacao.candidato.estado}
-                        </span>
-                        <span className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-1" />
-                          {formatarData(contratacao.updated_at)}
-                        </span>
+                      <div className="flex items-center gap-1 text-zinc-500 text-xs">
+                        <MapPin className="w-3 h-3" />
+                        {contratacao.candidato.cidade}, {contratacao.candidato.estado}
                       </div>
-
-                      {/* Contato */}
-                      <div className="flex flex-wrap gap-3 text-sm">
-                        <span className="text-slate-300 flex items-center">
-                          <Phone className="w-4 h-4 mr-1 text-slate-500" />
-                          {contratacao.candidato.telefone}
-                        </span>
-                        <span className="text-slate-300 flex items-center">
-                          <Mail className="w-4 h-4 mr-1 text-slate-500" />
-                          {contratacao.candidato.email}
-                        </span>
-                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-emerald-400 font-bold text-sm">
+                        {formatarMoeda(contratacao.salario_oferecido)}
+                      </p>
+                      <p className="text-zinc-500 text-[10px]">salário</p>
                     </div>
                   </div>
 
-                  {/* Salário */}
-                  <div className="text-right">
-                    <p className="text-xs text-slate-500 uppercase">Salário</p>
-                    <p className="text-xl font-bold text-green-400">
-                      {formatarMoeda(contratacao.salario_oferecido)}
-                    </p>
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-zinc-800 text-zinc-400 text-[11px]">
+                      <Briefcase className="w-3 h-3" />
+                      {contratacao.vaga.titulo}
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 text-[11px]">
+                      <Calendar className="w-3 h-3" />
+                      {formatarData(contratacao.updated_at)}
+                    </span>
+                  </div>
+
+                  {/* Contato */}
+                  <div className="p-3 bg-zinc-800/50 rounded-xl">
+                    <p className="text-xs text-zinc-500 mb-2">Contato</p>
+                    <div className="flex flex-wrap gap-3 text-xs">
+                      <a href={`tel:${contratacao.candidato.telefone}`} className="text-white flex items-center hover:text-emerald-400 transition-colors">
+                        <Phone className="w-3.5 h-3.5 mr-1.5 text-zinc-500" />
+                        {contratacao.candidato.telefone}
+                      </a>
+                      <a href={`mailto:${contratacao.candidato.email}`} className="text-white flex items-center hover:text-emerald-400 transition-colors truncate">
+                        <Mail className="w-3.5 h-3.5 mr-1.5 text-zinc-500" />
+                        {contratacao.candidato.email}
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            );
+          })}
         </div>
       ) : (
-        <Card className="bg-slate-800/60 border-slate-700">
-          <CardContent className="py-12 text-center">
-            <Users className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">
-              {busca || filtroAno !== 'todos'
-                ? 'Nenhuma contratação encontrada'
-                : 'Você ainda não realizou contratações'}
-            </h3>
-            <p className="text-slate-400">
-              {busca || filtroAno !== 'todos'
-                ? 'Tente ajustar os filtros'
-                : 'Quando você contratar profissionais, eles aparecerão aqui'}
-            </p>
-          </CardContent>
-        </Card>
+        <div className="px-4 py-12 text-center">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-zinc-900 flex items-center justify-center">
+            <Users className="w-10 h-10 text-zinc-600" />
+          </div>
+          <h3 className="text-white font-semibold text-lg mb-2">
+            {busca || filtroAno !== 'todos'
+              ? 'Nenhuma contratação encontrada'
+              : 'Você ainda não realizou contratações'}
+          </h3>
+          <p className="text-zinc-400 text-sm">
+            {busca || filtroAno !== 'todos'
+              ? 'Tente ajustar os filtros'
+              : 'Quando você contratar profissionais, eles aparecerão aqui'}
+          </p>
+        </div>
       )}
     </div>
   );

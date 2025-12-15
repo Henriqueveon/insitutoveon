@@ -1,6 +1,6 @@
 // =====================================================
-// LAYOUT EMPRESA - Área de Recrutamento VEON
-// Sidebar + Header + Content
+// LAYOUT EMPRESA - Estilo Rede Social Mobile-First
+// Bottom Nav Mobile + Sidebar Desktop
 // =====================================================
 
 import { useState, useEffect } from 'react';
@@ -30,6 +30,14 @@ import {
   X,
   ChevronRight,
   Building2,
+  Users,
+  Bell,
+  Gift,
+  MoreHorizontal,
+  Home,
+  UserCheck,
+  Wallet,
+  Info,
 } from 'lucide-react';
 import NotificationBell from '@/components/recrutamento/NotificationBell';
 
@@ -41,8 +49,10 @@ interface Empresa {
   socio_foto_url: string | null;
   creditos: number;
   cadastro_completo?: boolean;
+  logo_url?: string | null;
 }
 
+// Menu items completo (para desktop sidebar e dropdown mobile)
 const menuItems = [
   { path: '/recrutamento/empresa/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/recrutamento/empresa/buscar-candidatos', label: 'Buscar Candidatos', icon: Search },
@@ -54,16 +64,24 @@ const menuItems = [
   { path: '/recrutamento/empresa/configuracoes', label: 'Configurações', icon: Settings },
 ];
 
+// Bottom nav items (mobile - máximo 5)
+const bottomNavItems = [
+  { path: '/recrutamento/empresa/dashboard', label: 'Início', icon: Home },
+  { path: '/recrutamento/empresa/buscar-candidatos', label: 'Buscar', icon: Search },
+  { path: '/recrutamento/empresa/minhas-vagas', label: 'Vagas', icon: FileText },
+  { path: '/recrutamento/empresa/em-processo', label: 'Processo', icon: Users },
+  { path: '/recrutamento/empresa/contratados', label: 'Contratados', icon: UserCheck },
+];
+
 export default function EmpresaLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
 
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Carregar dados da empresa
   useEffect(() => {
     carregarEmpresa();
   }, []);
@@ -73,12 +91,11 @@ export default function EmpresaLayout() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
-        // Tentar recuperar do localStorage (empresa sem auth - cadastro rápido)
         const empresaId = localStorage.getItem('veon_empresa_id');
         if (empresaId) {
           const { data } = await supabase
             .from('empresas_recrutamento')
-            .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos')
+            .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, logo_url')
             .eq('id', empresaId)
             .single();
 
@@ -92,20 +109,18 @@ export default function EmpresaLayout() {
         return;
       }
 
-      // Buscar empresa pelo email do usuário autenticado
       const { data, error } = await supabase
         .from('empresas_recrutamento')
-        .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos')
+        .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, logo_url')
         .eq('socio_email', user.email)
         .single();
 
       if (error || !data) {
-        // Tentar pelo localStorage como fallback
         const empresaId = localStorage.getItem('veon_empresa_id');
         if (empresaId) {
           const { data: dataLocal } = await supabase
             .from('empresas_recrutamento')
-            .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos')
+            .select('id, razao_social, nome_fantasia, socio_nome, socio_foto_url, creditos, logo_url')
             .eq('id', empresaId)
             .single();
 
@@ -125,7 +140,7 @@ export default function EmpresaLayout() {
       }
 
       setEmpresa(data as any);
-      localStorage.setItem('veon_empresa_id', (data as any).id); // Salvar para sessões futuras
+      localStorage.setItem('veon_empresa_id', (data as any).id);
     } catch (error) {
       console.error('Erro ao carregar empresa:', error);
     } finally {
@@ -146,6 +161,8 @@ export default function EmpresaLayout() {
     }).format(valor);
   };
 
+  const primeiroNome = empresa?.socio_nome?.split(' ')[0] || 'Empresa';
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -156,7 +173,7 @@ export default function EmpresaLayout() {
 
   return (
     <div className="min-h-screen bg-black flex">
-      {/* Sidebar - Desktop */}
+      {/* ==================== SIDEBAR DESKTOP ==================== */}
       <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-zinc-900 border-r border-zinc-800">
         {/* Logo */}
         <div className="flex items-center h-16 px-6 border-b border-zinc-800">
@@ -167,7 +184,7 @@ export default function EmpresaLayout() {
           <span className="ml-1 text-sm text-zinc-500">Empresa</span>
         </div>
 
-        {/* Menu */}
+        {/* Menu Desktop */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -188,7 +205,7 @@ export default function EmpresaLayout() {
           })}
         </nav>
 
-        {/* Créditos */}
+        {/* Créditos Desktop */}
         <div className="p-4 border-t border-zinc-800">
           <div className="bg-gradient-to-br from-emerald-600/20 to-emerald-900/20 border border-emerald-500/30 rounded-xl p-4">
             <p className="text-xs text-emerald-400/70 mb-1 font-medium">Saldo disponível</p>
@@ -206,89 +223,49 @@ export default function EmpresaLayout() {
         </div>
       </aside>
 
-      {/* Sidebar - Mobile */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <aside className="fixed inset-y-0 left-0 w-72 bg-zinc-900 border-r border-zinc-800">
-            <div className="flex items-center justify-between h-16 px-5 border-b border-zinc-800">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#E31E24] to-[#003DA5] rounded-xl flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-lg font-bold text-white">Veon</span>
-              </div>
-              <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-zinc-800 rounded-lg">
-                <X className="w-5 h-5 text-zinc-400" />
-              </button>
-            </div>
-
-            <nav className="px-3 py-4 space-y-1">
-              {menuItems.map((item) => {
-                const isActive = location.pathname === item.path;
-                return (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center px-4 py-3.5 rounded-xl transition-all ${
-                      isActive
-                        ? 'bg-white text-black font-semibold'
-                        : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-                    }`}
-                  >
-                    <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-black' : ''}`} />
-                    <span>{item.label}</span>
-                  </NavLink>
-                );
-              })}
-            </nav>
-
-            {/* Créditos mobile */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-zinc-800">
-              <div className="bg-gradient-to-br from-emerald-600/20 to-emerald-900/20 border border-emerald-500/30 rounded-xl p-4">
-                <p className="text-xs text-emerald-400/70 mb-1">Saldo</p>
-                <p className="text-xl font-bold text-emerald-400">
-                  {formatarCreditos(empresa?.creditos || 0)}
+      {/* ==================== MAIN CONTENT ==================== */}
+      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
+        {/* ==================== HEADER MOBILE/DESKTOP ==================== */}
+        <header className="sticky top-0 z-40 bg-black/95 backdrop-blur-xl border-b border-white/10">
+          <div className="flex items-center justify-between h-14 px-4">
+            {/* Left - Avatar e Saudação */}
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10 ring-2 ring-[#E31E24]/50">
+                <AvatarImage src={empresa?.logo_url || empresa?.socio_foto_url || undefined} />
+                <AvatarFallback className="bg-gradient-to-br from-[#E31E24] to-[#003DA5] text-white font-bold">
+                  {empresa?.nome_fantasia?.charAt(0) || empresa?.razao_social?.charAt(0) || 'E'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="hidden sm:block">
+                <p className="text-white font-semibold text-sm leading-tight">
+                  Olá, {primeiroNome}
+                </p>
+                <p className="text-zinc-500 text-xs">
+                  {empresa?.nome_fantasia || empresa?.razao_social}
                 </p>
               </div>
             </div>
-          </aside>
-        </div>
-      )}
 
-      {/* Main Content */}
-      <div className="flex-1 lg:ml-64">
-        {/* Header */}
-        <header className="sticky top-0 z-40 h-14 bg-black/95 backdrop-blur-xl border-b border-white/10">
-          <div className="flex items-center justify-between h-full px-4 lg:px-6">
-            {/* Mobile menu button */}
-            <button
-              className="lg:hidden p-2 -ml-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-
-            {/* Breadcrumb */}
-            <div className="hidden lg:flex items-center text-sm">
-              <span className="text-zinc-500">
-                {empresa?.nome_fantasia || empresa?.razao_social}
-              </span>
-              <ChevronRight className="w-4 h-4 mx-2 text-zinc-700" />
-              <span className="text-white font-medium">
-                {menuItems.find(i => i.path === location.pathname)?.label || 'Dashboard'}
-              </span>
-            </div>
-
-            {/* Right side */}
-            <div className="flex items-center gap-3">
-              {/* Créditos - Mobile */}
-              <div className="lg:hidden bg-emerald-500/20 border border-emerald-500/30 rounded-lg px-3 py-1.5">
+            {/* Right - Ações */}
+            <div className="flex items-center gap-2">
+              {/* Créditos Badge Mobile */}
+              <button
+                onClick={() => navigate('/recrutamento/empresa/creditos')}
+                className="lg:hidden flex items-center gap-1.5 bg-emerald-500/20 border border-emerald-500/30 rounded-full px-3 py-1.5 active:scale-95 transition-transform"
+              >
+                <Wallet className="w-4 h-4 text-emerald-400" />
                 <span className="text-sm font-bold text-emerald-400">
                   {formatarCreditos(empresa?.creditos || 0)}
                 </span>
-              </div>
+              </button>
+
+              {/* Indicação */}
+              <button
+                onClick={() => navigate('/recrutamento/empresa/indicacao')}
+                className="p-2.5 hover:bg-white/10 rounded-xl transition-colors active:scale-95"
+              >
+                <Gift className="w-5 h-5 text-purple-400" />
+              </button>
 
               {/* Notificações */}
               {empresa && (
@@ -302,33 +279,57 @@ export default function EmpresaLayout() {
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 h-10 px-2">
-                    <Avatar className="h-8 w-8 ring-2 ring-white/20">
-                      <AvatarImage src={empresa?.socio_foto_url || undefined} />
-                      <AvatarFallback className="bg-gradient-to-br from-[#E31E24] to-[#003DA5] text-white font-bold text-sm">
-                        {empresa?.socio_nome?.charAt(0) || 'E'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="hidden md:block text-sm font-medium">
-                      {empresa?.socio_nome?.split(' ')[0]}
-                    </span>
-                  </Button>
+                  <button className="p-2 hover:bg-white/10 rounded-xl transition-colors active:scale-95">
+                    <MoreHorizontal className="w-5 h-5 text-white/70" />
+                  </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-60 bg-zinc-900 border-zinc-800 shadow-2xl">
-                  <div className="px-3 py-2.5 border-b border-zinc-800">
-                    <p className="font-semibold text-white text-sm">{empresa?.socio_nome}</p>
-                    <p className="text-zinc-400 text-xs mt-0.5">{empresa?.nome_fantasia}</p>
+                <DropdownMenuContent align="end" className="w-64 bg-zinc-900 border-zinc-800 shadow-2xl rounded-2xl p-1">
+                  {/* Header do menu */}
+                  <div className="px-3 py-3 border-b border-zinc-800">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={empresa?.logo_url || empresa?.socio_foto_url || undefined} />
+                        <AvatarFallback className="bg-gradient-to-br from-[#E31E24] to-[#003DA5] text-white font-bold">
+                          {empresa?.nome_fantasia?.charAt(0) || 'E'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold text-white text-sm">{empresa?.socio_nome}</p>
+                        <p className="text-zinc-400 text-xs">{empresa?.nome_fantasia}</p>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Menu items mobile (os que não estão na bottom nav) */}
+                  <div className="py-1 lg:hidden">
+                    <DropdownMenuItem
+                      className="text-white hover:bg-white/10 cursor-pointer py-3 px-3 rounded-xl"
+                      onClick={() => navigate('/recrutamento/empresa/creditos')}
+                    >
+                      <CreditCard className="w-4 h-4 mr-3 text-emerald-400" />
+                      Créditos
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-white hover:bg-white/10 cursor-pointer py-3 px-3 rounded-xl"
+                      onClick={() => navigate('/recrutamento/empresa/sobre-empresa')}
+                    >
+                      <Building2 className="w-4 h-4 mr-3 text-blue-400" />
+                      Sobre a Empresa
+                    </DropdownMenuItem>
+                  </div>
+
                   <DropdownMenuItem
-                    className="text-white hover:bg-white/10 cursor-pointer py-3 px-3"
+                    className="text-white hover:bg-white/10 cursor-pointer py-3 px-3 rounded-xl"
                     onClick={() => navigate('/recrutamento/empresa/configuracoes')}
                   >
                     <Settings className="w-4 h-4 mr-3 text-zinc-400" />
                     Configurações
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-zinc-800" />
+
+                  <DropdownMenuSeparator className="bg-zinc-800 my-1" />
+
                   <DropdownMenuItem
-                    className="text-red-400 hover:bg-red-500/10 cursor-pointer py-3 px-3"
+                    className="text-red-400 hover:bg-red-500/10 cursor-pointer py-3 px-3 rounded-xl"
                     onClick={handleLogout}
                   >
                     <LogOut className="w-4 h-4 mr-3" />
@@ -340,10 +341,35 @@ export default function EmpresaLayout() {
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="p-4 lg:p-6">
+        {/* ==================== PAGE CONTENT ==================== */}
+        <main className="flex-1 px-4 py-4 pb-24 lg:pb-6 lg:px-6">
           <Outlet context={{ empresa, recarregarEmpresa: carregarEmpresa }} />
         </main>
+
+        {/* ==================== BOTTOM NAV MOBILE ==================== */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-xl border-t border-white/10 safe-area-bottom">
+          <div className="flex items-center justify-around h-16 px-2">
+            {bottomNavItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all active:scale-95 ${
+                    isActive ? 'text-white' : 'text-zinc-500'
+                  }`}
+                >
+                  <div className={`p-1.5 rounded-xl transition-colors ${isActive ? 'bg-gradient-to-br from-[#E31E24] to-[#003DA5]' : ''}`}>
+                    <item.icon className={`${isActive ? 'w-5 h-5' : 'w-5 h-5'}`} />
+                  </div>
+                  <span className={`text-[10px] mt-1 font-medium ${isActive ? 'text-white' : 'text-zinc-500'}`}>
+                    {item.label}
+                  </span>
+                </NavLink>
+              );
+            })}
+          </div>
+        </nav>
       </div>
     </div>
   );

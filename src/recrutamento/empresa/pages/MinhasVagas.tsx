@@ -1,12 +1,11 @@
 // =====================================================
-// MINHAS VAGAS - Área de Recrutamento VEON
-// CRUD de vagas da empresa
+// MINHAS VAGAS - Estilo Rede Social Mobile-First
+// Feed de vagas com cards estilo post + Quick actions
 // =====================================================
 
 import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -27,11 +26,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  Sheet,
+  SheetContent,
+} from '@/components/ui/sheet';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,6 +58,11 @@ import {
   Building2,
   CheckCircle,
   XCircle,
+  Play,
+  Pause,
+  ChevronRight,
+  Filter,
+  X,
 } from 'lucide-react';
 
 interface Empresa {
@@ -144,6 +146,7 @@ const initialForm: FormVaga = {
 
 export default function MinhasVagas() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { empresa } = useOutletContext<{ empresa: Empresa | null }>();
 
   const [vagas, setVagas] = useState<Vaga[]>([]);
@@ -157,6 +160,10 @@ export default function MinhasVagas() {
   const [form, setForm] = useState<FormVaga>(initialForm);
   const [isSaving, setIsSaving] = useState(false);
   const [cidades, setCidades] = useState<string[]>([]);
+
+  // Sheet de ações
+  const [vagaSelecionada, setVagaSelecionada] = useState<Vaga | null>(null);
+  const [sheetAcoesAberto, setSheetAcoesAberto] = useState(false);
 
   // Dialog de exclusão
   const [vagaParaExcluir, setVagaParaExcluir] = useState<Vaga | null>(null);
@@ -243,6 +250,7 @@ export default function MinhasVagas() {
       estado: vaga.estado || '',
       modalidade: vaga.modalidade || '',
     });
+    setSheetAcoesAberto(false);
     setModalAberto(true);
   };
 
@@ -330,6 +338,7 @@ export default function MinhasVagas() {
         description: `A vaga foi ${novoStatus === 'ativa' ? 'ativada' : novoStatus === 'pausada' ? 'pausada' : 'encerrada'}.`,
       });
 
+      setSheetAcoesAberto(false);
       carregarVagas();
     } catch (error) {
       console.error('Erro ao alterar status:', error);
@@ -373,212 +382,360 @@ export default function MinhasVagas() {
     return FAIXAS_SALARIAIS.find(f => f.value === faixa)?.label || faixa;
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case 'ativa':
-        return <Badge className="bg-green-500/20 text-green-400">Ativa</Badge>;
+        return { bg: 'bg-emerald-500/20', text: 'text-emerald-400', label: 'Ativa', icon: CheckCircle };
       case 'pausada':
-        return <Badge className="bg-yellow-500/20 text-yellow-400">Pausada</Badge>;
+        return { bg: 'bg-yellow-500/20', text: 'text-yellow-400', label: 'Pausada', icon: Pause };
       case 'encerrada':
-        return <Badge className="bg-slate-500/20 text-slate-400">Encerrada</Badge>;
+        return { bg: 'bg-zinc-500/20', text: 'text-zinc-400', label: 'Encerrada', icon: XCircle };
       default:
-        return null;
+        return { bg: 'bg-zinc-500/20', text: 'text-zinc-400', label: status, icon: FileText };
     }
+  };
+
+  const formatarData = (data: string) => {
+    const d = new Date(data);
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
   };
 
   // Filtrar vagas
   const vagasFiltradas = vagas.filter(vaga => {
     const matchBusca = busca === '' ||
       vaga.titulo.toLowerCase().includes(busca.toLowerCase()) ||
-      vaga.descricao.toLowerCase().includes(busca.toLowerCase());
+      (vaga.descricao?.toLowerCase() || '').includes(busca.toLowerCase());
 
     const matchStatus = filtroStatus === 'todas' || vaga.status === filtroStatus;
 
     return matchBusca && matchStatus;
   });
 
+  // Stats
+  const stats = {
+    total: vagas.length,
+    ativas: vagas.filter(v => v.status === 'ativa').length,
+    pausadas: vagas.filter(v => v.status === 'pausada').length,
+    propostas: vagas.reduce((acc, v) => acc + (v._count?.propostas || 0), 0),
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="max-w-lg mx-auto -mx-4 sm:mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Minhas Vagas</h1>
-          <p className="text-slate-400">Gerencie as vagas da sua empresa</p>
+      <div className="px-4 py-4 border-b border-zinc-800">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-xl font-bold text-white">Minhas Vagas</h1>
+            <p className="text-sm text-zinc-500">Gerencie suas oportunidades</p>
+          </div>
+          <Button
+            onClick={abrirModalCriacao}
+            className="h-10 bg-gradient-to-r from-[#E31E24] to-[#003DA5] text-white font-semibold rounded-xl"
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
+            Nova
+          </Button>
         </div>
-        <Button
-          onClick={abrirModalCriacao}
-          className="bg-gradient-to-r from-[#E31E24] to-[#B91C1C]"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Vaga
-        </Button>
+
+        {/* Stats compactos */}
+        <div className="grid grid-cols-4 gap-2">
+          <button
+            onClick={() => setFiltroStatus('todas')}
+            className={`p-2.5 rounded-xl text-center transition-all ${
+              filtroStatus === 'todas' ? 'bg-white text-black' : 'bg-zinc-900 text-white'
+            }`}
+          >
+            <p className="text-lg font-bold">{stats.total}</p>
+            <p className="text-[10px] opacity-70">Total</p>
+          </button>
+          <button
+            onClick={() => setFiltroStatus('ativa')}
+            className={`p-2.5 rounded-xl text-center transition-all ${
+              filtroStatus === 'ativa' ? 'bg-emerald-500 text-white' : 'bg-zinc-900'
+            }`}
+          >
+            <p className={`text-lg font-bold ${filtroStatus === 'ativa' ? 'text-white' : 'text-emerald-400'}`}>{stats.ativas}</p>
+            <p className={`text-[10px] ${filtroStatus === 'ativa' ? 'text-white/70' : 'text-zinc-500'}`}>Ativas</p>
+          </button>
+          <button
+            onClick={() => setFiltroStatus('pausada')}
+            className={`p-2.5 rounded-xl text-center transition-all ${
+              filtroStatus === 'pausada' ? 'bg-yellow-500 text-black' : 'bg-zinc-900'
+            }`}
+          >
+            <p className={`text-lg font-bold ${filtroStatus === 'pausada' ? 'text-black' : 'text-yellow-400'}`}>{stats.pausadas}</p>
+            <p className={`text-[10px] ${filtroStatus === 'pausada' ? 'text-black/70' : 'text-zinc-500'}`}>Pausadas</p>
+          </button>
+          <div className="bg-zinc-900 p-2.5 rounded-xl text-center">
+            <p className="text-lg font-bold text-blue-400">{stats.propostas}</p>
+            <p className="text-[10px] text-zinc-500">Propostas</p>
+          </div>
+        </div>
       </div>
 
-      {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+      {/* Busca */}
+      <div className="px-4 py-3 border-b border-zinc-800">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <Input
             placeholder="Buscar vagas..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="pl-10 bg-slate-800 border-slate-700 text-white"
+            className="pl-9 h-10 bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500 rounded-xl text-sm"
           />
+          {busca && (
+            <button
+              onClick={() => setBusca('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
-        <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-          <SelectTrigger className="w-40 bg-slate-800 border-slate-700 text-white">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todas">Todas</SelectItem>
-            <SelectItem value="ativa">Ativas</SelectItem>
-            <SelectItem value="pausada">Pausadas</SelectItem>
-            <SelectItem value="encerrada">Encerradas</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Lista de Vagas */}
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E31E24]" />
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-[#E31E24]" />
         </div>
       ) : vagasFiltradas.length > 0 ? (
-        <div className="grid gap-4">
-          {vagasFiltradas.map((vaga) => (
-            <Card key={vaga.id} className="bg-slate-800/60 border-slate-700">
-              <CardContent className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  {/* Info principal */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-white">
-                        {vaga.titulo}
-                      </h3>
-                      {getStatusBadge(vaga.status)}
-                    </div>
+        <div className="px-4 py-4 space-y-3">
+          {vagasFiltradas.map((vaga) => {
+            const statusConfig = getStatusConfig(vaga.status || 'ativa');
+            const StatusIcon = statusConfig.icon;
 
-                    <p className="text-slate-400 text-sm mb-3 line-clamp-2">
+            return (
+              <div
+                key={vaga.id}
+                className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden"
+              >
+                {/* Header do Card */}
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-white font-semibold text-sm truncate">
+                          {vaga.titulo}
+                        </h3>
+                        <Badge className={`${statusConfig.bg} ${statusConfig.text} text-[10px] px-2 py-0.5`}>
+                          <StatusIcon className="w-3 h-3 mr-1" />
+                          {statusConfig.label}
+                        </Badge>
+                      </div>
+                      {vaga.cidade && vaga.estado && (
+                        <div className="flex items-center gap-1 text-zinc-500 text-xs">
+                          <MapPin className="w-3 h-3" />
+                          {vaga.cidade}, {vaga.estado}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setVagaSelecionada(vaga);
+                        setSheetAcoesAberto(true);
+                      }}
+                      className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                    >
+                      <MoreVertical className="w-5 h-5 text-zinc-400" />
+                    </button>
+                  </div>
+
+                  {vaga.descricao && (
+                    <p className="text-zinc-400 text-sm line-clamp-2 mb-3">
                       {vaga.descricao}
                     </p>
+                  )}
 
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
-                      <span className="flex items-center">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        {vaga.cidade}, {vaga.estado}
-                      </span>
-                      <span className="flex items-center">
-                        <DollarSign className="w-4 h-4 mr-1" />
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {vaga.faixa_salarial && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[11px] font-medium">
+                        <DollarSign className="w-3 h-3" />
                         {getFaixaSalarialLabel(vaga.faixa_salarial)}
                       </span>
-                      <span className="flex items-center">
-                        <Briefcase className="w-4 h-4 mr-1" />
+                    )}
+                    {vaga.regime && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 text-[11px] font-medium">
+                        <Briefcase className="w-3 h-3" />
                         {vaga.regime.toUpperCase()}
                       </span>
-                      <span className="flex items-center">
-                        <Building2 className="w-4 h-4 mr-1" />
+                    )}
+                    {vaga.modalidade && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full bg-zinc-800 text-zinc-400 text-[11px]">
+                        <Building2 className="w-3 h-3 mr-1" />
                         {vaga.modalidade}
                       </span>
-                      <span className="flex items-center">
-                        <Users className="w-4 h-4 mr-1" />
-                        {vaga._count?.propostas || 0} proposta(s)
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Ações */}
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => abrirModalEdicao(vaga)}
-                      className="border-slate-600 text-slate-300"
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Editar
-                    </Button>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-slate-400">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
-                        {vaga.status !== 'ativa' && (
-                          <DropdownMenuItem
-                            onClick={() => alterarStatusVaga(vaga, 'ativa')}
-                            className="text-green-400 hover:text-green-300 cursor-pointer"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Ativar
-                          </DropdownMenuItem>
-                        )}
-                        {vaga.status === 'ativa' && (
-                          <DropdownMenuItem
-                            onClick={() => alterarStatusVaga(vaga, 'pausada')}
-                            className="text-yellow-400 hover:text-yellow-300 cursor-pointer"
-                          >
-                            <EyeOff className="w-4 h-4 mr-2" />
-                            Pausar
-                          </DropdownMenuItem>
-                        )}
-                        {vaga.status !== 'encerrada' && (
-                          <DropdownMenuItem
-                            onClick={() => alterarStatusVaga(vaga, 'encerrada')}
-                            className="text-slate-400 hover:text-slate-300 cursor-pointer"
-                          >
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Encerrar
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          onClick={() => setVagaParaExcluir(vaga)}
-                          className="text-red-400 hover:text-red-300 cursor-pointer"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+
+                {/* Footer do Card */}
+                <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-800 bg-zinc-900/50">
+                  <div className="flex items-center gap-4 text-xs text-zinc-500">
+                    <span className="flex items-center gap-1">
+                      <Users className="w-3.5 h-3.5" />
+                      {vaga._count?.propostas || 0} proposta{(vaga._count?.propostas || 0) !== 1 ? 's' : ''}
+                    </span>
+                    {vaga.created_at && (
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        {formatarData(vaga.created_at)}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => abrirModalEdicao(vaga)}
+                    className="flex items-center gap-1 text-white/70 hover:text-white text-sm transition-colors"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Editar
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
-        <Card className="bg-slate-800/60 border-slate-700">
-          <CardContent className="py-12 text-center">
-            <FileText className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">
-              {busca || filtroStatus !== 'todas'
-                ? 'Nenhuma vaga encontrada'
-                : 'Você ainda não tem vagas'}
-            </h3>
-            <p className="text-slate-400 mb-4">
-              {busca || filtroStatus !== 'todas'
-                ? 'Tente ajustar os filtros'
-                : 'Crie sua primeira vaga para começar a receber candidatos'}
-            </p>
-            {!busca && filtroStatus === 'todas' && (
-              <Button
-                onClick={abrirModalCriacao}
-                className="bg-gradient-to-r from-[#E31E24] to-[#B91C1C]"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Criar primeira vaga
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <div className="px-4 py-12 text-center">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-zinc-900 flex items-center justify-center">
+            <FileText className="w-10 h-10 text-zinc-600" />
+          </div>
+          <h3 className="text-white font-semibold text-lg mb-2">
+            {busca || filtroStatus !== 'todas'
+              ? 'Nenhuma vaga encontrada'
+              : 'Você ainda não tem vagas'}
+          </h3>
+          <p className="text-zinc-400 text-sm mb-6">
+            {busca || filtroStatus !== 'todas'
+              ? 'Tente ajustar os filtros'
+              : 'Crie sua primeira vaga para começar a receber candidatos'}
+          </p>
+          {!busca && filtroStatus === 'todas' && (
+            <Button
+              onClick={abrirModalCriacao}
+              className="bg-gradient-to-r from-[#E31E24] to-[#003DA5] text-white font-semibold rounded-xl"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              Criar primeira vaga
+            </Button>
+          )}
+        </div>
       )}
+
+      {/* Sheet de Ações */}
+      <Sheet open={sheetAcoesAberto} onOpenChange={setSheetAcoesAberto}>
+        <SheetContent side="bottom" className="bg-black border-t border-zinc-800 rounded-t-3xl p-0">
+          {vagaSelecionada && (
+            <div className="p-4">
+              {/* Header */}
+              <div className="flex items-center gap-3 pb-4 border-b border-zinc-800">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#E31E24] to-[#003DA5] flex items-center justify-center">
+                  <Briefcase className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-white font-semibold truncate">{vagaSelecionada.titulo}</h3>
+                  <p className="text-zinc-500 text-sm">
+                    {vagaSelecionada._count?.propostas || 0} proposta{(vagaSelecionada._count?.propostas || 0) !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+
+              {/* Ações */}
+              <div className="py-4 space-y-2">
+                <button
+                  onClick={() => abrirModalEdicao(vagaSelecionada)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-900 transition-colors text-left"
+                >
+                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                    <Edit className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">Editar vaga</p>
+                    <p className="text-zinc-500 text-sm">Alterar informações</p>
+                  </div>
+                </button>
+
+                {vagaSelecionada.status !== 'ativa' && (
+                  <button
+                    onClick={() => alterarStatusVaga(vagaSelecionada, 'ativa')}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-900 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                      <Play className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">Ativar vaga</p>
+                      <p className="text-zinc-500 text-sm">Tornar visível para candidatos</p>
+                    </div>
+                  </button>
+                )}
+
+                {vagaSelecionada.status === 'ativa' && (
+                  <button
+                    onClick={() => alterarStatusVaga(vagaSelecionada, 'pausada')}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-900 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                      <Pause className="w-5 h-5 text-yellow-400" />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">Pausar vaga</p>
+                      <p className="text-zinc-500 text-sm">Ocultar temporariamente</p>
+                    </div>
+                  </button>
+                )}
+
+                {vagaSelecionada.status !== 'encerrada' && (
+                  <button
+                    onClick={() => alterarStatusVaga(vagaSelecionada, 'encerrada')}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-900 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center">
+                      <XCircle className="w-5 h-5 text-zinc-400" />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">Encerrar vaga</p>
+                      <p className="text-zinc-500 text-sm">Finalizar processo seletivo</p>
+                    </div>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => {
+                    setVagaParaExcluir(vagaSelecionada);
+                    setSheetAcoesAberto(false);
+                  }}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-500/10 transition-colors text-left"
+                >
+                  <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                    <Trash2 className="w-5 h-5 text-red-400" />
+                  </div>
+                  <div>
+                    <p className="text-red-400 font-medium">Excluir vaga</p>
+                    <p className="text-zinc-500 text-sm">Remover permanentemente</p>
+                  </div>
+                </button>
+              </div>
+
+              {/* Cancelar */}
+              <Button
+                variant="outline"
+                onClick={() => setSheetAcoesAberto(false)}
+                className="w-full h-12 border-zinc-800 text-white rounded-xl"
+              >
+                Cancelar
+              </Button>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
 
       {/* Modal de Criação/Edição */}
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-800 border-slate-700">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-black border-zinc-800 rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-white text-lg">
               {vagaEditando ? 'Editar Vaga' : 'Nova Vaga'}
             </DialogTitle>
           </DialogHeader>
@@ -586,64 +743,40 @@ export default function MinhasVagas() {
           <div className="space-y-4 py-4">
             {/* Título */}
             <div className="space-y-2">
-              <Label className="text-slate-300">Título da vaga *</Label>
+              <Label className="text-white">Título da vaga *</Label>
               <Input
                 placeholder="Ex: Vendedor(a) Externo"
                 value={form.titulo}
                 onChange={(e) => setForm(prev => ({ ...prev, titulo: e.target.value }))}
-                className="bg-slate-700 border-slate-600 text-white"
+                className="bg-zinc-900 border-zinc-800 text-white rounded-xl"
               />
             </div>
 
             {/* Descrição */}
             <div className="space-y-2">
-              <Label className="text-slate-300">Descrição *</Label>
+              <Label className="text-white">Descrição *</Label>
               <Textarea
                 placeholder="Descreva as atividades e responsabilidades..."
                 value={form.descricao}
                 onChange={(e) => setForm(prev => ({ ...prev, descricao: e.target.value }))}
                 rows={4}
-                className="bg-slate-700 border-slate-600 text-white resize-none"
-              />
-            </div>
-
-            {/* Requisitos */}
-            <div className="space-y-2">
-              <Label className="text-slate-300">Requisitos</Label>
-              <Textarea
-                placeholder="Liste os requisitos necessários..."
-                value={form.requisitos}
-                onChange={(e) => setForm(prev => ({ ...prev, requisitos: e.target.value }))}
-                rows={3}
-                className="bg-slate-700 border-slate-600 text-white resize-none"
-              />
-            </div>
-
-            {/* Benefícios */}
-            <div className="space-y-2">
-              <Label className="text-slate-300">Benefícios</Label>
-              <Textarea
-                placeholder="Liste os benefícios oferecidos..."
-                value={form.beneficios}
-                onChange={(e) => setForm(prev => ({ ...prev, beneficios: e.target.value }))}
-                rows={3}
-                className="bg-slate-700 border-slate-600 text-white resize-none"
+                className="bg-zinc-900 border-zinc-800 text-white resize-none rounded-xl"
               />
             </div>
 
             {/* Grid de selects */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {/* Faixa Salarial */}
               <div className="space-y-2">
-                <Label className="text-slate-300">Faixa Salarial *</Label>
+                <Label className="text-white text-sm">Salário *</Label>
                 <Select
                   value={form.faixa_salarial}
                   onValueChange={(v) => setForm(prev => ({ ...prev, faixa_salarial: v }))}
                 >
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white rounded-xl">
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-zinc-900 border-zinc-800">
                     {FAIXAS_SALARIAIS.map((f) => (
                       <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
                     ))}
@@ -653,15 +786,15 @@ export default function MinhasVagas() {
 
               {/* Regime */}
               <div className="space-y-2">
-                <Label className="text-slate-300">Regime de Contratação *</Label>
+                <Label className="text-white text-sm">Regime *</Label>
                 <Select
                   value={form.regime}
                   onValueChange={(v) => setForm(prev => ({ ...prev, regime: v }))}
                 >
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white rounded-xl">
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-zinc-900 border-zinc-800">
                     {REGIMES.map((r) => (
                       <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
                     ))}
@@ -671,15 +804,15 @@ export default function MinhasVagas() {
 
               {/* Modalidade */}
               <div className="space-y-2">
-                <Label className="text-slate-300">Modalidade</Label>
+                <Label className="text-white text-sm">Modalidade</Label>
                 <Select
                   value={form.modalidade}
                   onValueChange={(v) => setForm(prev => ({ ...prev, modalidade: v }))}
                 >
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white rounded-xl">
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-zinc-900 border-zinc-800">
                     {MODALIDADES.map((m) => (
                       <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
                     ))}
@@ -689,15 +822,15 @@ export default function MinhasVagas() {
 
               {/* Estado */}
               <div className="space-y-2">
-                <Label className="text-slate-300">Estado</Label>
+                <Label className="text-white text-sm">Estado</Label>
                 <Select
                   value={form.estado}
                   onValueChange={(v) => setForm(prev => ({ ...prev, estado: v, cidade: '' }))}
                 >
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                    <SelectValue placeholder="Selecione" />
+                  <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white rounded-xl">
+                    <SelectValue placeholder="UF" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-zinc-900 border-zinc-800 max-h-60">
                     {ESTADOS_BR.map((uf) => (
                       <SelectItem key={uf} value={uf}>{uf}</SelectItem>
                     ))}
@@ -709,15 +842,15 @@ export default function MinhasVagas() {
             {/* Cidade */}
             {form.estado && cidades.length > 0 && (
               <div className="space-y-2">
-                <Label className="text-slate-300">Cidade</Label>
+                <Label className="text-white text-sm">Cidade</Label>
                 <Select
                   value={form.cidade}
                   onValueChange={(v) => setForm(prev => ({ ...prev, cidade: v }))}
                 >
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                    <SelectValue placeholder="Selecione" />
+                  <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white rounded-xl">
+                    <SelectValue placeholder="Selecione a cidade" />
                   </SelectTrigger>
-                  <SelectContent className="max-h-60">
+                  <SelectContent className="bg-zinc-900 border-zinc-800 max-h-60">
                     {cidades.map((cidade) => (
                       <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
                     ))}
@@ -727,18 +860,18 @@ export default function MinhasVagas() {
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button
               variant="outline"
               onClick={() => setModalAberto(false)}
-              className="border-slate-600 text-slate-300"
+              className="border-zinc-800 text-white rounded-xl"
             >
               Cancelar
             </Button>
             <Button
               onClick={salvarVaga}
               disabled={isSaving}
-              className="bg-gradient-to-r from-[#E31E24] to-[#B91C1C]"
+              className="bg-gradient-to-r from-[#E31E24] to-[#003DA5] text-white font-semibold rounded-xl"
             >
               {isSaving ? (
                 <>
@@ -757,21 +890,21 @@ export default function MinhasVagas() {
 
       {/* Dialog de Confirmação de Exclusão */}
       <AlertDialog open={!!vagaParaExcluir} onOpenChange={() => setVagaParaExcluir(null)}>
-        <AlertDialogContent className="bg-slate-800 border-slate-700">
+        <AlertDialogContent className="bg-black border-zinc-800 rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Excluir vaga?</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogDescription className="text-zinc-400">
               Esta ação não pode ser desfeita. A vaga "{vagaParaExcluir?.titulo}" será
               permanentemente removida.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600">
+            <AlertDialogCancel className="bg-zinc-900 border-zinc-800 text-white hover:bg-zinc-800 rounded-xl">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={excluirVaga}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-red-600 hover:bg-red-700 text-white rounded-xl"
             >
               Excluir
             </AlertDialogAction>

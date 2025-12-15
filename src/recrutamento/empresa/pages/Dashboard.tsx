@@ -1,12 +1,11 @@
 // =====================================================
-// DASHBOARD EMPRESA - Área de Recrutamento VEON
-// Visão geral com stats e atividades
+// DASHBOARD EMPRESA - Estilo Rede Social Mobile-First
+// Feed de candidatos + Stats compactos + Ações rápidas
 // =====================================================
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,6 +23,16 @@ import {
   ArrowRight,
   Sparkles,
   Bell,
+  ChevronRight,
+  Star,
+  Heart,
+  Send,
+  MapPin,
+  Building2,
+  Zap,
+  Plus,
+  UserPlus,
+  CreditCard,
 } from 'lucide-react';
 import SecaoIndicacao from '../components/SecaoIndicacao';
 import LinkRecrutamento from '../components/LinkRecrutamento';
@@ -33,6 +42,7 @@ interface Empresa {
   razao_social: string;
   nome_fantasia: string;
   creditos: number;
+  socio_nome?: string;
 }
 
 interface CandidatoMatch {
@@ -45,6 +55,7 @@ interface CandidatoMatch {
   anos_experiencia: number | null;
   perfil_disc: string | null;
   match_score: number;
+  objetivo_profissional?: string | null;
 }
 
 interface Atividade {
@@ -55,14 +66,13 @@ interface Atividade {
   data: string;
 }
 
-interface Notificacao {
-  id: string;
-  titulo: string;
-  mensagem: string;
-  tipo_notificacao: string;
-  lida: boolean;
-  created_at: string;
-}
+// Cores DISC
+const DISC_COLORS = {
+  D: { bg: 'bg-red-500', text: 'text-red-400', border: 'border-red-500/30' },
+  I: { bg: 'bg-yellow-500', text: 'text-yellow-400', border: 'border-yellow-500/30' },
+  S: { bg: 'bg-green-500', text: 'text-green-400', border: 'border-green-500/30' },
+  C: { bg: 'bg-blue-500', text: 'text-blue-400', border: 'border-blue-500/30' },
+};
 
 export default function EmpresaDashboard() {
   const navigate = useNavigate();
@@ -76,7 +86,6 @@ export default function EmpresaDashboard() {
   });
   const [candidatosMatch, setCandidatosMatch] = useState<CandidatoMatch[]>([]);
   const [atividades, setAtividades] = useState<Atividade[]>([]);
-  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -92,7 +101,6 @@ export default function EmpresaDashboard() {
         carregarStats(),
         carregarCandidatosMatch(),
         carregarAtividades(),
-        carregarNotificacoes(),
       ]);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -102,27 +110,23 @@ export default function EmpresaDashboard() {
   };
 
   const carregarStats = async () => {
-    // Candidatos disponíveis
     const { count: candidatos } = await supabase
       .from('candidatos_recrutamento')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'disponivel');
 
-    // Vagas ativas da empresa
     const { count: vagas } = await supabase
       .from('vagas_recrutamento')
       .select('*', { count: 'exact', head: true })
       .eq('empresa_id', empresa?.id)
       .eq('status', 'ativa');
 
-    // Propostas em andamento
     const { count: propostas } = await supabase
       .from('propostas_recrutamento')
       .select('*', { count: 'exact', head: true })
       .eq('empresa_id', empresa?.id)
       .in('status', ['pendente', 'aceita', 'entrevista_agendada']);
 
-    // Contratados
     const { count: contratados } = await supabase
       .from('propostas_recrutamento')
       .select('*', { count: 'exact', head: true })
@@ -138,27 +142,24 @@ export default function EmpresaDashboard() {
   };
 
   const carregarCandidatosMatch = async () => {
-    // Buscar candidatos disponíveis com perfil completo
     const { data } = await supabase
       .from('candidatos_recrutamento')
-      .select('id, nome_completo, foto_url, cidade, estado, areas_experiencia, anos_experiencia, perfil_disc')
+      .select('id, nome_completo, foto_url, cidade, estado, areas_experiencia, anos_experiencia, perfil_disc, objetivo_profissional')
       .eq('status', 'disponivel')
       .not('perfil_disc', 'is', null)
       .order('created_at', { ascending: false })
-      .limit(5);
+      .limit(6);
 
     if (data) {
-      // Simular score de match (em produção seria calculado baseado nas vagas da empresa)
       const candidatosComMatch = data.map((c: any) => ({
         ...c,
-        match_score: Math.floor(Math.random() * 30) + 70, // 70-100%
+        match_score: Math.floor(Math.random() * 30) + 70,
       }));
       setCandidatosMatch(candidatosComMatch as CandidatoMatch[]);
     }
   };
 
   const carregarAtividades = async () => {
-    // Buscar últimas propostas/atividades
     const { data } = await supabase
       .from('propostas_recrutamento')
       .select(`
@@ -189,24 +190,9 @@ export default function EmpresaDashboard() {
       case 'pendente': return 'Proposta enviada';
       case 'aceita': return 'Proposta aceita';
       case 'entrevista_agendada': return 'Entrevista agendada';
-      case 'contratado': return 'Candidato contratado';
-      case 'recusada': return 'Proposta recusada';
+      case 'contratado': return 'Contratado!';
+      case 'recusada': return 'Recusada';
       default: return 'Atividade';
-    }
-  };
-
-  const carregarNotificacoes = async () => {
-    const { data } = await supabase
-      .from('notificacoes_recrutamento')
-      .select('*')
-      .eq('tipo_destinatario', 'empresa')
-      .eq('destinatario_id', empresa?.id)
-      .eq('lida', false)
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    if (data) {
-      setNotificacoes(data as Notificacao[]);
     }
   };
 
@@ -218,297 +204,332 @@ export default function EmpresaDashboard() {
     const horas = Math.floor(diff / 3600000);
     const dias = Math.floor(diff / 86400000);
 
-    if (minutos < 60) return `${minutos}min atrás`;
-    if (horas < 24) return `${horas}h atrás`;
-    if (dias < 7) return `${dias}d atrás`;
-    return d.toLocaleDateString('pt-BR');
+    if (minutos < 60) return `${minutos}min`;
+    if (horas < 24) return `${horas}h`;
+    if (dias < 7) return `${dias}d`;
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
   };
 
-  const getIconeAtividade = (tipo: string) => {
-    switch (tipo) {
-      case 'proposta': return <MessageSquare className="w-4 h-4 text-blue-400" />;
-      case 'entrevista': return <Calendar className="w-4 h-4 text-yellow-400" />;
-      case 'contratacao': return <CheckCircle className="w-4 h-4 text-green-400" />;
-      default: return <Eye className="w-4 h-4 text-slate-400" />;
-    }
-  };
-
-  const getCorPerfil = (perfil: string | null) => {
-    switch (perfil) {
-      case 'D': return 'bg-red-500';
-      case 'I': return 'bg-yellow-500';
-      case 'S': return 'bg-green-500';
-      case 'C': return 'bg-blue-500';
-      default: return 'bg-slate-500';
-    }
-  };
-
-  const statsCards = [
-    {
-      label: 'Profissionais Disponíveis',
-      value: stats.candidatosDisponiveis,
-      icon: Search,
-      color: 'from-blue-500 to-blue-600',
-      link: '/recrutamento/empresa/buscar-candidatos',
-    },
-    {
-      label: 'Vagas Ativas',
-      value: stats.vagasAtivas,
-      icon: FileText,
-      color: 'from-purple-500 to-purple-600',
-      link: '/recrutamento/empresa/minhas-vagas',
-    },
-    {
-      label: 'Em Processo',
-      value: stats.emProcesso,
-      icon: Briefcase,
-      color: 'from-orange-500 to-orange-600',
-      link: '/recrutamento/empresa/em-processo',
-    },
-    {
-      label: 'Contratados',
-      value: stats.contratados,
-      icon: CheckCircle,
-      color: 'from-green-500 to-green-600',
-      link: '/recrutamento/empresa/contratados',
-    },
-  ];
+  const primeiroNome = empresa?.socio_nome?.split(' ')[0] || empresa?.nome_fantasia || 'Empresa';
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E31E24]" />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-[#E31E24]" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Boas-vindas */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">
-            Olá, {empresa?.nome_fantasia || empresa?.razao_social}!
-          </h1>
-          <p className="text-slate-400">
-            Confira o resumo da sua área de recrutamento
-          </p>
-        </div>
-        <Button
-          onClick={() => navigate('/recrutamento/empresa/buscar-candidatos')}
-          className="bg-gradient-to-r from-[#E31E24] to-[#B91C1C]"
-        >
-          <Search className="w-4 h-4 mr-2" />
-          Buscar Profissionais
-        </Button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statsCards.map((stat) => (
-          <Card
-            key={stat.label}
-            className="bg-slate-800/60 border-slate-700 cursor-pointer hover:bg-slate-800/80 transition-all"
-            onClick={() => navigate(stat.link)}
+    <div className="max-w-lg mx-auto space-y-5 -mx-4 sm:mx-auto">
+      {/* Stories / Ações Rápidas */}
+      <div className="px-4">
+        <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+          {/* Story: Buscar */}
+          <button
+            onClick={() => navigate('/recrutamento/empresa/buscar-candidatos')}
+            className="flex-shrink-0 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
           >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
-                  <stat.icon className="w-5 h-5 text-white" />
-                </div>
-                <ArrowRight className="w-4 h-4 text-slate-600" />
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#E31E24] to-[#003DA5] p-0.5">
+              <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                <Search className="w-6 h-6 text-white" />
               </div>
-              <div className="mt-3">
-                <p className="text-2xl font-bold text-white">{stat.value}</p>
-                <p className="text-sm text-slate-400">{stat.label}</p>
+            </div>
+            <span className="text-[10px] text-white/70">Buscar</span>
+          </button>
+
+          {/* Story: Nova Vaga */}
+          <button
+            onClick={() => navigate('/recrutamento/empresa/minhas-vagas')}
+            className="flex-shrink-0 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+          >
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-0.5">
+              <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                <Plus className="w-6 h-6 text-white" />
               </div>
-            </CardContent>
-          </Card>
-        ))}
+            </div>
+            <span className="text-[10px] text-white/70">Nova Vaga</span>
+          </button>
+
+          {/* Story: Em Processo */}
+          <button
+            onClick={() => navigate('/recrutamento/empresa/em-processo')}
+            className="flex-shrink-0 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+          >
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 p-0.5">
+              <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                <Briefcase className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <span className="text-[10px] text-white/70">Processo</span>
+          </button>
+
+          {/* Story: Créditos */}
+          <button
+            onClick={() => navigate('/recrutamento/empresa/creditos')}
+            className="flex-shrink-0 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+          >
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 p-0.5">
+              <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                <CreditCard className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <span className="text-[10px] text-white/70">Créditos</span>
+          </button>
+
+          {/* Story: Indicar */}
+          <button
+            onClick={() => navigate('/recrutamento/empresa/indicacao')}
+            className="flex-shrink-0 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+          >
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 p-0.5">
+              <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                <UserPlus className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <span className="text-[10px] text-white/70">Indicar</span>
+          </button>
+        </div>
       </div>
 
-      {/* Grid de conteúdo */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Candidatos com melhor match */}
-        <Card className="lg:col-span-2 bg-slate-800/60 border-slate-700">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-white flex items-center">
-              <Sparkles className="w-5 h-5 mr-2 text-yellow-400" />
-              Profissionais com melhor match
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-slate-400 hover:text-white"
-              onClick={() => navigate('/recrutamento/empresa/buscar-candidatos')}
-            >
-              Ver todos
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {candidatosMatch.length > 0 ? (
-              candidatosMatch.map((candidato) => (
-                <div
-                  key={candidato.id}
-                  className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 cursor-pointer transition-all"
-                  onClick={() => navigate(`/recrutamento/empresa/buscar-candidatos?candidato=${candidato.id}`)}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="relative">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={candidato.foto_url || undefined} />
-                        <AvatarFallback className="bg-slate-600 text-white">
-                          {candidato.nome_completo.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      {candidato.perfil_disc && (
-                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full ${getCorPerfil(candidato.perfil_disc)} flex items-center justify-center text-xs font-bold text-white`}>
-                          {candidato.perfil_disc}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-white">
-                        {candidato.nome_completo}
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        {candidato.cidade}, {candidato.estado} • {candidato.anos_experiencia || 0} anos exp.
-                      </p>
+      {/* Divider */}
+      <div className="border-t border-zinc-800" />
+
+      {/* Stats Cards Compactos */}
+      <div className="px-4">
+        <div className="grid grid-cols-4 gap-2">
+          <button
+            onClick={() => navigate('/recrutamento/empresa/buscar-candidatos')}
+            className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-center active:scale-95 transition-transform"
+          >
+            <p className="text-xl font-bold text-white">{stats.candidatosDisponiveis}</p>
+            <p className="text-[10px] text-zinc-500">Disponíveis</p>
+          </button>
+          <button
+            onClick={() => navigate('/recrutamento/empresa/minhas-vagas')}
+            className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-center active:scale-95 transition-transform"
+          >
+            <p className="text-xl font-bold text-purple-400">{stats.vagasAtivas}</p>
+            <p className="text-[10px] text-zinc-500">Vagas</p>
+          </button>
+          <button
+            onClick={() => navigate('/recrutamento/empresa/em-processo')}
+            className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-center active:scale-95 transition-transform"
+          >
+            <p className="text-xl font-bold text-orange-400">{stats.emProcesso}</p>
+            <p className="text-[10px] text-zinc-500">Processo</p>
+          </button>
+          <button
+            onClick={() => navigate('/recrutamento/empresa/contratados')}
+            className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-center active:scale-95 transition-transform"
+          >
+            <p className="text-xl font-bold text-emerald-400">{stats.contratados}</p>
+            <p className="text-[10px] text-zinc-500">Contratados</p>
+          </button>
+        </div>
+      </div>
+
+      {/* Header Feed */}
+      <div className="px-4 flex items-center justify-between">
+        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-yellow-400" />
+          Profissionais para você
+        </h2>
+        <button
+          onClick={() => navigate('/recrutamento/empresa/buscar-candidatos')}
+          className="text-xs text-zinc-400 hover:text-white flex items-center gap-1"
+        >
+          Ver todos
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Feed de Candidatos */}
+      {candidatosMatch.length > 0 ? (
+        <div className="space-y-4 px-4">
+          {candidatosMatch.map((candidato) => {
+            const discColor = candidato.perfil_disc ? DISC_COLORS[candidato.perfil_disc as keyof typeof DISC_COLORS] : null;
+
+            return (
+              <div
+                key={candidato.id}
+                className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden"
+              >
+                {/* Header do Card */}
+                <div className="flex items-center gap-3 p-4 border-b border-zinc-800">
+                  <div className="relative">
+                    <Avatar className="h-11 w-11 ring-2 ring-white/10">
+                      <AvatarImage src={candidato.foto_url || undefined} />
+                      <AvatarFallback className="bg-zinc-700 text-white font-bold">
+                        {candidato.nome_completo.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {candidato.perfil_disc && discColor && (
+                      <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full ${discColor.bg} flex items-center justify-center text-[10px] font-bold text-white ring-2 ring-zinc-900`}>
+                        {candidato.perfil_disc}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-semibold text-sm truncate">
+                      {candidato.nome_completo}
+                    </p>
+                    <div className="flex items-center gap-1 text-zinc-400">
+                      <MapPin className="w-3 h-3" />
+                      <span className="text-xs">{candidato.cidade}, {candidato.estado}</span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge
-                      className={`${
-                        candidato.match_score >= 90
-                          ? 'bg-green-500/20 text-green-400'
-                          : candidato.match_score >= 80
-                          ? 'bg-blue-500/20 text-blue-400'
-                          : 'bg-slate-500/20 text-slate-400'
-                      }`}
-                    >
-                      {candidato.match_score}% match
-                    </Badge>
+                  <Badge
+                    className={`${
+                      candidato.match_score >= 90
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-600'
+                        : candidato.match_score >= 80
+                        ? 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                        : 'bg-gradient-to-r from-zinc-600 to-zinc-700'
+                    } text-white text-xs font-bold px-2.5 py-1 rounded-full`}
+                  >
+                    {candidato.match_score}%
+                  </Badge>
+                </div>
+
+                {/* Conteúdo */}
+                <div className="p-4">
+                  {candidato.objetivo_profissional && (
+                    <p className="text-zinc-400 text-sm line-clamp-2 mb-3">
+                      {candidato.objetivo_profissional}
+                    </p>
+                  )}
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {candidato.anos_experiencia && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs font-medium">
+                        <Briefcase className="w-3 h-3" />
+                        {candidato.anos_experiencia} anos exp.
+                      </span>
+                    )}
+                    {candidato.perfil_disc && discColor && (
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-opacity-20 ${discColor.text} text-xs font-medium ${discColor.border} border`}>
+                        <Star className="w-3 h-3" />
+                        Perfil {candidato.perfil_disc}
+                      </span>
+                    )}
+                    {candidato.areas_experiencia?.slice(0, 1).map((area, i) => (
+                      <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-400 text-xs">
+                        {area}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <Users className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                <p className="text-slate-400">Nenhum profissional disponível no momento</p>
+
+                {/* Ações */}
+                <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-800">
+                  <div className="flex items-center gap-4">
+                    <button className="flex items-center gap-1.5 text-white/70 hover:text-red-400 transition-colors active:scale-95">
+                      <Heart className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => navigate(`/c/${candidato.id.substring(0, 8)}`)}
+                      className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors active:scale-95"
+                    >
+                      <Eye className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <Button
+                    onClick={() => navigate(`/recrutamento/empresa/buscar-candidatos?candidato=${candidato.id}`)}
+                    className="h-9 bg-gradient-to-r from-[#E31E24] to-[#003DA5] text-white font-semibold rounded-xl text-sm active:scale-95"
+                  >
+                    <Send className="w-4 h-4 mr-1.5" />
+                    Enviar Proposta
+                  </Button>
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="px-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">
+              <Users className="w-8 h-8 text-zinc-500" />
+            </div>
+            <h3 className="text-white font-semibold text-lg mb-2">
+              Nenhum profissional disponível
+            </h3>
+            <p className="text-zinc-400 text-sm mb-6 max-w-xs mx-auto">
+              Cadastre suas vagas para encontrar os melhores profissionais.
+            </p>
+            <Button
+              onClick={() => navigate('/recrutamento/empresa/minhas-vagas')}
+              className="bg-white text-black font-semibold rounded-xl hover:bg-white/90"
+            >
+              Criar Vaga
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
 
-        {/* Coluna lateral */}
-        <div className="space-y-6">
-          {/* Atividade recente */}
-          <Card className="bg-slate-800/60 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center text-base">
-                <Clock className="w-5 h-5 mr-2 text-slate-400" />
-                Atividade recente
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {atividades.length > 0 ? (
-                atividades.map((atividade) => (
-                  <div
-                    key={atividade.id}
-                    className="flex items-start space-x-3 text-sm"
-                  >
-                    <div className="mt-0.5">
-                      {getIconeAtividade(atividade.tipo)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-slate-300 truncate">
-                        {atividade.descricao}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {atividade.candidato_nome} • {formatarData(atividade.data)}
-                      </p>
-                    </div>
+      {/* Atividade Recente */}
+      {atividades.length > 0 && (
+        <>
+          <div className="px-4 pt-2">
+            <h3 className="text-sm font-semibold text-zinc-400 flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Atividade Recente
+            </h3>
+          </div>
+          <div className="px-4">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl divide-y divide-zinc-800">
+              {atividades.slice(0, 4).map((atividade) => (
+                <div key={atividade.id} className="flex items-center gap-3 p-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    atividade.tipo === 'contratacao' ? 'bg-emerald-500/20' :
+                    atividade.tipo === 'entrevista' ? 'bg-yellow-500/20' : 'bg-blue-500/20'
+                  }`}>
+                    {atividade.tipo === 'contratacao' ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-400" />
+                    ) : atividade.tipo === 'entrevista' ? (
+                      <Calendar className="w-4 h-4 text-yellow-400" />
+                    ) : (
+                      <MessageSquare className="w-4 h-4 text-blue-400" />
+                    )}
                   </div>
-                ))
-              ) : (
-                <p className="text-center text-slate-500 py-4">
-                  Nenhuma atividade recente
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Notificações */}
-          <Card className="bg-slate-800/60 border-slate-700">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-white flex items-center text-base">
-                <Bell className="w-5 h-5 mr-2 text-slate-400" />
-                Notificações
-              </CardTitle>
-              {notificacoes.length > 0 && (
-                <Badge className="bg-[#E31E24] text-white">
-                  {notificacoes.length}
-                </Badge>
-              )}
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {notificacoes.length > 0 ? (
-                notificacoes.map((notif) => (
-                  <div
-                    key={notif.id}
-                    className="p-2 bg-slate-700/30 rounded-lg"
-                  >
-                    <p className="text-sm text-white font-medium">
-                      {notif.titulo}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">
-                      {notif.mensagem}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {formatarData(notif.created_at)}
-                    </p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white truncate">{atividade.candidato_nome}</p>
+                    <p className="text-xs text-zinc-500">{atividade.descricao}</p>
                   </div>
-                ))
-              ) : (
-                <p className="text-center text-slate-500 py-4">
-                  Nenhuma notificação
-                </p>
-              )}
-            </CardContent>
-          </Card>
+                  <span className="text-xs text-zinc-600">{formatarData(atividade.data)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
-          {/* Link de Recrutamento */}
-          {empresa && <LinkRecrutamento empresa={empresa} />}
-
-          {/* CTA Créditos */}
-          <Card className="bg-gradient-to-br from-[#E31E24]/20 to-[#003DA5]/20 border-[#E31E24]/30">
-            <CardContent className="p-4 text-center">
-              <TrendingUp className="w-10 h-10 text-[#E31E24] mx-auto mb-2" />
-              <p className="text-white font-medium mb-1">
-                Aumente suas contratações
-              </p>
-              <p className="text-sm text-slate-400 mb-3">
-                Adicione créditos para desbloquear mais profissionais
+      {/* CTA Créditos */}
+      <div className="px-4 pb-4">
+        <div className="bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border border-emerald-500/30 rounded-2xl p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center flex-shrink-0">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-white font-medium text-sm">Desbloqueie mais talentos</p>
+              <p className="text-emerald-400/70 text-xs mt-1">
+                Adicione créditos para enviar propostas ilimitadas
               </p>
               <Button
-                size="sm"
-                className="bg-gradient-to-r from-[#E31E24] to-[#B91C1C]"
                 onClick={() => navigate('/recrutamento/empresa/creditos')}
+                size="sm"
+                className="mt-3 bg-white text-black font-semibold rounded-lg hover:bg-white/90 h-8 text-xs"
               >
                 Adicionar Créditos
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* Seção de Indicação - Full Width */}
-      {empresa && (
-        <div className="mt-8">
-          <SecaoIndicacao empresa={empresa} />
-        </div>
-      )}
     </div>
   );
 }

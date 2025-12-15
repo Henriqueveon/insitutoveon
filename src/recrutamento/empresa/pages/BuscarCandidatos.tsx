@@ -1,12 +1,11 @@
 // =====================================================
-// BUSCAR CANDIDATOS - Área de Recrutamento VEON
-// Busca avançada com filtros e perfil expandido
+// BUSCAR CANDIDATOS - Estilo Rede Social Mobile-First
+// Grid de cards + Filtros em Sheet + Quick filters
 // =====================================================
 
 import { useState, useEffect, useCallback } from 'react';
-import { useOutletContext, useSearchParams } from 'react-router-dom';
+import { useOutletContext, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -28,12 +27,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { useToast } from '@/hooks/use-toast';
 import {
   Search,
@@ -61,6 +54,8 @@ import {
   Navigation,
   UserCircle,
   Calendar,
+  Sparkles,
+  TrendingUp,
 } from 'lucide-react';
 import CandidatoPerfilModal from '../components/CandidatoPerfilModal';
 import ProfissionalCard, { calcularMatchSimples } from '../components/ProfissionalCard';
@@ -165,50 +160,38 @@ const FAIXAS_SALARIAIS = [
 ];
 
 const PERFIS_DISC = [
-  { value: 'D', label: 'Dominância', color: 'bg-red-500' },
-  { value: 'I', label: 'Influência', color: 'bg-yellow-500' },
-  { value: 'S', label: 'Estabilidade', color: 'bg-green-500' },
-  { value: 'C', label: 'Conformidade', color: 'bg-blue-500' },
+  { value: 'D', label: 'Dominante', color: 'bg-red-500', ring: 'ring-red-500' },
+  { value: 'I', label: 'Influente', color: 'bg-yellow-500', ring: 'ring-yellow-500' },
+  { value: 'S', label: 'Estável', color: 'bg-green-500', ring: 'ring-green-500' },
+  { value: 'C', label: 'Conforme', color: 'bg-blue-500', ring: 'ring-blue-500' },
 ];
 
 const DISPONIBILIDADES = [
   { value: 'imediata', label: 'Imediata' },
-  { value: '15_dias', label: 'Em 15 dias' },
-  { value: '30_dias', label: 'Em 30 dias' },
+  { value: '15_dias', label: '15 dias' },
+  { value: '30_dias', label: '30 dias' },
   { value: 'a_combinar', label: 'A combinar' },
 ];
 
 const REGIMES = [
   { value: 'clt', label: 'CLT' },
   { value: 'pj', label: 'PJ' },
-  { value: 'temporario', label: 'Temporário' },
+  { value: 'temporario', label: 'Temp.' },
   { value: 'estagio', label: 'Estágio' },
   { value: 'freelancer', label: 'Freelancer' },
 ];
 
-const ESTADOS_CIVIS = [
-  { value: 'solteiro', label: 'Solteiro(a)' },
-  { value: 'casado', label: 'Casado(a)' },
-  { value: 'divorciado', label: 'Divorciado(a)' },
-  { value: 'viuvo', label: 'Viúvo(a)' },
-  { value: 'uniao_estavel', label: 'União Estável' },
-];
-
-const OPCOES_SEXO = [
-  { value: '', label: 'Todos' },
-  { value: 'masculino', label: 'Masculino' },
-  { value: 'feminino', label: 'Feminino' },
-];
-
-const ORDENACAO_OPTIONS = [
-  { value: 'recentes', label: 'Mais recentes', icon: Clock },
-  { value: 'proximidade', label: 'Mais próximos', icon: MapPin },
-  { value: 'experiencia', label: 'Maior experiência', icon: Briefcase },
-  { value: 'salario', label: 'Menor pretensão salarial', icon: DollarSign },
-];
+// Cores DISC
+const DISC_COLORS = {
+  D: { bg: 'bg-red-500', text: 'text-red-400', border: 'border-red-500/30' },
+  I: { bg: 'bg-yellow-500', text: 'text-yellow-400', border: 'border-yellow-500/30' },
+  S: { bg: 'bg-green-500', text: 'text-green-400', border: 'border-green-500/30' },
+  C: { bg: 'bg-blue-500', text: 'text-blue-400', border: 'border-blue-500/30' },
+};
 
 export default function BuscarCandidatos() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { empresa } = useOutletContext<{ empresa: Empresa | null }>();
 
@@ -523,12 +506,10 @@ export default function BuscarCandidatos() {
     if (filtros.idadeMin !== null || filtros.idadeMax !== null) {
       const hoje = new Date();
       if (filtros.idadeMax !== null) {
-        // Para idade máxima, a pessoa deve ter nascido DEPOIS dessa data
         const dataMinNascimento = new Date(hoje.getFullYear() - filtros.idadeMax - 1, hoje.getMonth(), hoje.getDate());
         query = query.gte('data_nascimento', dataMinNascimento.toISOString().split('T')[0]);
       }
       if (filtros.idadeMin !== null) {
-        // Para idade mínima, a pessoa deve ter nascido ANTES dessa data
         const dataMaxNascimento = new Date(hoje.getFullYear() - filtros.idadeMin, hoje.getMonth(), hoje.getDate());
         query = query.lte('data_nascimento', dataMaxNascimento.toISOString().split('T')[0]);
       }
@@ -620,717 +601,551 @@ export default function BuscarCandidatos() {
 
   const totalPaginas = Math.ceil(totalCandidatos / ITENS_POR_PAGINA);
 
-  const getCorPerfil = (perfil: string | null) => {
-    switch (perfil) {
-      case 'D': return 'bg-red-500';
-      case 'I': return 'bg-yellow-500';
-      case 'S': return 'bg-green-500';
-      case 'C': return 'bg-blue-500';
-      default: return 'bg-slate-500';
-    }
-  };
-
-  const getDisponibilidadeLabel = (disp: string) => {
-    const item = DISPONIBILIDADES.find(d => d.value === disp);
-    return item?.label || disp;
-  };
-
   const filtrosAtivos = Object.values(filtros).filter(v =>
-    Array.isArray(v) ? v.length > 0 : v !== '' && v !== null
+    Array.isArray(v) ? v.length > 0 : v !== '' && v !== null && v !== false
   ).length;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
-      {/* Sidebar de Filtros - Desktop */}
-      <aside className="hidden lg:block w-72 flex-shrink-0">
-        <Card className="bg-slate-800/60 border-slate-700 sticky top-20">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-white text-lg flex items-center">
-              <Filter className="w-5 h-5 mr-2" />
-              Filtros
-            </CardTitle>
-            {filtrosAtivos > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={limparFiltros}
-                className="text-slate-400 hover:text-white h-8"
-              >
-                Limpar ({filtrosAtivos})
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-4 max-h-[calc(100vh-12rem)] overflow-y-auto">
-            {/* Ordenação */}
-            <div className="space-y-2">
-              <Label className="text-slate-300 flex items-center gap-2">
-                <ArrowUpDown className="w-4 h-4" />
-                Ordenar por
-              </Label>
-              <Select
-                value={ordenacao}
-                onValueChange={(v) => setOrdenacao(v as OrdenacaoOption)}
-              >
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ORDENACAO_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      <span className="flex items-center gap-2">
-                        <opt.icon className="w-4 h-4" />
-                        {opt.label}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Localização */}
-            <div className="space-y-2">
-              <Label className="text-slate-300">Estado</Label>
-              <Select
-                value={filtros.estado}
-                onValueChange={(v) => {
-                  setFiltros(prev => ({ ...prev, estado: v, cidade: '' }));
-                  setBuscaCidade('');
-                }}
-              >
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                  <SelectValue placeholder="Todos os estados" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ESTADOS_BR.map((uf) => (
-                    <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Cidade com Autocomplete */}
-            <div className="space-y-2 relative">
-              <Label className="text-slate-300">Cidade</Label>
-              <div className="relative">
-                <Input
-                  placeholder="Digite para buscar..."
-                  value={buscaCidade}
-                  onChange={(e) => {
-                    setBuscaCidade(e.target.value);
-                    setShowSugestoes(true);
-                    if (e.target.value.length < 2) {
-                      setFiltros(prev => ({ ...prev, cidade: '' }));
-                    }
-                  }}
-                  onFocus={() => setShowSugestoes(true)}
-                  className="bg-slate-700 border-slate-600 text-white"
-                />
-                {buscaCidade && (
-                  <button
-                    onClick={() => {
-                      setBuscaCidade('');
-                      setFiltros(prev => ({ ...prev, cidade: '' }));
-                      setCidadesSugestoes([]);
-                    }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-              {showSugestoes && cidadesSugestoes.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-600 rounded-md shadow-lg max-h-48 overflow-y-auto">
-                  {cidadesSugestoes.map((cidade, i) => (
-                    <button
-                      key={i}
-                      onClick={() => selecionarCidade(cidade.cidade, cidade.estado)}
-                      className="w-full px-3 py-2 text-left text-sm text-white hover:bg-slate-700 flex items-center justify-between"
-                    >
-                      <span>{cidade.cidade}</span>
-                      <span className="text-slate-400 text-xs">{cidade.estado}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Toggle de Proximidade */}
-            {filtros.cidade && (
-              <div className="space-y-3 p-3 bg-slate-700/50 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <Label className="text-slate-300 flex items-center gap-2">
-                    <Navigation className="w-4 h-4 text-green-400" />
-                    Buscar por proximidade
-                  </Label>
-                  <Switch
-                    checked={filtros.buscaProximidade}
-                    onCheckedChange={(checked) =>
-                      setFiltros(prev => ({ ...prev, buscaProximidade: checked }))
-                    }
-                  />
-                </div>
-                {filtros.buscaProximidade && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-400">Raio de busca:</span>
-                      <span className="text-white font-medium">{filtros.raioKm} km</span>
-                    </div>
-                    <Slider
-                      value={[filtros.raioKm]}
-                      onValueChange={([value]) =>
-                        setFiltros(prev => ({ ...prev, raioKm: value }))
-                      }
-                      min={10}
-                      max={100}
-                      step={5}
-                      className="w-full"
-                    />
-                    <p className="text-xs text-slate-500">
-                      Mostra profissionais até {filtros.raioKm}km de {filtros.cidade}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Perfil DISC */}
-            <Accordion type="single" collapsible defaultValue="disc">
-              <AccordionItem value="disc" className="border-slate-700">
-                <AccordionTrigger className="text-slate-300 hover:text-white py-2">
-                  Perfil DISC
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="grid grid-cols-2 gap-2">
-                    {PERFIS_DISC.map((perfil) => (
-                      <label
-                        key={perfil.value}
-                        className="flex items-center space-x-2 cursor-pointer"
-                      >
-                        <Checkbox
-                          checked={filtros.perfilDisc.includes(perfil.value)}
-                          onCheckedChange={(checked) => {
-                            setFiltros(prev => ({
-                              ...prev,
-                              perfilDisc: checked
-                                ? [...prev.perfilDisc, perfil.value]
-                                : prev.perfilDisc.filter(p => p !== perfil.value)
-                            }));
-                          }}
-                          className="border-slate-500"
-                        />
-                        <span className={`w-5 h-5 rounded-full ${perfil.color} flex items-center justify-center text-xs font-bold text-white`}>
-                          {perfil.value}
-                        </span>
-                        <span className="text-sm text-slate-300">{perfil.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-
-            {/* Experiência */}
-            <div className="space-y-2">
-              <Label className="text-slate-300">Experiência</Label>
-              <Select
-                value={filtros.anosExperiencia}
-                onValueChange={(v) => setFiltros(prev => ({ ...prev, anosExperiencia: v }))}
-              >
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                  <SelectValue placeholder="Qualquer experiência" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ANOS_EXPERIENCIA_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Área de Atuação */}
-            <Accordion type="single" collapsible>
-              <AccordionItem value="areas" className="border-slate-700">
-                <AccordionTrigger className="text-slate-300 hover:text-white py-2">
-                  Áreas de atuação
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {AREAS_EXPERIENCIA.map((area) => (
-                      <label
-                        key={area}
-                        className="flex items-center space-x-2 cursor-pointer"
-                      >
-                        <Checkbox
-                          checked={filtros.areaExperiencia.includes(area)}
-                          onCheckedChange={(checked) => {
-                            setFiltros(prev => ({
-                              ...prev,
-                              areaExperiencia: checked
-                                ? [...prev.areaExperiencia, area]
-                                : prev.areaExperiencia.filter(a => a !== area)
-                            }));
-                          }}
-                          className="border-slate-500"
-                        />
-                        <span className="text-sm text-slate-300">{area}</span>
-                      </label>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-
-            {/* Escolaridade */}
-            <div className="space-y-2">
-              <Label className="text-slate-300">Escolaridade</Label>
-              <Select
-                value={filtros.escolaridade}
-                onValueChange={(v) => setFiltros(prev => ({ ...prev, escolaridade: v }))}
-              >
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                  <SelectValue placeholder="Qualquer escolaridade" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ESCOLARIDADES.map((esc) => (
-                    <SelectItem key={esc} value={esc}>{esc}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Pretensão Salarial */}
-            <div className="space-y-2">
-              <Label className="text-slate-300">Pretensão Salarial</Label>
-              <Select
-                value={filtros.faixaSalarial}
-                onValueChange={(v) => setFiltros(prev => ({ ...prev, faixaSalarial: v }))}
-              >
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                  <SelectValue placeholder="Qualquer faixa" />
-                </SelectTrigger>
-                <SelectContent>
-                  {FAIXAS_SALARIAIS.map((faixa) => (
-                    <SelectItem key={faixa.value} value={faixa.value}>{faixa.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Disponibilidade */}
-            <div className="space-y-2">
-              <Label className="text-slate-300">Disponibilidade</Label>
-              <Select
-                value={filtros.disponibilidade}
-                onValueChange={(v) => setFiltros(prev => ({ ...prev, disponibilidade: v }))}
-              >
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                  <SelectValue placeholder="Qualquer disponibilidade" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DISPONIBILIDADES.map((disp) => (
-                    <SelectItem key={disp.value} value={disp.value}>{disp.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Regime */}
-            <div className="space-y-2">
-              <Label className="text-slate-300">Regime de Trabalho</Label>
-              <Select
-                value={filtros.regime}
-                onValueChange={(v) => setFiltros(prev => ({ ...prev, regime: v }))}
-              >
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                  <SelectValue placeholder="Qualquer regime" />
-                </SelectTrigger>
-                <SelectContent>
-                  {REGIMES.map((reg) => (
-                    <SelectItem key={reg.value} value={reg.value}>{reg.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Mobilidade */}
-            <Accordion type="single" collapsible>
-              <AccordionItem value="mobilidade" className="border-slate-700">
-                <AccordionTrigger className="text-slate-300 hover:text-white py-2">
-                  <span className="flex items-center gap-2">
-                    <Car className="w-4 h-4" />
-                    Mobilidade
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-3">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <Checkbox
-                        checked={filtros.possuiCNH === true}
-                        onCheckedChange={(checked) => {
-                          setFiltros(prev => ({ ...prev, possuiCNH: checked ? true : null }));
-                        }}
-                        className="border-slate-500"
-                      />
-                      <span className="text-sm text-slate-300">Possui CNH</span>
-                    </label>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <Checkbox
-                        checked={filtros.possuiVeiculo === true}
-                        onCheckedChange={(checked) => {
-                          setFiltros(prev => ({ ...prev, possuiVeiculo: checked ? true : null }));
-                        }}
-                        className="border-slate-500"
-                      />
-                      <span className="text-sm text-slate-300">Possui Veículo</span>
-                    </label>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <Checkbox
-                        checked={filtros.aceitaViajar === true}
-                        onCheckedChange={(checked) => {
-                          setFiltros(prev => ({ ...prev, aceitaViajar: checked ? true : null }));
-                        }}
-                        className="border-slate-500"
-                      />
-                      <span className="text-sm text-slate-300 flex items-center gap-1">
-                        <Plane className="w-3 h-3" />
-                        Aceita Viajar
-                      </span>
-                    </label>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-
-            {/* Filtro de Sexo */}
-            <div className="space-y-2">
-              <Label className="text-slate-300 flex items-center gap-2">
-                <UserCircle className="w-4 h-4" />
-                Sexo
-              </Label>
-              <Select
-                value={filtros.sexo}
-                onValueChange={(v) => setFiltros(prev => ({ ...prev, sexo: v }))}
-              >
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  {OPCOES_SEXO.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Filtro de Idade */}
-            <Accordion type="single" collapsible>
-              <AccordionItem value="idade" className="border-slate-700">
-                <AccordionTrigger className="text-slate-300 hover:text-white py-2">
-                  <span className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    Faixa Etária
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-slate-400 text-xs">Idade mínima</Label>
-                        <Input
-                          type="number"
-                          placeholder="18"
-                          min={18}
-                          max={65}
-                          value={filtros.idadeMin || ''}
-                          onChange={(e) => {
-                            const val = e.target.value ? parseInt(e.target.value) : null;
-                            setFiltros(prev => ({ ...prev, idadeMin: val }));
-                          }}
-                          className="bg-slate-700 border-slate-600 text-white h-9"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-slate-400 text-xs">Idade máxima</Label>
-                        <Input
-                          type="number"
-                          placeholder="65"
-                          min={18}
-                          max={65}
-                          value={filtros.idadeMax || ''}
-                          onChange={(e) => {
-                            const val = e.target.value ? parseInt(e.target.value) : null;
-                            setFiltros(prev => ({ ...prev, idadeMax: val }));
-                          }}
-                          className="bg-slate-700 border-slate-600 text-white h-9"
-                        />
-                      </div>
-                    </div>
-                    <p className="text-xs text-slate-500">
-                      Deixe em branco para qualquer idade
-                    </p>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-
-            {/* Perfil Pessoal */}
-            <Accordion type="single" collapsible>
-              <AccordionItem value="pessoal" className="border-slate-700">
-                <AccordionTrigger className="text-slate-300 hover:text-white py-2">
-                  <span className="flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    Perfil Pessoal
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-slate-400 text-xs">Estado Civil</Label>
-                      <Select
-                        value={filtros.estadoCivil}
-                        onValueChange={(v) => setFiltros(prev => ({ ...prev, estadoCivil: v }))}
-                      >
-                        <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-9">
-                          <SelectValue placeholder="Qualquer" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ESTADOS_CIVIS.map((ec) => (
-                            <SelectItem key={ec.value} value={ec.value}>{ec.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <Checkbox
-                        checked={filtros.temFilhos === true}
-                        onCheckedChange={(checked) => {
-                          setFiltros(prev => ({ ...prev, temFilhos: checked ? true : null }));
-                        }}
-                        className="border-slate-500"
-                      />
-                      <span className="text-sm text-slate-300 flex items-center gap-1">
-                        <Baby className="w-3 h-3" />
-                        Tem Filhos
-                      </span>
-                    </label>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <Checkbox
-                        checked={filtros.temFilhos === false}
-                        onCheckedChange={(checked) => {
-                          setFiltros(prev => ({ ...prev, temFilhos: checked ? false : null }));
-                        }}
-                        className="border-slate-500"
-                      />
-                      <span className="text-sm text-slate-300">Não tem filhos</span>
-                    </label>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
-      </aside>
-
-      {/* Conteúdo Principal */}
-      <div className="flex-1">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          {/* Busca */}
+    <div className="max-w-lg mx-auto -mx-4 sm:mx-auto">
+      {/* Header com busca */}
+      <div className="sticky top-0 z-30 bg-black/95 backdrop-blur-xl px-4 py-3 border-b border-zinc-800">
+        <div className="flex items-center gap-2">
+          {/* Campo de busca */}
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
             <Input
-              placeholder="Buscar por nome, cargo ou habilidade..."
+              placeholder="Buscar profissional..."
               value={filtros.busca}
               onChange={(e) => setFiltros(prev => ({ ...prev, busca: e.target.value }))}
-              className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+              className="pl-9 h-10 bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500 rounded-xl text-sm"
             />
           </div>
 
-          {/* Botão Filtros Mobile */}
-          <Button
-            variant="outline"
-            className="lg:hidden border-slate-700 text-slate-300"
+          {/* Botão Filtros */}
+          <button
             onClick={() => setFiltrosAbertos(true)}
+            className={`relative h-10 w-10 flex items-center justify-center rounded-xl transition-colors ${
+              filtrosAtivos > 0 ? 'bg-[#E31E24] text-white' : 'bg-zinc-900 text-zinc-400'
+            }`}
           >
-            <SlidersHorizontal className="w-5 h-5 mr-2" />
-            Filtros
+            <SlidersHorizontal className="w-5 h-5" />
             {filtrosAtivos > 0 && (
-              <Badge className="ml-2 bg-[#E31E24]">{filtrosAtivos}</Badge>
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-white text-black text-[10px] font-bold rounded-full flex items-center justify-center">
+                {filtrosAtivos}
+              </span>
             )}
-          </Button>
+          </button>
         </div>
-
-        {/* Resultados */}
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-slate-400">
-            {totalCandidatos} profissiona{totalCandidatos !== 1 ? 'is' : 'l'} encontrado{totalCandidatos !== 1 ? 's' : ''}
-          </p>
-        </div>
-
-        {/* Grid de Profissionais - Estilo Instagram */}
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E31E24]" />
-          </div>
-        ) : candidatos.length > 0 ? (
-          <>
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {candidatos.map((candidato) => (
-                <ProfissionalCard
-                  key={candidato.id}
-                  profissional={candidato}
-                  onClick={() => abrirPerfil(candidato)}
-                  isFavorito={favoritos.includes(candidato.id)}
-                  onToggleFavorito={toggleFavorito}
-                  matchPercentual={calcularMatchSimples(candidato)}
-                />
-              ))}
-            </div>
-
-            {/* Paginação */}
-            {totalPaginas > 1 && (
-              <div className="flex items-center justify-center space-x-2 mt-6">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={paginaAtual === 1}
-                  onClick={() => setPaginaAtual(prev => prev - 1)}
-                  className="border-slate-700 text-slate-300"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <span className="text-slate-400">
-                  Página {paginaAtual} de {totalPaginas}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={paginaAtual === totalPaginas}
-                  onClick={() => setPaginaAtual(prev => prev + 1)}
-                  className="border-slate-700 text-slate-300"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            )}
-          </>
-        ) : (
-          <Card className="bg-slate-800/60 border-slate-700">
-            <CardContent className="py-12 text-center">
-              <Users className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-white mb-2">
-                Nenhum profissional encontrado
-              </h3>
-              <p className="text-slate-400 mb-4">
-                Tente ajustar os filtros para ver mais resultados
-              </p>
-              <Button
-                variant="outline"
-                onClick={limparFiltros}
-                className="border-slate-600 text-slate-300"
-              >
-                Limpar filtros
-              </Button>
-            </CardContent>
-          </Card>
-        )}
       </div>
 
-      {/* Sheet de Filtros - Mobile */}
-      <Sheet open={filtrosAbertos} onOpenChange={setFiltrosAbertos}>
-        <SheetContent side="left" className="bg-slate-800 border-slate-700 w-80">
-          <SheetHeader>
-            <SheetTitle className="text-white flex items-center justify-between">
-              <span className="flex items-center">
-                <Filter className="w-5 h-5 mr-2" />
-                Filtros
-              </span>
-              {filtrosAtivos > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={limparFiltros}
-                  className="text-slate-400 hover:text-white"
-                >
-                  Limpar ({filtrosAtivos})
-                </Button>
-              )}
-            </SheetTitle>
-          </SheetHeader>
-          {/* Mesmo conteúdo dos filtros desktop */}
-          <div className="space-y-4 mt-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
-            {/* Estado */}
-            <div className="space-y-2">
-              <Label className="text-slate-300">Estado</Label>
-              <Select
-                value={filtros.estado}
-                onValueChange={(v) => setFiltros(prev => ({ ...prev, estado: v, cidade: '' }))}
+      {/* Quick Filters - Perfil DISC */}
+      <div className="px-4 py-3 border-b border-zinc-800">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <span className="text-xs text-zinc-500 flex-shrink-0">DISC:</span>
+          {PERFIS_DISC.map((perfil) => {
+            const isSelected = filtros.perfilDisc.includes(perfil.value);
+            return (
+              <button
+                key={perfil.value}
+                onClick={() => {
+                  setFiltros(prev => ({
+                    ...prev,
+                    perfilDisc: isSelected
+                      ? prev.perfilDisc.filter(p => p !== perfil.value)
+                      : [...prev.perfilDisc, perfil.value]
+                  }));
+                }}
+                className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all active:scale-95 ${
+                  isSelected
+                    ? `${perfil.color} text-white`
+                    : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
+                }`}
               >
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                  <SelectValue placeholder="Todos os estados" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ESTADOS_BR.map((uf) => (
-                    <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <span className={`w-4 h-4 rounded-full ${perfil.color} flex items-center justify-center text-[10px] font-bold text-white`}>
+                  {perfil.value}
+                </span>
+                {perfil.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-            {/* Perfil DISC */}
-            <div className="space-y-2">
-              <Label className="text-slate-300">Perfil DISC</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {PERFIS_DISC.map((perfil) => (
-                  <label
-                    key={perfil.value}
-                    className="flex items-center space-x-2 cursor-pointer"
+      {/* Stats */}
+      <div className="px-4 py-3 flex items-center justify-between">
+        <p className="text-sm text-zinc-400">
+          <span className="text-white font-semibold">{totalCandidatos}</span> profissiona{totalCandidatos !== 1 ? 'is' : 'l'}
+        </p>
+        <Select value={ordenacao} onValueChange={(v) => setOrdenacao(v as OrdenacaoOption)}>
+          <SelectTrigger className="h-8 w-auto bg-transparent border-0 text-zinc-400 text-xs gap-1 p-0 hover:text-white">
+            <ArrowUpDown className="w-3 h-3" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-zinc-900 border-zinc-800">
+            <SelectItem value="recentes">Mais recentes</SelectItem>
+            <SelectItem value="experiencia">Maior experiência</SelectItem>
+            <SelectItem value="salario">Menor pretensão</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Grid de Candidatos */}
+      {isLoading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-[#E31E24]" />
+        </div>
+      ) : candidatos.length > 0 ? (
+        <div className="px-4 pb-4 space-y-3">
+          {candidatos.map((candidato) => {
+            const discColor = candidato.perfil_disc ? DISC_COLORS[candidato.perfil_disc as keyof typeof DISC_COLORS] : null;
+            const matchScore = calcularMatchSimples(candidato);
+            const isFavorito = favoritos.includes(candidato.id);
+
+            return (
+              <div
+                key={candidato.id}
+                className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden active:scale-[0.98] transition-transform"
+              >
+                {/* Header do Card */}
+                <div className="flex items-center gap-3 p-4">
+                  <div className="relative" onClick={() => abrirPerfil(candidato)}>
+                    <Avatar className="h-12 w-12 ring-2 ring-white/10">
+                      <AvatarImage src={candidato.foto_url || undefined} />
+                      <AvatarFallback className="bg-zinc-700 text-white font-bold">
+                        {candidato.nome_completo.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {candidato.perfil_disc && discColor && (
+                      <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full ${discColor.bg} flex items-center justify-center text-[10px] font-bold text-white ring-2 ring-zinc-900`}>
+                        {candidato.perfil_disc}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0" onClick={() => abrirPerfil(candidato)}>
+                    <p className="text-white font-semibold text-sm truncate">
+                      {candidato.nome_completo}
+                    </p>
+                    <div className="flex items-center gap-1 text-zinc-400">
+                      <MapPin className="w-3 h-3" />
+                      <span className="text-xs truncate">{candidato.cidade}, {candidato.estado}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => toggleFavorito(candidato.id)}
+                      className={`p-2 rounded-full transition-colors ${
+                        isFavorito ? 'text-red-500' : 'text-zinc-500 hover:text-white'
+                      }`}
+                    >
+                      <Heart className={`w-5 h-5 ${isFavorito ? 'fill-current' : ''}`} />
+                    </button>
+                    <Badge
+                      className={`${
+                        matchScore >= 90
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-600'
+                          : matchScore >= 80
+                          ? 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                          : 'bg-gradient-to-r from-zinc-600 to-zinc-700'
+                      } text-white text-xs font-bold px-2 py-0.5 rounded-full`}
+                    >
+                      {matchScore}%
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Conteúdo */}
+                <div className="px-4 pb-3" onClick={() => abrirPerfil(candidato)}>
+                  {candidato.objetivo_profissional && (
+                    <p className="text-zinc-400 text-sm line-clamp-2 mb-3">
+                      {candidato.objetivo_profissional}
+                    </p>
+                  )}
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {candidato.anos_experiencia && candidato.anos_experiencia > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 text-[11px] font-medium">
+                        <Briefcase className="w-3 h-3" />
+                        {candidato.anos_experiencia} anos
+                      </span>
+                    )}
+                    {candidato.disponibilidade_inicio && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[11px] font-medium">
+                        <Clock className="w-3 h-3" />
+                        {candidato.disponibilidade_inicio === 'imediata' ? 'Imediato' : candidato.disponibilidade_inicio}
+                      </span>
+                    )}
+                    {candidato.areas_experiencia?.slice(0, 1).map((area, i) => (
+                      <span key={i} className="inline-flex items-center px-2 py-1 rounded-full bg-zinc-800 text-zinc-400 text-[11px]">
+                        {area}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Ações */}
+                <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-800 bg-zinc-900/50">
+                  <button
+                    onClick={() => abrirPerfil(candidato)}
+                    className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors text-sm"
                   >
-                    <Checkbox
-                      checked={filtros.perfilDisc.includes(perfil.value)}
-                      onCheckedChange={(checked) => {
-                        setFiltros(prev => ({
-                          ...prev,
-                          perfilDisc: checked
-                            ? [...prev.perfilDisc, perfil.value]
-                            : prev.perfilDisc.filter(p => p !== perfil.value)
-                        }));
-                      }}
-                      className="border-slate-500"
-                    />
-                    <span className={`w-5 h-5 rounded-full ${perfil.color} flex items-center justify-center text-xs font-bold text-white`}>
-                      {perfil.value}
-                    </span>
-                  </label>
-                ))}
+                    <Eye className="w-4 h-4" />
+                    Ver perfil
+                  </button>
+                  <Button
+                    onClick={() => {
+                      if (!empresa?.cadastro_completo) {
+                        setShowCadastroIncompleto(true);
+                        return;
+                      }
+                      abrirPerfil(candidato);
+                    }}
+                    className="h-8 bg-gradient-to-r from-[#E31E24] to-[#003DA5] text-white font-semibold rounded-lg text-xs active:scale-95"
+                  >
+                    <Send className="w-3.5 h-3.5 mr-1.5" />
+                    Proposta
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Paginação */}
+          {totalPaginas > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <button
+                disabled={paginaAtual === 1}
+                onClick={() => setPaginaAtual(prev => prev - 1)}
+                className="h-10 w-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span className="text-sm text-zinc-400">
+                {paginaAtual} / {totalPaginas}
+              </span>
+              <button
+                disabled={paginaAtual === totalPaginas}
+                onClick={() => setPaginaAtual(prev => prev + 1)}
+                className="h-10 w-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="px-4 py-12 text-center">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-zinc-900 flex items-center justify-center">
+            <Users className="w-10 h-10 text-zinc-600" />
+          </div>
+          <h3 className="text-white font-semibold text-lg mb-2">
+            Nenhum profissional encontrado
+          </h3>
+          <p className="text-zinc-400 text-sm mb-6">
+            Tente ajustar os filtros para ver mais resultados
+          </p>
+          <Button
+            onClick={limparFiltros}
+            variant="outline"
+            className="border-zinc-700 text-white hover:bg-zinc-800"
+          >
+            Limpar filtros
+          </Button>
+        </div>
+      )}
+
+      {/* Sheet de Filtros */}
+      <Sheet open={filtrosAbertos} onOpenChange={setFiltrosAbertos}>
+        <SheetContent side="bottom" className="bg-black border-t border-zinc-800 rounded-t-3xl h-[85vh] p-0">
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+              <div className="flex items-center gap-3">
+                <Filter className="w-5 h-5 text-white" />
+                <span className="text-white font-semibold">Filtros</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {filtrosAtivos > 0 && (
+                  <button
+                    onClick={limparFiltros}
+                    className="text-xs text-zinc-400 hover:text-white"
+                  >
+                    Limpar ({filtrosAtivos})
+                  </button>
+                )}
+                <button
+                  onClick={() => setFiltrosAbertos(false)}
+                  className="p-2 hover:bg-zinc-800 rounded-full"
+                >
+                  <X className="w-5 h-5 text-zinc-400" />
+                </button>
               </div>
             </div>
 
-            {/* Experiência */}
-            <div className="space-y-2">
-              <Label className="text-slate-300">Experiência</Label>
-              <Select
-                value={filtros.anosExperiencia}
-                onValueChange={(v) => setFiltros(prev => ({ ...prev, anosExperiencia: v }))}
-              >
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                  <SelectValue placeholder="Qualquer experiência" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ANOS_EXPERIENCIA_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Conteúdo dos filtros */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              {/* Localização */}
+              <div className="space-y-3">
+                <Label className="text-white font-medium flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-zinc-400" />
+                  Localização
+                </Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Select
+                    value={filtros.estado}
+                    onValueChange={(v) => {
+                      setFiltros(prev => ({ ...prev, estado: v, cidade: '' }));
+                      setBuscaCidade('');
+                    }}
+                  >
+                    <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white">
+                      <SelectValue placeholder="Estado" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-zinc-900 border-zinc-800">
+                      {ESTADOS_BR.map((uf) => (
+                        <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="relative">
+                    <Input
+                      placeholder="Cidade"
+                      value={buscaCidade}
+                      onChange={(e) => {
+                        setBuscaCidade(e.target.value);
+                        setShowSugestoes(true);
+                        if (e.target.value.length < 2) {
+                          setFiltros(prev => ({ ...prev, cidade: '' }));
+                        }
+                      }}
+                      onFocus={() => setShowSugestoes(true)}
+                      className="bg-zinc-900 border-zinc-800 text-white"
+                    />
+                    {showSugestoes && cidadesSugestoes.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                        {cidadesSugestoes.map((cidade, i) => (
+                          <button
+                            key={i}
+                            onClick={() => selecionarCidade(cidade.cidade, cidade.estado)}
+                            className="w-full px-3 py-2 text-left text-sm text-white hover:bg-zinc-800 flex items-center justify-between"
+                          >
+                            <span>{cidade.cidade}</span>
+                            <span className="text-zinc-500 text-xs">{cidade.estado}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Busca por proximidade */}
+                {filtros.cidade && (
+                  <div className="bg-zinc-900 rounded-xl p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-white flex items-center gap-2">
+                        <Navigation className="w-4 h-4 text-emerald-400" />
+                        Buscar por proximidade
+                      </span>
+                      <Switch
+                        checked={filtros.buscaProximidade}
+                        onCheckedChange={(checked) =>
+                          setFiltros(prev => ({ ...prev, buscaProximidade: checked }))
+                        }
+                      />
+                    </div>
+                    {filtros.buscaProximidade && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-zinc-400">Raio de busca</span>
+                          <span className="text-white font-medium">{filtros.raioKm} km</span>
+                        </div>
+                        <Slider
+                          value={[filtros.raioKm]}
+                          onValueChange={([value]) =>
+                            setFiltros(prev => ({ ...prev, raioKm: value }))
+                          }
+                          min={10}
+                          max={100}
+                          step={5}
+                          className="w-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Experiência */}
+              <div className="space-y-3">
+                <Label className="text-white font-medium flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-zinc-400" />
+                  Experiência
+                </Label>
+                <Select
+                  value={filtros.anosExperiencia}
+                  onValueChange={(v) => setFiltros(prev => ({ ...prev, anosExperiencia: v }))}
+                >
+                  <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white">
+                    <SelectValue placeholder="Qualquer experiência" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-zinc-800">
+                    {ANOS_EXPERIENCIA_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Pretensão Salarial */}
+              <div className="space-y-3">
+                <Label className="text-white font-medium flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-zinc-400" />
+                  Pretensão Salarial
+                </Label>
+                <Select
+                  value={filtros.faixaSalarial}
+                  onValueChange={(v) => setFiltros(prev => ({ ...prev, faixaSalarial: v }))}
+                >
+                  <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white">
+                    <SelectValue placeholder="Qualquer faixa" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-zinc-800">
+                    {FAIXAS_SALARIAIS.map((faixa) => (
+                      <SelectItem key={faixa.value} value={faixa.value}>{faixa.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Escolaridade */}
+              <div className="space-y-3">
+                <Label className="text-white font-medium flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-zinc-400" />
+                  Escolaridade
+                </Label>
+                <Select
+                  value={filtros.escolaridade}
+                  onValueChange={(v) => setFiltros(prev => ({ ...prev, escolaridade: v }))}
+                >
+                  <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white">
+                    <SelectValue placeholder="Qualquer escolaridade" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-zinc-800">
+                    {ESCOLARIDADES.map((esc) => (
+                      <SelectItem key={esc} value={esc}>{esc}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Disponibilidade */}
+              <div className="space-y-3">
+                <Label className="text-white font-medium flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-zinc-400" />
+                  Disponibilidade
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {DISPONIBILIDADES.map((disp) => {
+                    const isSelected = filtros.disponibilidade === disp.value;
+                    return (
+                      <button
+                        key={disp.value}
+                        onClick={() => setFiltros(prev => ({
+                          ...prev,
+                          disponibilidade: isSelected ? '' : disp.value
+                        }))}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                          isSelected
+                            ? 'bg-emerald-500 text-white'
+                            : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
+                        }`}
+                      >
+                        {disp.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Regime */}
+              <div className="space-y-3">
+                <Label className="text-white font-medium flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-zinc-400" />
+                  Regime de Trabalho
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {REGIMES.map((reg) => {
+                    const isSelected = filtros.regime === reg.value;
+                    return (
+                      <button
+                        key={reg.value}
+                        onClick={() => setFiltros(prev => ({
+                          ...prev,
+                          regime: isSelected ? '' : reg.value
+                        }))}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                          isSelected
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
+                        }`}
+                      >
+                        {reg.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Mobilidade */}
+              <div className="space-y-3">
+                <Label className="text-white font-medium flex items-center gap-2">
+                  <Car className="w-4 h-4 text-zinc-400" />
+                  Mobilidade
+                </Label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-3 p-3 bg-zinc-900 rounded-xl">
+                    <Checkbox
+                      checked={filtros.possuiCNH === true}
+                      onCheckedChange={(checked) => {
+                        setFiltros(prev => ({ ...prev, possuiCNH: checked ? true : null }));
+                      }}
+                    />
+                    <span className="text-sm text-white">Possui CNH</span>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 bg-zinc-900 rounded-xl">
+                    <Checkbox
+                      checked={filtros.possuiVeiculo === true}
+                      onCheckedChange={(checked) => {
+                        setFiltros(prev => ({ ...prev, possuiVeiculo: checked ? true : null }));
+                      }}
+                    />
+                    <span className="text-sm text-white">Possui Veículo</span>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 bg-zinc-900 rounded-xl">
+                    <Checkbox
+                      checked={filtros.aceitaViajar === true}
+                      onCheckedChange={(checked) => {
+                        setFiltros(prev => ({ ...prev, aceitaViajar: checked ? true : null }));
+                      }}
+                    />
+                    <span className="text-sm text-white flex items-center gap-2">
+                      <Plane className="w-4 h-4 text-purple-400" />
+                      Aceita Viajar
+                    </span>
+                  </label>
+                </div>
+              </div>
             </div>
 
-            {/* Aplicar */}
-            <Button
-              className="w-full bg-gradient-to-r from-[#E31E24] to-[#B91C1C]"
-              onClick={() => setFiltrosAbertos(false)}
-            >
-              Aplicar filtros
-            </Button>
+            {/* Footer com botão aplicar */}
+            <div className="p-4 border-t border-zinc-800 bg-black">
+              <Button
+                onClick={() => setFiltrosAbertos(false)}
+                className="w-full h-12 bg-gradient-to-r from-[#E31E24] to-[#003DA5] text-white font-semibold rounded-xl"
+              >
+                Ver {totalCandidatos} profissiona{totalCandidatos !== 1 ? 'is' : 'l'}
+              </Button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
