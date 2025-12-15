@@ -1963,6 +1963,10 @@ export type Database = {
       creditar_indicacao: { Args: { p_indicado_id: string }; Returns: Json }
       criar_otp: { Args: { p_email: string; p_tipo?: string }; Returns: Json }
       delete_candidato: { Args: { p_candidato_id: string }; Returns: Json }
+      delete_candidato_completo: {
+        Args: { p_candidato_id: string }
+        Returns: Json
+      }
       delete_empresa: { Args: { p_empresa_id: string }; Returns: Json }
       enviar_notificacao_massa: {
         Args: {
