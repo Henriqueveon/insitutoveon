@@ -224,6 +224,7 @@ export type Database = {
           objetivo_profissional: string | null
           perfil_disc: string | null
           perfil_disc_detalhado: Json | null
+          perfil_natural: Json | null
           perfil_valores: Json | null
           possui_cnh: string | null
           possui_veiculo: string | null
@@ -303,6 +304,7 @@ export type Database = {
           objetivo_profissional?: string | null
           perfil_disc?: string | null
           perfil_disc_detalhado?: Json | null
+          perfil_natural?: Json | null
           perfil_valores?: Json | null
           possui_cnh?: string | null
           possui_veiculo?: string | null
@@ -382,6 +384,7 @@ export type Database = {
           objetivo_profissional?: string | null
           perfil_disc?: string | null
           perfil_disc_detalhado?: Json | null
+          perfil_natural?: Json | null
           perfil_valores?: Json | null
           possui_cnh?: string | null
           possui_veiculo?: string | null

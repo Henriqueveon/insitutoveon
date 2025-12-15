@@ -90,7 +90,7 @@ export default function DiscConcluido() {
           setPerfilInfo({
             tipo: perfilTipo,
             nome: profile.nome,
-            descricao: profile.descricao,
+            descricao: profile.descricaoCurta,
           });
           setPerfilSalvo(true);
 
