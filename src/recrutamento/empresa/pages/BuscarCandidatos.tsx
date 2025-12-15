@@ -356,8 +356,7 @@ export default function BuscarCandidatos() {
           .select('*', { count: 'exact' })
           .in('id', candidatoIds)
           .eq('cadastro_completo', true)
-          .not('perfil_disc', 'is', null)
-          .not('foto_url', 'is', null);
+          .not('perfil_disc', 'is', null);
 
         // Aplicar outros filtros
         query = aplicarFiltrosExtras(query);
@@ -389,8 +388,7 @@ export default function BuscarCandidatos() {
           .select('*', { count: 'exact' })
           .eq('status', 'disponivel')
           .eq('cadastro_completo', true)
-          .not('perfil_disc', 'is', null)
-          .not('foto_url', 'is', null);
+          .not('perfil_disc', 'is', null);
 
         // Aplicar filtros de localização
         if (filtros.estado) {

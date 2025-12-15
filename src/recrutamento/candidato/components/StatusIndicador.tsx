@@ -114,10 +114,15 @@ export default function StatusIndicador({ candidato, onFechar }: Props) {
   };
 
   const pendencias = getPendencias();
+  // Pendências obrigatórias para ficar online (foto é opcional)
+  const pendenciasObrigatorias = pendencias.filter(p => p.id !== 'foto');
+  const obrigatoriasCompletas = pendenciasObrigatorias.filter(p => p.completo).length;
+  // Progresso considera todas as pendências para mostrar ao usuário
   const totalPendencias = pendencias.length;
   const pendenciasCompletas = pendencias.filter(p => p.completo).length;
   const progresso = (pendenciasCompletas / totalPendencias) * 100;
-  const estaOnline = progresso === 100;
+  // Para ficar online, só precisa das obrigatórias (dados, experiência, DISC)
+  const estaOnline = obrigatoriasCompletas === pendenciasObrigatorias.length;
 
   if (estaOnline) {
     return null;
@@ -222,9 +227,9 @@ export default function StatusIndicador({ candidato, onFechar }: Props) {
 
 // Componente compacto para o header - Design moderno
 export function StatusBadge({ candidato }: { candidato: Candidato }) {
+  // Foto não é mais obrigatória para ficar online
   const perfilCompleto = !!(
     candidato.cadastro_completo &&
-    candidato.foto_url &&
     candidato.perfil_disc
   );
 
