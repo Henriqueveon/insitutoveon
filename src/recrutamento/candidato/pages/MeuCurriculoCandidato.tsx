@@ -1,6 +1,6 @@
 // =====================================================
 // MEU CURRÍCULO CANDIDATO - Área de Recrutamento VEON
-// Visualização do perfil completo com DISC
+// Visualização do perfil completo com DISC (85% do relatório)
 // =====================================================
 
 import { useState, useEffect } from 'react';
@@ -33,7 +33,18 @@ import {
   CheckCircle,
   User,
   Building2,
+  Brain,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
+import CurriculoDISCReport from '../components/CurriculoDISCReport';
+
+interface Profile {
+  D: number;
+  I: number;
+  S: number;
+  C: number;
+}
 
 interface Candidato {
   id: string;
@@ -47,6 +58,7 @@ interface Candidato {
   estado: string;
   bairro: string | null;
   perfil_disc: string | null;
+  perfil_natural: Profile | null;
   objetivo_profissional: string | null;
 
   // Experiência
@@ -92,6 +104,7 @@ export default function MeuCurriculoCandidato() {
   const [candidato, setCandidato] = useState<Candidato | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [linkCompartilhamento, setLinkCompartilhamento] = useState('');
+  const [showDISCReport, setShowDISCReport] = useState(true);
 
   useEffect(() => {
     if (candidatoContext?.id) {
@@ -438,6 +451,62 @@ export default function MeuCurriculoCandidato() {
           )}
         </CardContent>
       </Card>
+
+      {/* Relatório DISC Completo */}
+      {(candidato.perfil_natural || candidato.perfil_disc) && (() => {
+        // Gerar perfil a partir do perfil_disc se não tiver perfil_natural
+        const getProfileFromDisc = (disc: string): Profile => {
+          const primary = disc.charAt(0) as 'D' | 'I' | 'S' | 'C';
+          const secondary = disc.charAt(1) as 'D' | 'I' | 'S' | 'C' | undefined;
+
+          // Valores base padrão
+          const profile: Profile = { D: 5, I: 5, S: 5, C: 5 };
+
+          // Aumentar valor do perfil primário
+          profile[primary] = 20;
+
+          // Aumentar valor do perfil secundário se existir
+          if (secondary && ['D', 'I', 'S', 'C'].includes(secondary)) {
+            profile[secondary] = 12;
+          }
+
+          return profile;
+        };
+
+        const naturalProfile = candidato.perfil_natural ||
+          (candidato.perfil_disc ? getProfileFromDisc(candidato.perfil_disc) : { D: 10, I: 10, S: 10, C: 10 });
+
+        return (
+          <div className="space-y-4">
+            <button
+              onClick={() => setShowDISCReport(!showDISCReport)}
+              className="w-full flex items-center justify-between bg-gradient-to-r from-[#E31E24]/20 to-[#003DA5]/20 border border-[#E31E24]/30 rounded-2xl p-4 text-left hover:border-[#E31E24]/50 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#E31E24] to-[#003DA5] flex items-center justify-center">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold text-lg">Relatório DISC Completo</h3>
+                  <p className="text-slate-400 text-sm">Análise comportamental detalhada</p>
+                </div>
+              </div>
+              {showDISCReport ? (
+                <ChevronUp className="w-6 h-6 text-white/70" />
+              ) : (
+                <ChevronDown className="w-6 h-6 text-white/70" />
+              )}
+            </button>
+
+            {showDISCReport && (
+              <CurriculoDISCReport
+                naturalProfile={naturalProfile}
+                nomeCompleto={candidato.nome_completo}
+              />
+            )}
+          </div>
+        );
+      })()}
 
       {/* Link de compartilhamento */}
       <Card className="bg-slate-800/60 border-slate-700">
