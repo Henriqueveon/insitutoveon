@@ -11,6 +11,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import {
   MapPin,
@@ -24,6 +34,7 @@ import {
   Play,
   Target,
   CheckCircle,
+  CheckCircle2,
   Building2,
   Brain,
   ChevronDown,
@@ -34,6 +45,10 @@ import {
   Send,
   Star,
   Calendar,
+  Shield,
+  Users,
+  Bookmark,
+  BookmarkCheck,
 } from 'lucide-react';
 
 // IMPORTA O COMPONENTE DE RELATÓRIO DISC QUE JÁ FUNCIONA (35KB, 20+ seções)
@@ -97,6 +112,7 @@ interface Empresa {
   nome_fantasia: string | null;
   creditos: number;
   cadastro_completo?: boolean;
+  socio_nome?: string | null;
 }
 
 export default function VerCurriculoCandidato() {
@@ -113,6 +129,7 @@ export default function VerCurriculoCandidato() {
   const [isSalvando, setIsSalvando] = useState(false);
   const [isSolicitando, setIsSolicitando] = useState(false);
   const [jaSalvo, setJaSalvo] = useState(false);
+  const [showConfirmacao, setShowConfirmacao] = useState(false);
 
   useEffect(() => {
     if (candidatoId) {
@@ -135,7 +152,7 @@ export default function VerCurriculoCandidato() {
       // Buscar dados da empresa
       const { data: empresaData, error: empresaError } = await supabase
         .from('empresas_recrutamento')
-        .select('id, razao_social, nome_fantasia, creditos, cadastro_completo')
+        .select('id, razao_social, nome_fantasia, creditos, cadastro_completo, socio_nome')
         .eq('id', empresaId)
         .single();
 
@@ -363,6 +380,8 @@ export default function VerCurriculoCandidato() {
         .from('empresas_recrutamento')
         .update({ creditos: (empresa.creditos || 0) - 39.9 })
         .eq('id', empresa.id);
+
+      setShowConfirmacao(false);
 
       toast({
         title: 'Entrevista solicitada!',
@@ -705,15 +724,15 @@ export default function VerCurriculoCandidato() {
       </div>
 
       {/* ========== BOTÕES DE AÇÃO FIXOS ========== */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-xl border-t border-white/10 p-4 safe-area-bottom">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-950/95 backdrop-blur-xl border-t border-gray-800 p-4 safe-area-bottom">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           {/* Botão Voltar */}
           <Button
             variant="outline"
             onClick={handleVoltar}
-            className="border-slate-700 text-white hover:bg-slate-800"
+            className="border-gray-600 bg-gray-800 text-white hover:bg-gray-700 hover:text-white"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-5 h-5" />
           </Button>
 
           {/* Botão Salvar */}
@@ -721,31 +740,130 @@ export default function VerCurriculoCandidato() {
             variant="outline"
             onClick={handleSalvarCandidato}
             disabled={isSalvando}
-            className={`flex-1 ${jaSalvo ? 'bg-pink-500/20 border-pink-500/50 text-pink-400' : 'border-slate-700 text-white hover:bg-slate-800'}`}
+            className={`border-gray-600 bg-gray-800 text-white hover:bg-gray-700 hover:text-white ${
+              jaSalvo ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/30' : ''
+            }`}
           >
             {isSalvando ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : jaSalvo ? (
+              <BookmarkCheck className="w-5 h-5" />
             ) : (
-              <Heart className={`w-4 h-4 mr-2 ${jaSalvo ? 'fill-pink-400' : ''}`} />
+              <Bookmark className="w-5 h-5" />
             )}
-            {jaSalvo ? 'Salvo' : 'Salvar'}
           </Button>
 
-          {/* Botão Solicitar Entrevista */}
+          {/* Botão Agendar Entrevista */}
           <Button
-            onClick={handleSolicitarEntrevista}
-            disabled={isSolicitando}
-            className="flex-[2] bg-gradient-to-r from-[#E31E24] to-[#B91C1C] hover:from-[#C91920] hover:to-[#991B1B] text-white font-semibold"
+            onClick={() => setShowConfirmacao(true)}
+            className="flex-1 bg-[#E31E24] hover:bg-[#E31E24]/90 text-white font-semibold py-6"
           >
-            {isSolicitando ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4 mr-2" />
-            )}
-            Solicitar Entrevista - R$39,90
+            <Calendar className="w-5 h-5 mr-2" />
+            Agendar Entrevista
           </Button>
         </div>
       </div>
+
+      {/* ========== MODAL DE CONFIRMAÇÃO DE ENTREVISTA ========== */}
+      <AlertDialog open={showConfirmacao} onOpenChange={setShowConfirmacao}>
+        <AlertDialogContent className="bg-gray-900 border-gray-700 max-w-md mx-4">
+          <AlertDialogHeader className="text-center">
+            {/* Ícone de sucesso */}
+            <div className="mx-auto mb-4 w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center">
+              <Users className="h-8 w-8 text-green-400" />
+            </div>
+
+            <AlertDialogTitle className="text-xl text-white text-center">
+              Parece que você encontrou um ótimo profissional, {empresa?.socio_nome?.split(' ')[0] || 'Parceiro'}!
+            </AlertDialogTitle>
+
+            <AlertDialogDescription className="text-center space-y-4 pt-4">
+              {/* Card do candidato mini */}
+              <div className="bg-gray-800/50 rounded-lg p-3 flex items-center gap-3">
+                {candidato?.foto_url ? (
+                  <img
+                    src={candidato.foto_url}
+                    alt={candidato.nome_completo}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
+                    <span className="text-lg font-bold text-gray-400">
+                      {candidato?.nome_completo?.charAt(0)}
+                    </span>
+                  </div>
+                )}
+                <div className="text-left">
+                  <p className="font-medium text-white">{candidato?.nome_completo}</p>
+                  <p className="text-sm text-gray-400">{candidato?.cidade}, {candidato?.estado}</p>
+                </div>
+              </div>
+
+              {/* Mensagem principal */}
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 text-left">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-white font-medium mb-1">
+                      Investimento protegido
+                    </p>
+                    <p className="text-gray-300 text-sm">
+                      Ao confirmar, você investe <span className="text-white font-semibold">R$ 39,90</span> para
+                      agendar esta entrevista. <span className="text-green-400 font-medium">Você só paga se o
+                      candidato aceitar!</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Benefícios */}
+              <div className="space-y-2 text-left">
+                <div className="flex items-center gap-2 text-gray-300 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  <span>Candidato demonstra compromisso pagando R$ 9,90</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-300 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  <span>Evite perda de tempo com profissionais sem interesse</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-300 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  <span>Reembolso automático se não houver aceite</span>
+                </div>
+              </div>
+
+              {/* Texto pequeno */}
+              <p className="text-xs text-gray-500 pt-2">
+                Ao aceitar, o candidato paga R$ 9,90 demonstrando absoluto compromisso com sua empresa.
+                Assim você evita perda de tempo com profissionais que não têm comprometimento real.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-4">
+            <AlertDialogCancel className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 hover:text-white">
+              Voltar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSolicitarEntrevista}
+              disabled={isSolicitando}
+              className="bg-[#E31E24] hover:bg-[#E31E24]/90 text-white font-semibold"
+            >
+              {isSolicitando ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Confirmar Entrevista
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
