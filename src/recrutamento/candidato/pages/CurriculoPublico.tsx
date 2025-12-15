@@ -31,6 +31,9 @@ import {
   LogIn,
   UserPlus,
   Shield,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
   Award,
   TrendingUp,
   Users,
@@ -42,6 +45,7 @@ import {
   BadgeCheck,
   ChevronDown,
   ChevronUp,
+  Info,
 } from 'lucide-react';
 
 // Cores oficiais DISC
@@ -117,6 +121,24 @@ interface Empresa {
   razao_social: string;
   nome_fantasia: string | null;
 }
+
+// Mapeamento das flags para descrições em português
+const FLAG_DESCRIPTIONS: Record<string, string> = {
+  'Detectadas respostas socialmente desejáveis': 'Algumas respostas parecem socialmente desejáveis',
+  'Item de atenção respondido incorretamente': 'Falha no item de verificação de atenção',
+  'Padrão de respostas inconsistente detectado': 'Padrão de respostas inconsistente',
+  'Tempo de resposta muito rápido - possível aleatoriedade': 'Tempo de resposta muito rápido',
+  'Tempo de resposta acima do esperado': 'Tempo de resposta acima do esperado',
+  'Perfil muito homogêneo - pode indicar respostas aleatórias': 'Perfil muito homogêneo',
+  'Padrão contraditório nas escolhas': 'Padrão contraditório nas escolhas',
+  'fake_responses': 'Algumas respostas parecem socialmente desejáveis',
+  'attention_failed': 'Falha no item de verificação de atenção',
+  'inconsistent': 'Padrão de respostas inconsistente',
+  'rushed': 'Tempo de resposta muito rápido',
+  'slow': 'Tempo de resposta acima do esperado',
+  'flat_profile': 'Perfil muito homogêneo',
+  'contradictory': 'Padrão contraditório nas escolhas',
+};
 
 // Função de normalização
 const normalizeScore = (score: number): number => {
@@ -327,10 +349,46 @@ export default function CurriculoPublico() {
 
   const getConfiabilidadeConfig = (nivel: string | null) => {
     switch (nivel) {
-      case 'ALTA': return { color: 'text-green-400', bg: 'bg-green-500/20', icon: Shield, label: 'Alta Confiabilidade' };
-      case 'MEDIA': return { color: 'text-yellow-400', bg: 'bg-yellow-500/20', icon: Shield, label: 'Confiabilidade Média' };
-      case 'BAIXA': return { color: 'text-orange-400', bg: 'bg-orange-500/20', icon: AlertTriangle, label: 'Confiabilidade Baixa' };
-      default: return { color: 'text-slate-400', bg: 'bg-slate-500/20', icon: Shield, label: 'Não avaliado' };
+      case 'ALTA': return {
+        color: 'text-emerald-400',
+        bg: 'bg-emerald-500/10',
+        border: 'border-emerald-500/30',
+        icon: ShieldCheck,
+        label: 'Alta Confiabilidade',
+        description: 'As respostas apresentam alto grau de consistência e autenticidade.'
+      };
+      case 'MEDIA': return {
+        color: 'text-amber-400',
+        bg: 'bg-amber-500/10',
+        border: 'border-amber-500/30',
+        icon: ShieldAlert,
+        label: 'Confiabilidade Moderada',
+        description: 'Algumas respostas apresentam variações que merecem atenção.'
+      };
+      case 'BAIXA': return {
+        color: 'text-orange-400',
+        bg: 'bg-orange-500/10',
+        border: 'border-orange-500/30',
+        icon: ShieldAlert,
+        label: 'Confiabilidade Reduzida',
+        description: 'Recomenda-se cautela na interpretação dos resultados.'
+      };
+      case 'SUSPEITA': return {
+        color: 'text-red-400',
+        bg: 'bg-red-500/10',
+        border: 'border-red-500/30',
+        icon: ShieldX,
+        label: 'Confiabilidade Comprometida',
+        description: 'Os resultados podem não refletir o perfil real. Considere reaplicar o teste.'
+      };
+      default: return {
+        color: 'text-slate-400',
+        bg: 'bg-slate-500/10',
+        border: 'border-slate-500/30',
+        icon: Shield,
+        label: 'Não avaliado',
+        description: 'Confiabilidade não calculada.'
+      };
     }
   };
 
@@ -485,14 +543,57 @@ export default function CurriculoPublico() {
                   </div>
                 )}
 
-                {/* Confiabilidade */}
-                {dadosDISC?.confiabilidade_score && (
-                  <div className={`mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full ${confiabilidadeConfig.bg}`}>
-                    <confiabilidadeConfig.icon className={`w-4 h-4 ${confiabilidadeConfig.color}`} />
-                    <span className={`text-sm font-medium ${confiabilidadeConfig.color}`}>
-                      {confiabilidadeConfig.label} • {dadosDISC.confiabilidade_score}%
-                    </span>
-                    <BadgeCheck className={`w-4 h-4 ${confiabilidadeConfig.color}`} />
+                {/* Confiabilidade Expandida */}
+                {dadosDISC?.confiabilidade_score !== null && dadosDISC?.confiabilidade_score !== undefined && (
+                  <div className={`mt-4 p-4 rounded-xl border ${confiabilidadeConfig.bg} ${confiabilidadeConfig.border}`}>
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 rounded-lg ${confiabilidadeConfig.bg} flex items-center justify-center flex-shrink-0`}>
+                        <confiabilidadeConfig.icon className={`w-5 h-5 ${confiabilidadeConfig.color}`} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`font-semibold ${confiabilidadeConfig.color}`}>
+                            {confiabilidadeConfig.label}
+                          </span>
+                          <span className={`text-xl font-bold ${confiabilidadeConfig.color}`}>
+                            {dadosDISC.confiabilidade_score}/100
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-400 mb-2">{confiabilidadeConfig.description}</p>
+
+                        {/* Barra de progresso */}
+                        <div className="h-2 bg-slate-700 rounded-full overflow-hidden mb-3">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              dadosDISC.confiabilidade_nivel === 'ALTA' ? 'bg-emerald-500' :
+                              dadosDISC.confiabilidade_nivel === 'MEDIA' ? 'bg-amber-500' :
+                              dadosDISC.confiabilidade_nivel === 'BAIXA' ? 'bg-orange-500' :
+                              dadosDISC.confiabilidade_nivel === 'SUSPEITA' ? 'bg-red-500' : 'bg-slate-500'
+                            }`}
+                            style={{ width: `${dadosDISC.confiabilidade_score}%` }}
+                          />
+                        </div>
+
+                        {/* Observações Detectadas */}
+                        {dadosDISC.flags_detectadas && dadosDISC.flags_detectadas.length > 0 && (
+                          <div className="pt-3 border-t border-slate-700/50">
+                            <p className={`text-xs font-semibold ${confiabilidadeConfig.color} uppercase tracking-wide mb-2`}>
+                              Observações Detectadas:
+                            </p>
+                            <ul className="space-y-1.5">
+                              {dadosDISC.flags_detectadas.map((flag, index) => (
+                                <li key={index} className="flex items-start gap-2">
+                                  <AlertTriangle className={`w-3.5 h-3.5 ${confiabilidadeConfig.color} mt-0.5 flex-shrink-0`} />
+                                  <span className="text-sm text-slate-300">
+                                    {FLAG_DESCRIPTIONS[flag] || flag}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
 
