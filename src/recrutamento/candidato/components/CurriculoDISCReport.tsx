@@ -21,6 +21,11 @@ import {
   ChevronRight,
   Info,
   Lightbulb,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react';
 
 // Cores oficiais DISC
@@ -45,10 +50,17 @@ interface Profile {
   C: number;
 }
 
+interface ConfiabilidadeData {
+  score: number | null;
+  nivel: string | null;
+  flags: string[] | null;
+}
+
 interface CurriculoDISCReportProps {
   naturalProfile: Profile;
   adaptedProfile?: Profile;
   nomeCompleto: string;
+  confiabilidade?: ConfiabilidadeData | null;
 }
 
 // Normaliza score de -25/+25 para 0-100
@@ -56,10 +68,78 @@ const normalizeScore = (score: number): number => {
   return Math.round(((score + 25) / 50) * 100);
 };
 
+// Helper para obter estilo da confiabilidade
+const getConfiabilidadeStyle = (nivel: string | null) => {
+  switch (nivel) {
+    case 'ALTA':
+      return {
+        bgColor: 'bg-emerald-500/10',
+        borderColor: 'border-emerald-500/30',
+        textColor: 'text-emerald-400',
+        iconBg: 'bg-emerald-500',
+        icon: ShieldCheck,
+        label: 'Alta Confiabilidade',
+        description: 'As respostas apresentam alto grau de consistência e autenticidade.',
+      };
+    case 'MEDIA':
+      return {
+        bgColor: 'bg-amber-500/10',
+        borderColor: 'border-amber-500/30',
+        textColor: 'text-amber-400',
+        iconBg: 'bg-amber-500',
+        icon: ShieldAlert,
+        label: 'Confiabilidade Moderada',
+        description: 'Algumas respostas apresentam variações que merecem atenção.',
+      };
+    case 'BAIXA':
+      return {
+        bgColor: 'bg-orange-500/10',
+        borderColor: 'border-orange-500/30',
+        textColor: 'text-orange-400',
+        iconBg: 'bg-orange-500',
+        icon: ShieldAlert,
+        label: 'Confiabilidade Reduzida',
+        description: 'Recomenda-se cautela na interpretação dos resultados.',
+      };
+    case 'SUSPEITA':
+      return {
+        bgColor: 'bg-red-500/10',
+        borderColor: 'border-red-500/30',
+        textColor: 'text-red-400',
+        iconBg: 'bg-red-500',
+        icon: ShieldX,
+        label: 'Confiabilidade Comprometida',
+        description: 'Os resultados podem não refletir o perfil real.',
+      };
+    default:
+      return {
+        bgColor: 'bg-zinc-500/10',
+        borderColor: 'border-zinc-500/30',
+        textColor: 'text-zinc-400',
+        iconBg: 'bg-zinc-500',
+        icon: Shield,
+        label: 'Confiabilidade',
+        description: 'Informações de confiabilidade do teste.',
+      };
+  }
+};
+
+// Mapeamento das flags para descrições em português
+const FLAG_DESCRIPTIONS: Record<string, string> = {
+  'fake_responses': 'Detectadas respostas socialmente desejáveis',
+  'attention_failed': 'Falha no controle de atenção',
+  'inconsistent': 'Respostas inconsistentes detectadas',
+  'rushed': 'Tempo de resposta muito rápido',
+  'slow': 'Tempo de resposta muito lento',
+  'flat_profile': 'Perfil muito uniforme (neutro)',
+  'contradictory': 'Padrões contraditórios detectados',
+};
+
 export default function CurriculoDISCReport({
   naturalProfile,
   adaptedProfile,
   nomeCompleto,
+  confiabilidade,
 }: CurriculoDISCReportProps) {
   const adapted = adaptedProfile || naturalProfile;
 
@@ -175,6 +255,85 @@ export default function CurriculoDISCReport({
           </p>
         </div>
       </section>
+
+      {/* Seção: Confiabilidade do Teste */}
+      {confiabilidade && confiabilidade.score !== null && (() => {
+        const style = getConfiabilidadeStyle(confiabilidade.nivel);
+        const IconComponent = style.icon;
+
+        return (
+          <section className={`rounded-2xl p-5 border ${style.bgColor} ${style.borderColor}`}>
+            <div className="flex items-start gap-4">
+              <div className={`w-12 h-12 rounded-xl ${style.iconBg} flex items-center justify-center flex-shrink-0`}>
+                <IconComponent className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className={`text-lg font-bold ${style.textColor}`}>{style.label}</h3>
+                  <span className={`text-2xl font-bold ${style.textColor}`}>
+                    {confiabilidade.score}%
+                  </span>
+                </div>
+                <p className="text-sm text-zinc-300 mb-3">{style.description}</p>
+
+                {/* Barra de progresso */}
+                <div className="h-3 bg-zinc-700 rounded-full overflow-hidden mb-3">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${style.iconBg}`}
+                    style={{ width: `${confiabilidade.score}%` }}
+                  />
+                </div>
+
+                {/* Flags detectadas */}
+                {confiabilidade.flags && confiabilidade.flags.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-zinc-700/50">
+                    <p className="text-xs text-zinc-400 font-medium mb-2">Controles de qualidade:</p>
+                    <div className="space-y-1.5">
+                      {confiabilidade.flags.map((flag, i) => {
+                        const isPositive = flag.toLowerCase().includes('passou') || flag.toLowerCase().includes('ok');
+                        return (
+                          <div key={i} className="flex items-center gap-2">
+                            {isPositive ? (
+                              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                            ) : (
+                              <XCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                            )}
+                            <span className="text-xs text-zinc-300">
+                              {FLAG_DESCRIPTIONS[flag] || flag}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Legenda dos níveis */}
+                <div className="mt-4 pt-3 border-t border-zinc-700/50">
+                  <div className="grid grid-cols-4 gap-2 text-xs">
+                    <div className="text-center">
+                      <div className="w-full h-1.5 bg-emerald-500 rounded-full mb-1" />
+                      <span className="text-zinc-500">Alta</span>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-full h-1.5 bg-amber-500 rounded-full mb-1" />
+                      <span className="text-zinc-500">Média</span>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-full h-1.5 bg-orange-500 rounded-full mb-1" />
+                      <span className="text-zinc-500">Baixa</span>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-full h-1.5 bg-red-500 rounded-full mb-1" />
+                      <span className="text-zinc-500">Suspeita</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Seção 2: Sobre este profissional */}
       <section className="bg-zinc-800/60 rounded-2xl p-5 border border-zinc-700">

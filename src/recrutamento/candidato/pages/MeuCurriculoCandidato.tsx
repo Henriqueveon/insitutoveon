@@ -46,6 +46,12 @@ interface Profile {
   C: number;
 }
 
+interface ConfiabilidadeData {
+  score: number | null;
+  nivel: string | null;
+  flags: string[] | null;
+}
+
 interface Candidato {
   id: string;
   nome_completo: string;
@@ -105,6 +111,7 @@ export default function MeuCurriculoCandidato() {
   const [isLoading, setIsLoading] = useState(true);
   const [linkCompartilhamento, setLinkCompartilhamento] = useState('');
   const [showDISCReport, setShowDISCReport] = useState(true);
+  const [confiabilidade, setConfiabilidade] = useState<ConfiabilidadeData | null>(null);
 
   useEffect(() => {
     if (candidatoContext?.id) {
@@ -127,6 +134,25 @@ export default function MeuCurriculoCandidato() {
 
       // Gerar link de compartilhamento
       setLinkCompartilhamento(`${window.location.origin}/c/${data.id.substring(0, 8)}`);
+
+      // Buscar dados de confiabilidade do teste DISC pelo email
+      if (data.email) {
+        const { data: discData } = await supabase
+          .from('candidatos_disc')
+          .select('confiabilidade_score, confiabilidade_nivel, flags_detectadas')
+          .eq('email', data.email)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (discData) {
+          setConfiabilidade({
+            score: discData.confiabilidade_score,
+            nivel: discData.confiabilidade_nivel,
+            flags: discData.flags_detectadas as string[] | null,
+          });
+        }
+      }
     } catch (error) {
       console.error('Erro ao carregar:', error);
     } finally {
@@ -502,6 +528,7 @@ export default function MeuCurriculoCandidato() {
               <CurriculoDISCReport
                 naturalProfile={naturalProfile}
                 nomeCompleto={candidato.nome_completo}
+                confiabilidade={confiabilidade}
               />
             )}
           </div>
