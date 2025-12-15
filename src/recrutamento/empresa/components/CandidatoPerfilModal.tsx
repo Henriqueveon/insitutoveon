@@ -62,38 +62,38 @@ import {
 interface Candidato {
   id: string;
   nome_completo: string;
-  foto_url: string | null;
-  video_url: string | null;
-  documento_url: string | null;
-  cidade: string;
-  estado: string;
-  bairro: string;
-  data_nascimento: string;
-  areas_experiencia: string[];
-  anos_experiencia: string;
-  pretensao_salarial: string;
-  escolaridade: string;
-  curso: string | null;
-  certificacoes: string | null;
-  perfil_disc: string | null;
-  disponibilidade_inicio: string;
-  disponibilidade_horario: string;
-  possui_cnh: boolean;
-  possui_veiculo: boolean;
-  regime_preferido: string;
-  objetivo_profissional: string;
-  ultima_empresa: string;
-  ultimo_cargo: string;
-  tempo_ultima_empresa: string;
-  motivo_saida: string;
-  aceita_viajar: boolean;
-  aceita_mudanca: boolean;
-  estado_civil: string;
-  tem_filhos: boolean;
-  quantidade_filhos: number | null;
-  instagram: string | null;
-  valores_empresa: string[];
-  areas_interesse: string[];
+  foto_url?: string | null;
+  video_url?: string | null;
+  documento_url?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  bairro?: string | null;
+  data_nascimento?: string | null;
+  areas_experiencia?: string[] | null;
+  anos_experiencia?: string | null;
+  pretensao_salarial?: string | null;
+  escolaridade?: string | null;
+  curso?: string | null;
+  certificacoes?: string | null;
+  perfil_disc?: string | null;
+  disponibilidade_inicio?: string | null;
+  disponibilidade_horario?: string | null;
+  possui_cnh?: boolean | null;
+  possui_veiculo?: boolean | null;
+  regime_preferido?: string | null;
+  objetivo_profissional?: string | null;
+  ultima_empresa?: string | null;
+  ultimo_cargo?: string | null;
+  tempo_ultima_empresa?: string | null;
+  motivo_saida?: string | null;
+  aceita_viajar?: boolean | null;
+  aceita_mudanca?: boolean | null;
+  estado_civil?: string | null;
+  tem_filhos?: boolean | null;
+  quantidade_filhos?: number | null;
+  instagram?: string | null;
+  valores_empresa?: string[] | null;
+  areas_interesse?: string[] | null;
 }
 
 interface Empresa {
@@ -475,10 +475,12 @@ export default function CandidatoPerfilModal({
                     {candidato.nome_completo.split(' ')[0]}
                   </h2>
                   <div className="flex flex-wrap items-center gap-2 mt-1 text-slate-400 text-sm">
-                    <span className="flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {candidato.cidade}, {candidato.estado}
-                    </span>
+                    {(candidato.cidade || candidato.estado) && (
+                      <span className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-1" />
+                        {candidato.cidade}{candidato.cidade && candidato.estado && ', '}{candidato.estado}
+                      </span>
+                    )}
                     {candidato.data_nascimento && (
                       <>
                         <span>•</span>
@@ -539,71 +541,83 @@ export default function CandidatoPerfilModal({
                 <TabsContent value="perfil" className="mt-0 space-y-6">
                   {/* Grid de informações */}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <Card className="bg-slate-700/50 border-slate-600">
-                      <CardContent className="p-4">
-                        <DollarSign className="w-5 h-5 text-green-400 mb-2" />
-                        <p className="text-xs text-slate-400">Pretensão</p>
-                        <p className="text-white font-medium">
-                          {getFaixaSalarialLabel(candidato.pretensao_salarial)}
-                        </p>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-slate-700/50 border-slate-600">
-                      <CardContent className="p-4">
-                        <Clock className="w-5 h-5 text-blue-400 mb-2" />
-                        <p className="text-xs text-slate-400">Disponibilidade</p>
-                        <p className="text-white font-medium">
-                          {getDisponibilidadeLabel(candidato.disponibilidade_inicio)}
-                        </p>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-slate-700/50 border-slate-600">
-                      <CardContent className="p-4">
-                        <Building2 className="w-5 h-5 text-purple-400 mb-2" />
-                        <p className="text-xs text-slate-400">Regime</p>
-                        <p className="text-white font-medium capitalize">
-                          {candidato.regime_preferido}
-                        </p>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-slate-700/50 border-slate-600">
-                      <CardContent className="p-4">
-                        <GraduationCap className="w-5 h-5 text-yellow-400 mb-2" />
-                        <p className="text-xs text-slate-400">Escolaridade</p>
-                        <p className="text-white font-medium text-sm">
-                          {candidato.escolaridade}
-                        </p>
-                        {candidato.curso && (
-                          <p className="text-xs text-slate-400 mt-1">
-                            {candidato.curso}
+                    {candidato.pretensao_salarial && (
+                      <Card className="bg-slate-700/50 border-slate-600">
+                        <CardContent className="p-4">
+                          <DollarSign className="w-5 h-5 text-green-400 mb-2" />
+                          <p className="text-xs text-slate-400">Pretensão</p>
+                          <p className="text-white font-medium">
+                            {getFaixaSalarialLabel(candidato.pretensao_salarial)}
                           </p>
-                        )}
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    )}
 
-                    <Card className="bg-slate-700/50 border-slate-600">
-                      <CardContent className="p-4">
-                        <Calendar className="w-5 h-5 text-orange-400 mb-2" />
-                        <p className="text-xs text-slate-400">Horários</p>
-                        <p className="text-white font-medium text-sm">
-                          {candidato.disponibilidade_horario}
-                        </p>
-                      </CardContent>
-                    </Card>
+                    {candidato.disponibilidade_inicio && (
+                      <Card className="bg-slate-700/50 border-slate-600">
+                        <CardContent className="p-4">
+                          <Clock className="w-5 h-5 text-blue-400 mb-2" />
+                          <p className="text-xs text-slate-400">Disponibilidade</p>
+                          <p className="text-white font-medium">
+                            {getDisponibilidadeLabel(candidato.disponibilidade_inicio)}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
 
-                    <Card className="bg-slate-700/50 border-slate-600">
-                      <CardContent className="p-4">
-                        <Users className="w-5 h-5 text-pink-400 mb-2" />
-                        <p className="text-xs text-slate-400">Estado Civil</p>
-                        <p className="text-white font-medium">
-                          {candidato.estado_civil}
-                          {candidato.tem_filhos && ` • ${candidato.quantidade_filhos} filho(s)`}
-                        </p>
-                      </CardContent>
-                    </Card>
+                    {candidato.regime_preferido && (
+                      <Card className="bg-slate-700/50 border-slate-600">
+                        <CardContent className="p-4">
+                          <Building2 className="w-5 h-5 text-purple-400 mb-2" />
+                          <p className="text-xs text-slate-400">Regime</p>
+                          <p className="text-white font-medium capitalize">
+                            {candidato.regime_preferido}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {candidato.escolaridade && (
+                      <Card className="bg-slate-700/50 border-slate-600">
+                        <CardContent className="p-4">
+                          <GraduationCap className="w-5 h-5 text-yellow-400 mb-2" />
+                          <p className="text-xs text-slate-400">Escolaridade</p>
+                          <p className="text-white font-medium text-sm">
+                            {candidato.escolaridade}
+                          </p>
+                          {candidato.curso && (
+                            <p className="text-xs text-slate-400 mt-1">
+                              {candidato.curso}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {candidato.disponibilidade_horario && (
+                      <Card className="bg-slate-700/50 border-slate-600">
+                        <CardContent className="p-4">
+                          <Calendar className="w-5 h-5 text-orange-400 mb-2" />
+                          <p className="text-xs text-slate-400">Horários</p>
+                          <p className="text-white font-medium text-sm">
+                            {candidato.disponibilidade_horario}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {candidato.estado_civil && (
+                      <Card className="bg-slate-700/50 border-slate-600">
+                        <CardContent className="p-4">
+                          <Users className="w-5 h-5 text-pink-400 mb-2" />
+                          <p className="text-xs text-slate-400">Estado Civil</p>
+                          <p className="text-white font-medium">
+                            {candidato.estado_civil}
+                            {candidato.tem_filhos && ` • ${candidato.quantidade_filhos} filho(s)`}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
                   </div>
 
                   {/* Badges */}
@@ -636,87 +650,105 @@ export default function CandidatoPerfilModal({
                   </div>
 
                   {/* Áreas de interesse */}
-                  <div>
-                    <h4 className="text-white font-medium mb-2 flex items-center">
-                      <Target className="w-4 h-4 mr-2 text-slate-400" />
-                      Áreas de Interesse
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {candidato.areas_interesse?.map((area, i) => (
-                        <Badge key={i} variant="outline" className="border-slate-600 text-slate-300">
-                          {area}
-                        </Badge>
-                      ))}
+                  {candidato.areas_interesse && candidato.areas_interesse.length > 0 && (
+                    <div>
+                      <h4 className="text-white font-medium mb-2 flex items-center">
+                        <Target className="w-4 h-4 mr-2 text-slate-400" />
+                        Áreas de Interesse
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {candidato.areas_interesse.map((area, i) => (
+                          <Badge key={i} variant="outline" className="border-slate-600 text-slate-300">
+                            {area}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Valores */}
-                  <div>
-                    <h4 className="text-white font-medium mb-2 flex items-center">
-                      <Star className="w-4 h-4 mr-2 text-slate-400" />
-                      Valores que Busca
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {candidato.valores_empresa?.map((valor, i) => (
-                        <Badge key={i} variant="outline" className="border-slate-600 text-slate-300">
-                          {valor}
-                        </Badge>
-                      ))}
+                  {candidato.valores_empresa && candidato.valores_empresa.length > 0 && (
+                    <div>
+                      <h4 className="text-white font-medium mb-2 flex items-center">
+                        <Star className="w-4 h-4 mr-2 text-slate-400" />
+                        Valores que Busca
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {candidato.valores_empresa.map((valor, i) => (
+                          <Badge key={i} variant="outline" className="border-slate-600 text-slate-300">
+                            {valor}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </TabsContent>
 
                 {/* Tab Experiência */}
                 <TabsContent value="experiencia" className="mt-0 space-y-6">
                   {/* Última experiência */}
-                  <div>
-                    <h4 className="text-white font-medium mb-3 flex items-center">
-                      <Briefcase className="w-4 h-4 mr-2 text-slate-400" />
-                      Última Experiência
-                    </h4>
-                    <Card className="bg-slate-700/50 border-slate-600">
-                      <CardContent className="p-4">
-                        <p className="text-white font-medium">{candidato.ultimo_cargo}</p>
-                        <p className="text-slate-400 text-sm">{candidato.ultima_empresa}</p>
-                        <p className="text-slate-500 text-sm mt-1">
-                          Período: {candidato.tempo_ultima_empresa}
-                        </p>
-                        <p className="text-slate-400 text-sm mt-2">
-                          <span className="text-slate-500">Motivo da saída:</span> {candidato.motivo_saida}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </div>
+                  {(candidato.ultimo_cargo || candidato.ultima_empresa) && (
+                    <div>
+                      <h4 className="text-white font-medium mb-3 flex items-center">
+                        <Briefcase className="w-4 h-4 mr-2 text-slate-400" />
+                        Última Experiência
+                      </h4>
+                      <Card className="bg-slate-700/50 border-slate-600">
+                        <CardContent className="p-4">
+                          {candidato.ultimo_cargo && (
+                            <p className="text-white font-medium">{candidato.ultimo_cargo}</p>
+                          )}
+                          {candidato.ultima_empresa && (
+                            <p className="text-slate-400 text-sm">{candidato.ultima_empresa}</p>
+                          )}
+                          {candidato.tempo_ultima_empresa && (
+                            <p className="text-slate-500 text-sm mt-1">
+                              Período: {candidato.tempo_ultima_empresa}
+                            </p>
+                          )}
+                          {candidato.motivo_saida && (
+                            <p className="text-slate-400 text-sm mt-2">
+                              <span className="text-slate-500">Motivo da saída:</span> {candidato.motivo_saida}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
 
                   {/* Áreas de experiência */}
-                  <div>
-                    <h4 className="text-white font-medium mb-3">Áreas de Experiência</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {candidato.areas_experiencia?.map((area, i) => (
-                        <Badge key={i} className="bg-[#E31E24]/20 text-[#E31E24]">
-                          {area}
-                        </Badge>
-                      ))}
+                  {candidato.areas_experiencia && candidato.areas_experiencia.length > 0 && (
+                    <div>
+                      <h4 className="text-white font-medium mb-3">Áreas de Experiência</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {candidato.areas_experiencia.map((area, i) => (
+                          <Badge key={i} className="bg-[#E31E24]/20 text-[#E31E24]">
+                            {area}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Anos de experiência */}
-                  <div>
-                    <h4 className="text-white font-medium mb-2">Tempo Total de Experiência</h4>
-                    <p className="text-slate-300">
-                      {candidato.anos_experiencia === 'primeiro_emprego'
-                        ? 'Primeiro emprego'
-                        : candidato.anos_experiencia === 'menos_1'
-                        ? 'Menos de 1 ano'
-                        : candidato.anos_experiencia === '1_2'
-                        ? '1 a 2 anos'
-                        : candidato.anos_experiencia === '3_5'
-                        ? '3 a 5 anos'
-                        : candidato.anos_experiencia === '5_10'
-                        ? '5 a 10 anos'
-                        : 'Mais de 10 anos'}
-                    </p>
-                  </div>
+                  {candidato.anos_experiencia && (
+                    <div>
+                      <h4 className="text-white font-medium mb-2">Tempo Total de Experiência</h4>
+                      <p className="text-slate-300">
+                        {candidato.anos_experiencia === 'primeiro_emprego'
+                          ? 'Primeiro emprego'
+                          : candidato.anos_experiencia === 'menos_1'
+                          ? 'Menos de 1 ano'
+                          : candidato.anos_experiencia === '1_2'
+                          ? '1 a 2 anos'
+                          : candidato.anos_experiencia === '3_5'
+                          ? '3 a 5 anos'
+                          : candidato.anos_experiencia === '5_10'
+                          ? '5 a 10 anos'
+                          : 'Mais de 10 anos'}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Certificações */}
                   {candidato.certificacoes && (

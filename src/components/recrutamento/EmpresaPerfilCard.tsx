@@ -16,8 +16,6 @@ import {
 } from '@/components/ui/dialog';
 import {
   Building2,
-  Globe,
-  Instagram,
   Users,
   Clock,
   Heart,
@@ -25,7 +23,6 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
-  ExternalLink,
   MapPin,
 } from 'lucide-react';
 
@@ -193,33 +190,7 @@ export default function EmpresaPerfilCard({ empresa, compact = false }: EmpresaP
               )}
             </div>
 
-            {/* Links */}
-            <div className="flex gap-2 mt-4">
-              {empresa.site_url && (
-                <a
-                  href={empresa.site_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300"
-                >
-                  <Globe className="w-4 h-4" />
-                  Site
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
-              {empresa.instagram_empresa && (
-                <a
-                  href={`https://instagram.com/${empresa.instagram_empresa.replace('@', '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-pink-400 hover:text-pink-300"
-                >
-                  <Instagram className="w-4 h-4" />
-                  Instagram
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
-            </div>
+            {/* Links externos removidos para manter usuários dentro do app */}
           </div>
 
           {/* Sobre */}
