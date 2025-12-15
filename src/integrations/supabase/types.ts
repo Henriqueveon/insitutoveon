@@ -193,6 +193,9 @@ export type Database = {
           cidade: string | null
           complemento: string | null
           confiabilidade: number | null
+          confiabilidade_flags: Json | null
+          confiabilidade_nivel: string | null
+          confiabilidade_score: number | null
           cpf: string | null
           created_at: string | null
           curriculo_publico: boolean | null
@@ -279,6 +282,9 @@ export type Database = {
           cidade?: string | null
           complemento?: string | null
           confiabilidade?: number | null
+          confiabilidade_flags?: Json | null
+          confiabilidade_nivel?: string | null
+          confiabilidade_score?: number | null
           cpf?: string | null
           created_at?: string | null
           curriculo_publico?: boolean | null
@@ -365,6 +371,9 @@ export type Database = {
           cidade?: string | null
           complemento?: string | null
           confiabilidade?: number | null
+          confiabilidade_flags?: Json | null
+          confiabilidade_nivel?: string | null
+          confiabilidade_score?: number | null
           cpf?: string | null
           created_at?: string | null
           curriculo_publico?: boolean | null
