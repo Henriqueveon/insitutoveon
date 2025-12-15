@@ -350,13 +350,13 @@ export default function BuscarCandidatos() {
           return;
         }
 
-        // IMPORTANTE: Só mostra candidatos com cadastro completo
+        // Mostra candidatos com perfil DISC preenchido
         let query = supabase
           .from('candidatos_recrutamento')
           .select('*', { count: 'exact' })
           .in('id', candidatoIds)
-          .eq('cadastro_completo', true)
-          .not('perfil_disc', 'is', null);
+          .not('perfil_disc', 'is', null)
+          .neq('perfil_disc', '');
 
         // Aplicar outros filtros
         query = aplicarFiltrosExtras(query);
@@ -382,13 +382,13 @@ export default function BuscarCandidatos() {
         setTotalCandidatos(count || 0);
       } else {
         // Busca normal sem proximidade
-        // IMPORTANTE: Só mostra candidatos com cadastro completo e perfil DISC
+        // Mostra candidatos com perfil DISC preenchido
+        // Status e cadastro_completo são tratados de forma mais flexível
         let query = supabase
           .from('candidatos_recrutamento')
           .select('*', { count: 'exact' })
-          .eq('status', 'disponivel')
-          .eq('cadastro_completo', true)
-          .not('perfil_disc', 'is', null);
+          .not('perfil_disc', 'is', null)
+          .neq('perfil_disc', '');
 
         // Aplicar filtros de localização
         if (filtros.estado) {

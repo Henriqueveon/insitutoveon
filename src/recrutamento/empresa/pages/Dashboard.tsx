@@ -110,10 +110,12 @@ export default function EmpresaDashboard() {
   };
 
   const carregarStats = async () => {
+    // Conta candidatos com perfil DISC preenchido
     const { count: candidatos } = await supabase
       .from('candidatos_recrutamento')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'disponivel');
+      .not('perfil_disc', 'is', null)
+      .neq('perfil_disc', '');
 
     const { count: vagas } = await supabase
       .from('vagas_recrutamento')
@@ -142,11 +144,12 @@ export default function EmpresaDashboard() {
   };
 
   const carregarCandidatosMatch = async () => {
+    // Busca candidatos com perfil DISC preenchido (independente do status)
     const { data } = await supabase
       .from('candidatos_recrutamento')
       .select('id, nome_completo, foto_url, cidade, estado, areas_experiencia, anos_experiencia, perfil_disc, objetivo_profissional')
-      .eq('status', 'disponivel')
       .not('perfil_disc', 'is', null)
+      .neq('perfil_disc', '')
       .order('created_at', { ascending: false })
       .limit(6);
 
