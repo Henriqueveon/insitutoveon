@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   MapPin,
@@ -96,6 +95,7 @@ export default function FeedVagas() {
   // Modal de perfil da empresa
   const [modalEmpresa, setModalEmpresa] = useState(false);
   const [empresaSelecionada, setEmpresaSelecionada] = useState<EmpresaPerfil | null>(null);
+  const [vagaSelecionada, setVagaSelecionada] = useState<Vaga | null>(null);
 
   useEffect(() => {
     carregarDados();
@@ -334,6 +334,7 @@ export default function FeedVagas() {
                   onClick={() => {
                     if (vaga.empresa) {
                       setEmpresaSelecionada(vaga.empresa);
+                      setVagaSelecionada(vaga);
                       setModalEmpresa(true);
                     }
                   }}
@@ -366,6 +367,7 @@ export default function FeedVagas() {
                     <button
                       onClick={() => {
                         setEmpresaSelecionada(vaga.empresa);
+                        setVagaSelecionada(vaga);
                         setModalEmpresa(true);
                       }}
                       className="p-2 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors"
@@ -487,15 +489,23 @@ export default function FeedVagas() {
               <EmpresaPerfilCard empresa={empresaSelecionada} />
             )}
           </div>
-          <DialogFooter className="p-4 border-t border-zinc-800">
+          <div className="p-4 border-t border-zinc-800 flex gap-3">
             <Button
-              variant="outline"
               onClick={() => setModalEmpresa(false)}
-              className="w-full border-zinc-700 text-white hover:bg-zinc-800 rounded-xl"
+              className="flex-1 bg-zinc-700 text-white hover:bg-zinc-600 rounded-xl h-12 font-semibold"
             >
               Fechar
             </Button>
-          </DialogFooter>
+            <Button
+              onClick={() => {
+                setModalEmpresa(false);
+                // Aqui pode implementar a lógica de candidatura
+              }}
+              className="flex-1 bg-gradient-to-r from-[#E31E24] to-[#003DA5] text-white hover:opacity-90 rounded-xl h-12 font-bold"
+            >
+              Me candidatar
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
