@@ -2030,6 +2030,7 @@ export type Database = {
         }
         Returns: Json
       }
+      unaccent: { Args: { "": string }; Returns: string }
       verificar_otp: {
         Args: { p_codigo: string; p_email: string; p_tipo?: string }
         Returns: Json
