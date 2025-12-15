@@ -64,8 +64,9 @@ interface Candidato {
   estado: string;
   bairro: string | null;
   perfil_disc: string | null;
-  perfil_natural: Profile | null;
+  perfil_natural: Record<string, number> | null;
   objetivo_profissional: string | null;
+  confiabilidade: number | null;
 
   // Experiência
   areas_experiencia: string[] | null;
@@ -130,17 +131,26 @@ export default function MeuCurriculoCandidato() {
 
       if (error) throw error;
 
-      setCandidato(data);
+      // Converter perfil_natural para o tipo correto
+      const candidatoFormatado: Candidato = {
+        ...data,
+        perfil_natural: data.perfil_natural as Record<string, number> | null,
+        confiabilidade: data.confiabilidade ?? null,
+      };
+      
+      setCandidato(candidatoFormatado);
 
       // Gerar link de compartilhamento
       setLinkCompartilhamento(`${window.location.origin}/c/${data.id.substring(0, 8)}`);
 
-      // Usar dados de confiabilidade diretamente do candidatos_recrutamento
-      if (data.confiabilidade_score !== null) {
+      // Usar dados de confiabilidade
+      if (data.confiabilidade !== null) {
+        const nivel = data.confiabilidade >= 80 ? 'ALTA' : 
+                      data.confiabilidade >= 50 ? 'MEDIA' : 'BAIXA';
         setConfiabilidade({
-          score: data.confiabilidade_score,
-          nivel: data.confiabilidade_nivel,
-          flags: data.confiabilidade_flags as string[] | null,
+          score: data.confiabilidade,
+          nivel: nivel,
+          flags: null,
         });
       }
     } catch (error) {
@@ -489,7 +499,18 @@ export default function MeuCurriculoCandidato() {
           return profile;
         };
 
-        const naturalProfile = candidato.perfil_natural ||
+        // Converter Record<string, number> para Profile
+        const convertToProfile = (data: Record<string, number> | null): Profile | null => {
+          if (!data) return null;
+          return {
+            D: data.D ?? data.d ?? 10,
+            I: data.I ?? data.i ?? 10,
+            S: data.S ?? data.s ?? 10,
+            C: data.C ?? data.c ?? 10,
+          };
+        };
+
+        const naturalProfile: Profile = convertToProfile(candidato.perfil_natural) ||
           (candidato.perfil_disc ? getProfileFromDisc(candidato.perfil_disc) : { D: 10, I: 10, S: 10, C: 10 });
 
         return (

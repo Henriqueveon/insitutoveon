@@ -192,12 +192,15 @@ export type Database = {
           certificacoes: string | null
           cidade: string | null
           complemento: string | null
+          confiabilidade: number | null
           cpf: string | null
           created_at: string | null
           curriculo_publico: boolean | null
           curriculo_url: string | null
           curso: string | null
           data_nascimento: string | null
+          disc_completado_em: string | null
+          disc_resultado_json: Json | null
           disponibilidade_horario: string | null
           disponibilidade_inicio: string | null
           documento_tipo: string | null
@@ -208,7 +211,10 @@ export type Database = {
           esta_trabalhando: boolean | null
           estado: string | null
           estado_civil: string | null
+          etapa_atual: number | null
           etapa_cadastro: number | null
+          etapas_completadas: number | null
+          etapas_json: Json | null
           foto_url: string | null
           id: string
           idade_filhos: string | null
@@ -272,12 +278,15 @@ export type Database = {
           certificacoes?: string | null
           cidade?: string | null
           complemento?: string | null
+          confiabilidade?: number | null
           cpf?: string | null
           created_at?: string | null
           curriculo_publico?: boolean | null
           curriculo_url?: string | null
           curso?: string | null
           data_nascimento?: string | null
+          disc_completado_em?: string | null
+          disc_resultado_json?: Json | null
           disponibilidade_horario?: string | null
           disponibilidade_inicio?: string | null
           documento_tipo?: string | null
@@ -288,7 +297,10 @@ export type Database = {
           esta_trabalhando?: boolean | null
           estado?: string | null
           estado_civil?: string | null
+          etapa_atual?: number | null
           etapa_cadastro?: number | null
+          etapas_completadas?: number | null
+          etapas_json?: Json | null
           foto_url?: string | null
           id?: string
           idade_filhos?: string | null
@@ -352,12 +364,15 @@ export type Database = {
           certificacoes?: string | null
           cidade?: string | null
           complemento?: string | null
+          confiabilidade?: number | null
           cpf?: string | null
           created_at?: string | null
           curriculo_publico?: boolean | null
           curriculo_url?: string | null
           curso?: string | null
           data_nascimento?: string | null
+          disc_completado_em?: string | null
+          disc_resultado_json?: Json | null
           disponibilidade_horario?: string | null
           disponibilidade_inicio?: string | null
           documento_tipo?: string | null
@@ -368,7 +383,10 @@ export type Database = {
           esta_trabalhando?: boolean | null
           estado?: string | null
           estado_civil?: string | null
+          etapa_atual?: number | null
           etapa_cadastro?: number | null
+          etapas_completadas?: number | null
+          etapas_json?: Json | null
           foto_url?: string | null
           id?: string
           idade_filhos?: string | null
@@ -1926,6 +1944,10 @@ export type Database = {
         }
         Returns: Json
       }
+      calcular_confiabilidade: {
+        Args: { p_candidato_id: string }
+        Returns: number
+      }
       calcular_distancia_km: {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
@@ -1978,6 +2000,14 @@ export type Database = {
           p_mensagem: string
           p_tipo: string
           p_titulo: string
+        }
+        Returns: Json
+      }
+      finalizar_disc_candidato: {
+        Args: {
+          p_candidato_id: string
+          p_perfil_disc: string
+          p_resultado_json?: Json
         }
         Returns: Json
       }
