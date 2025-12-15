@@ -460,11 +460,11 @@ export default function EmpresaDashboard() {
                     </button>
                   </div>
                   <Button
-                    onClick={() => navigate(`/recrutamento/empresa/buscar-candidatos?candidato=${candidato.id}`)}
-                    className="h-9 bg-gradient-to-r from-[#E31E24] to-[#003DA5] text-white font-semibold rounded-xl text-sm active:scale-95"
+                    onClick={() => navigate(`/recrutamento/empresa/candidato/${candidato.id}`)}
+                    className="h-9 bg-gradient-to-r from-[#E31E24] to-[#1E3A8A] hover:from-[#E31E24]/90 hover:to-[#1E3A8A]/90 text-white font-semibold rounded-xl text-sm active:scale-95"
                   >
-                    <Send className="w-4 h-4 mr-1.5" />
-                    Enviar Proposta
+                    <Calendar className="w-4 h-4 mr-1.5" />
+                    Agendar Entrevista
                   </Button>
                 </div>
               </div>

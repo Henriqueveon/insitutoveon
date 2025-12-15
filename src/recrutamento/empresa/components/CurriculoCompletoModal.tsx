@@ -27,7 +27,7 @@ import {
   Star,
   Target,
   CheckCircle,
-  Send,
+  Calendar,
   Heart,
   Loader2,
   Brain,
@@ -61,7 +61,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   empresa: Empresa | null;
-  onEnviarProposta?: (candidatoId: string) => void;
+  onAgendarEntrevista?: (candidatoId: string) => void;
 }
 
 export default function CurriculoCompletoModal({
@@ -69,7 +69,7 @@ export default function CurriculoCompletoModal({
   isOpen,
   onClose,
   empresa,
-  onEnviarProposta,
+  onAgendarEntrevista,
 }: Props) {
   const [candidato, setCandidato] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -456,7 +456,7 @@ export default function CurriculoCompletoModal({
                         naturalProfile={discProfile}
                         nomeCompleto={candidato.nome_completo || 'Profissional'}
                         confiabilidade={confiabilidade}
-                        onAgendarEntrevista={onEnviarProposta ? () => onEnviarProposta(candidato.id) : undefined}
+                        onAgendarEntrevista={onAgendarEntrevista ? () => onAgendarEntrevista(candidato.id) : undefined}
                       />
                     )}
                   </div>
@@ -464,14 +464,14 @@ export default function CurriculoCompletoModal({
               })()}
             </div>
 
-            {/* Footer fixo com botão de proposta - compacto */}
+            {/* Footer fixo com botao de entrevista - compacto */}
             <div className="p-3 border-t border-zinc-800 bg-zinc-900 flex-shrink-0 safe-area-bottom">
               <Button
-                onClick={() => onEnviarProposta?.(candidato.id)}
-                className="w-full h-11 bg-gradient-to-r from-[#E31E24] to-[#003DA5] text-white font-bold rounded-xl hover:opacity-90"
+                onClick={() => onAgendarEntrevista?.(candidato.id)}
+                className="w-full h-11 bg-gradient-to-r from-[#E31E24] to-[#1E3A8A] hover:from-[#E31E24]/90 hover:to-[#1E3A8A]/90 text-white font-bold rounded-xl"
               >
-                <Send className="w-4 h-4 mr-2" />
-                Enviar Proposta
+                <Calendar className="w-4 h-4 mr-2" />
+                Agendar Entrevista
               </Button>
             </div>
           </div>

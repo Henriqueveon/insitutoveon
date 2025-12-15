@@ -27,7 +27,7 @@ import {
   CheckCircle,
   Lock,
   Building2,
-  Send,
+  Calendar,
   LogIn,
   UserPlus,
   Shield,
@@ -991,10 +991,10 @@ export default function CurriculoPublico() {
                 </div>
                 <Button
                   onClick={handleEnviarProposta}
-                  className="w-full bg-gradient-to-r from-[#E31E24] to-[#B91C1C] hover:from-[#C91920] hover:to-[#991B1B] text-white font-semibold py-6 text-lg"
+                  className="w-full bg-gradient-to-r from-[#E31E24] to-[#1E3A8A] hover:from-[#E31E24]/90 hover:to-[#1E3A8A]/90 text-white font-semibold py-6 text-lg"
                 >
-                  <Send className="w-5 h-5 mr-2" />
-                  Enviar Proposta de Entrevista
+                  <Calendar className="w-5 h-5 mr-2" />
+                  Agendar Entrevista
                 </Button>
                 <p className="text-center text-slate-500 text-xs mt-3">
                   Após o candidato aceitar, você terá acesso aos dados de contato

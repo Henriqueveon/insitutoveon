@@ -20,18 +20,8 @@ import {
 } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import {
   X,
@@ -57,7 +47,19 @@ import {
   Building2,
   Calendar,
   Loader2,
+  Shield,
+  CheckCircle2,
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Candidato {
   id: string;
@@ -101,12 +103,7 @@ interface Empresa {
   razao_social: string;
   nome_fantasia: string;
   creditos: number;
-}
-
-interface Vaga {
-  id: string;
-  titulo: string;
-  faixa_salarial: string;
+  socio_nome?: string | null;
 }
 
 interface Props {
@@ -118,8 +115,6 @@ interface Props {
   onToggleFavorito: (id: string) => void;
 }
 
-const CUSTO_PROPOSTA = 50; // R$ 50 por proposta
-
 export default function CandidatoPerfilModal({
   candidato,
   isOpen,
@@ -130,14 +125,8 @@ export default function CandidatoPerfilModal({
 }: Props) {
   const { toast } = useToast();
   const [tabAtiva, setTabAtiva] = useState('perfil');
-  const [mostrarEnviarProposta, setMostrarEnviarProposta] = useState(false);
-  const [vagas, setVagas] = useState<Vaga[]>([]);
+  const [showConfirmacaoEntrevista, setShowConfirmacaoEntrevista] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Dados da proposta
-  const [vagaSelecionada, setVagaSelecionada] = useState('');
-  const [salarioOferecido, setSalarioOferecido] = useState('');
-  const [mensagem, setMensagem] = useState('');
 
   if (!candidato) return null;
 
@@ -205,140 +194,70 @@ export default function CandidatoPerfilModal({
     return disps[disp] || disp;
   };
 
-  const carregarVagas = async () => {
-    if (!empresa?.id) return;
-
-    const { data } = await supabase
-      .from('vagas_recrutamento')
-      .select('id, titulo, faixa_salarial')
-      .eq('empresa_id', empresa.id)
-      .eq('status', 'ativa');
-
-    if (data) {
-      setVagas(data);
-    }
-  };
-
-  const iniciarProposta = async () => {
+  const handleAgendarEntrevista = () => {
     if (!empresa) return;
 
-    // Verificar créditos
-    if (empresa.creditos < CUSTO_PROPOSTA) {
+    // Verificar creditos
+    if ((empresa.creditos || 0) < 39.9) {
       toast({
-        title: 'Créditos insuficientes',
-        description: `Você precisa de R$ ${CUSTO_PROPOSTA} em créditos para enviar uma proposta.`,
+        title: 'Creditos insuficientes',
+        description: 'Voce precisa de R$ 39,90 em creditos para agendar uma entrevista.',
         variant: 'destructive',
       });
       return;
     }
 
-    await carregarVagas();
-    setMostrarEnviarProposta(true);
+    setShowConfirmacaoEntrevista(true);
   };
 
-  const enviarProposta = async () => {
+  const confirmarEntrevista = async () => {
     if (!empresa || !candidato) return;
-
-    if (!vagaSelecionada || !salarioOferecido || !mensagem) {
-      toast({
-        title: 'Preencha todos os campos',
-        description: 'Selecione uma vaga, informe o salário e escreva uma mensagem.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Converter salário corretamente (valor está em centavos como string de dígitos)
-    const salarioEmCentavos = parseInt(salarioOferecido, 10) || 0;
-    const salarioEmReais = salarioEmCentavos / 100;
-
-    if (salarioEmReais <= 0) {
-      toast({
-        title: 'Salário inválido',
-        description: 'Informe um valor de salário válido.',
-        variant: 'destructive',
-      });
-      return;
-    }
 
     setIsLoading(true);
 
     try {
-      // Verificar créditos novamente (pode ter mudado)
-      const { data: empresaAtual } = await supabase
-        .from('empresas_recrutamento')
-        .select('creditos')
-        .eq('id', empresa.id)
-        .single();
-
-      const creditosAtuais = Number(empresaAtual?.creditos) || 0;
-
-      if (creditosAtuais < CUSTO_PROPOSTA) {
-        toast({
-          title: 'Créditos insuficientes',
-          description: `Você precisa de R$ ${CUSTO_PROPOSTA} em créditos.`,
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Primeiro debitar créditos (mais importante)
-      const { error: creditoError } = await supabase
-        .from('empresas_recrutamento')
-        .update({ creditos: creditosAtuais - CUSTO_PROPOSTA })
-        .eq('id', empresa.id);
-
-      if (creditoError) throw creditoError;
-
-      // Criar proposta
-      const { data: propostaData, error: propostaError } = await supabase
-        .from('propostas_recrutamento')
+      // Criar proposta de entrevista
+      const { error } = await supabase
+        .from('propostas_entrevista')
         .insert({
           empresa_id: empresa.id,
           candidato_id: candidato.id,
-          vaga_id: vagaSelecionada,
-          salario_oferecido: salarioEmReais,
-          mensagem: mensagem,
           status: 'pendente',
-        })
-        .select('id')
-        .single();
+          valor_cobrado: 39.9,
+        });
 
-      if (propostaError) {
-        // Reverter créditos se proposta falhar
-        await supabase
-          .from('empresas_recrutamento')
-          .update({ creditos: creditosAtuais })
-          .eq('id', empresa.id);
-        throw propostaError;
-      }
+      if (error) throw error;
 
-      // Criar notificação para o candidato
+      // Debitar creditos
+      await supabase
+        .from('empresas_recrutamento')
+        .update({ creditos: (empresa.creditos || 0) - 39.9 })
+        .eq('id', empresa.id);
+
+      // Criar notificacao para o candidato
       await supabase
         .from('notificacoes_recrutamento')
         .insert({
           tipo_destinatario: 'candidato',
           destinatario_id: candidato.id,
-          titulo: 'Nova proposta recebida!',
-          mensagem: `${empresa.nome_fantasia || empresa.razao_social} enviou uma proposta para você.`,
-          tipo_notificacao: 'proposta',
+          titulo: 'Nova proposta de entrevista!',
+          mensagem: `${empresa.nome_fantasia || empresa.razao_social} quer agendar uma entrevista com voce.`,
+          tipo_notificacao: 'entrevista',
         });
 
+      setShowConfirmacaoEntrevista(false);
+
       toast({
-        title: 'Proposta enviada!',
-        description: 'O profissional receberá uma notificação sobre sua proposta.',
+        title: 'Entrevista solicitada!',
+        description: 'O candidato recebera sua proposta e entrara em contato.',
       });
 
-      setMostrarEnviarProposta(false);
-      setVagaSelecionada('');
-      setSalarioOferecido('');
-      setMensagem('');
       onClose();
     } catch (error) {
-      console.error('Erro ao enviar proposta:', error);
+      console.error('Erro ao solicitar entrevista:', error);
       toast({
-        title: 'Erro ao enviar',
-        description: 'Não foi possível enviar a proposta. Tente novamente.',
+        title: 'Erro ao solicitar',
+        description: 'Nao foi possivel solicitar a entrevista. Tente novamente.',
         variant: 'destructive',
       });
     } finally {
@@ -346,123 +265,11 @@ export default function CandidatoPerfilModal({
     }
   };
 
-  const formatarMoeda = (valor: string) => {
-    const numero = valor.replace(/\D/g, '');
-    const formatado = (parseInt(numero) / 100).toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
-    return formatado;
-  };
-
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden bg-slate-800 border-slate-700 p-0">
-        {mostrarEnviarProposta ? (
-          /* Formulário de Proposta */
-          <div className="p-6">
-            <DialogHeader>
-              <DialogTitle className="text-white flex items-center">
-                <Send className="w-5 h-5 mr-2 text-[#E31E24]" />
-                Enviar Proposta para {getPrimeiroNome()}
-              </DialogTitle>
-              <p className="text-sm text-slate-400 mt-1">
-                As informações de contato serão reveladas após o profissional aceitar sua proposta
-              </p>
-            </DialogHeader>
-
-            <div className="mt-6 space-y-4">
-              {/* Info do custo */}
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-center justify-between">
-                <div>
-                  <p className="text-yellow-400 font-medium">Custo da proposta</p>
-                  <p className="text-sm text-yellow-400/70">
-                    Será debitado do seu saldo ao enviar
-                  </p>
-                </div>
-                <p className="text-xl font-bold text-yellow-400">
-                  R$ {CUSTO_PROPOSTA},00
-                </p>
-              </div>
-
-              {/* Vaga */}
-              <div className="space-y-2">
-                <Label className="text-slate-300">Vaga</Label>
-                <Select value={vagaSelecionada} onValueChange={setVagaSelecionada}>
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                    <SelectValue placeholder="Selecione a vaga" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {vagas.length > 0 ? (
-                      vagas.map((vaga) => (
-                        <SelectItem key={vaga.id} value={vaga.id}>
-                          {vaga.titulo}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="sem-vaga" disabled>
-                        Nenhuma vaga ativa
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Salário */}
-              <div className="space-y-2">
-                <Label className="text-slate-300">Salário Oferecido</Label>
-                <Input
-                  placeholder="R$ 0,00"
-                  value={salarioOferecido ? formatarMoeda(salarioOferecido) : ''}
-                  onChange={(e) => setSalarioOferecido(e.target.value.replace(/\D/g, ''))}
-                  className="bg-slate-700 border-slate-600 text-white"
-                />
-              </div>
-
-              {/* Mensagem */}
-              <div className="space-y-2">
-                <Label className="text-slate-300">Mensagem para o candidato</Label>
-                <Textarea
-                  placeholder="Descreva a oportunidade, benefícios e por que essa pessoa seria ideal..."
-                  value={mensagem}
-                  onChange={(e) => setMensagem(e.target.value)}
-                  rows={4}
-                  className="bg-slate-700 border-slate-600 text-white resize-none"
-                />
-              </div>
-
-              {/* Botões */}
-              <div className="flex space-x-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setMostrarEnviarProposta(false)}
-                  className="flex-1 border-slate-600 text-slate-300"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={enviarProposta}
-                  disabled={isLoading || !vagaSelecionada}
-                  className="flex-1 bg-gradient-to-r from-[#E31E24] to-[#B91C1C]"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Enviando...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4 mr-2" />
-                      Enviar Proposta
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Perfil do Candidato */
-          <>
+        {/* Perfil do Candidato */}
             {/* Header com foto e info básica */}
             <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -523,11 +330,11 @@ export default function CandidatoPerfilModal({
                     <Heart className={`w-5 h-5 ${isFavorito ? 'fill-current' : ''}`} />
                   </Button>
                   <Button
-                    onClick={iniciarProposta}
-                    className="bg-gradient-to-r from-[#E31E24] to-[#B91C1C]"
+                    onClick={handleAgendarEntrevista}
+                    className="bg-gradient-to-r from-[#E31E24] to-[#1E3A8A] hover:from-[#E31E24]/90 hover:to-[#1E3A8A]/90"
                   >
-                    <Send className="w-4 h-4 mr-2" />
-                    Enviar Proposta
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Agendar Entrevista
                   </Button>
                 </div>
               </div>
@@ -797,9 +604,109 @@ export default function CandidatoPerfilModal({
                 </TabsContent>
               </div>
             </Tabs>
-          </>
-        )}
       </DialogContent>
     </Dialog>
+
+    {/* Modal de Confirmacao de Entrevista */}
+    <AlertDialog open={showConfirmacaoEntrevista} onOpenChange={setShowConfirmacaoEntrevista}>
+      <AlertDialogContent className="bg-gray-900 border-gray-700 max-w-md mx-4">
+        <AlertDialogHeader className="text-center">
+          {/* Icone com gradiente */}
+          <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-[#E31E24]/20 to-[#1E3A8A]/20 rounded-full flex items-center justify-center">
+            <Users className="h-8 w-8 text-white" />
+          </div>
+
+          <AlertDialogTitle className="text-xl text-white text-center">
+            Parece que voce encontrou um otimo profissional, {empresa?.socio_nome?.split(' ')[0] || 'Parceiro'}!
+          </AlertDialogTitle>
+
+          <AlertDialogDescription asChild>
+            <div className="text-center space-y-4 pt-4">
+              {/* Card do candidato */}
+              <div className="bg-gray-800/50 rounded-lg p-3 flex items-center gap-3">
+                {candidato.foto_url ? (
+                  <img
+                    src={candidato.foto_url}
+                    alt={getNomeCompleto()}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
+                    <span className="text-lg font-bold text-gray-400">
+                      {getInicialNome()}
+                    </span>
+                  </div>
+                )}
+                <div className="text-left">
+                  <p className="font-medium text-white">{getPrimeiroNome()}</p>
+                  <p className="text-sm text-gray-400">{candidato.cidade}, {candidato.estado}</p>
+                </div>
+              </div>
+
+              {/* Card de protecao */}
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 text-left">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-white font-medium mb-1">Investimento protegido</p>
+                    <p className="text-gray-300 text-sm">
+                      Ao confirmar, voce investe <span className="text-white font-semibold">R$ 39,90</span> para
+                      agendar esta entrevista. <span className="text-green-400 font-medium">Voce so paga se o
+                      candidato aceitar!</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Beneficios */}
+              <div className="space-y-2 text-left">
+                <div className="flex items-center gap-2 text-gray-300 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  <span>Candidato demonstra compromisso pagando R$ 9,90</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-300 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  <span>Evite perda de tempo com profissionais sem interesse</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-300 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  <span>Reembolso automatico se nao houver aceite</span>
+                </div>
+              </div>
+
+              {/* Texto pequeno */}
+              <p className="text-xs text-gray-500 pt-2">
+                Ao aceitar, o candidato paga R$ 9,90 demonstrando absoluto compromisso com sua empresa.
+                Assim voce evita perda de tempo com profissionais que nao tem comprometimento real.
+              </p>
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-4">
+          <AlertDialogCancel className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 hover:text-white">
+            Voltar
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={confirmarEntrevista}
+            disabled={isLoading}
+            className="bg-gradient-to-r from-[#E31E24] to-[#1E3A8A] hover:from-[#E31E24]/90 hover:to-[#1E3A8A]/90 text-white font-semibold"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Processando...
+              </>
+            ) : (
+              <>
+                <Calendar className="h-4 w-4 mr-2" />
+                Confirmar Entrevista
+              </>
+            )}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

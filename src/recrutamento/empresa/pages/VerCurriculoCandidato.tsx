@@ -756,7 +756,7 @@ export default function VerCurriculoCandidato() {
           {/* Botão Agendar Entrevista */}
           <Button
             onClick={() => setShowConfirmacao(true)}
-            className="flex-1 bg-[#E31E24] hover:bg-[#E31E24]/90 text-white font-semibold py-6"
+            className="flex-1 bg-gradient-to-r from-[#E31E24] to-[#1E3A8A] hover:from-[#E31E24]/90 hover:to-[#1E3A8A]/90 text-white font-semibold py-6"
           >
             <Calendar className="w-5 h-5 mr-2" />
             Agendar Entrevista
@@ -768,9 +768,9 @@ export default function VerCurriculoCandidato() {
       <AlertDialog open={showConfirmacao} onOpenChange={setShowConfirmacao}>
         <AlertDialogContent className="bg-gray-900 border-gray-700 max-w-md mx-4">
           <AlertDialogHeader className="text-center">
-            {/* Ícone de sucesso */}
-            <div className="mx-auto mb-4 w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center">
-              <Users className="h-8 w-8 text-green-400" />
+            {/* Ícone com gradiente */}
+            <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-[#E31E24]/20 to-[#1E3A8A]/20 rounded-full flex items-center justify-center">
+              <Users className="h-8 w-8 text-white" />
             </div>
 
             <AlertDialogTitle className="text-xl text-white text-center">
@@ -847,7 +847,7 @@ export default function VerCurriculoCandidato() {
             <AlertDialogAction
               onClick={handleSolicitarEntrevista}
               disabled={isSolicitando}
-              className="bg-[#E31E24] hover:bg-[#E31E24]/90 text-white font-semibold"
+              className="bg-gradient-to-r from-[#E31E24] to-[#1E3A8A] hover:from-[#E31E24]/90 hover:to-[#1E3A8A]/90 text-white font-semibold"
             >
               {isSolicitando ? (
                 <>
