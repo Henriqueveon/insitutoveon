@@ -80,7 +80,7 @@ export default function ProfissionalCard({
   onToggleFavorito,
   matchPercentual = 0,
 }: Props) {
-  const primeiroNome = profissional.nome_completo.split(' ')[0];
+  const primeiroNome = (profissional.nome_completo || 'Profissional').split(' ')[0];
   const discConfig = profissional.perfil_disc
     ? DISC_CONFIG[profissional.perfil_disc as keyof typeof DISC_CONFIG]
     : null;

@@ -364,7 +364,7 @@ export default function EmpresaDashboard() {
                     <Avatar className="h-11 w-11 ring-2 ring-white/10">
                       <AvatarImage src={candidato.foto_url || undefined} />
                       <AvatarFallback className="bg-zinc-700 text-white font-bold">
-                        {candidato.nome_completo.charAt(0)}
+                        {(candidato.nome_completo || 'P').charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     {candidato.perfil_disc && discColor && (

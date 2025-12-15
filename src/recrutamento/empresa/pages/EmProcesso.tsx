@@ -479,7 +479,7 @@ export default function EmProcesso() {
                       <Avatar className="h-12 w-12 ring-2 ring-white/10">
                         <AvatarImage src={proposta.candidato.foto_url || undefined} />
                         <AvatarFallback className="bg-zinc-700 text-white font-bold">
-                          {proposta.candidato.nome_completo.charAt(0)}
+                          {(proposta.candidato.nome_completo || 'P').charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       {proposta.candidato.perfil_disc && discColor && (
@@ -620,11 +620,11 @@ export default function EmProcesso() {
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={propostaSelecionada.candidato.foto_url || undefined} />
                   <AvatarFallback className="bg-zinc-700 text-white font-bold">
-                    {propostaSelecionada.candidato.nome_completo.charAt(0)}
+                    {(propostaSelecionada.candidato.nome_completo || 'P').charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-white font-semibold truncate">{propostaSelecionada.candidato.nome_completo}</h3>
+                  <h3 className="text-white font-semibold truncate">{propostaSelecionada.candidato.nome_completo || 'Profissional'}</h3>
                   <p className="text-zinc-500 text-sm">{propostaSelecionada.vaga.titulo}</p>
                 </div>
               </div>
@@ -716,12 +716,12 @@ export default function EmProcesso() {
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={propostaSelecionada.candidato.foto_url || undefined} />
                   <AvatarFallback className="bg-zinc-700 text-white">
-                    {propostaSelecionada.candidato.nome_completo.charAt(0)}
+                    {(propostaSelecionada.candidato.nome_completo || 'P').charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="text-white font-medium text-sm">
-                    {propostaSelecionada.candidato.nome_completo}
+                    {propostaSelecionada.candidato.nome_completo || 'Profissional'}
                   </p>
                   <p className="text-xs text-zinc-500">
                     {propostaSelecionada.vaga.titulo}

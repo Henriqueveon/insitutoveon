@@ -61,7 +61,7 @@ import {
 
 interface Candidato {
   id: string;
-  nome_completo: string;
+  nome_completo?: string | null;
   foto_url?: string | null;
   video_url?: string | null;
   documento_url?: string | null;
@@ -140,6 +140,17 @@ export default function CandidatoPerfilModal({
   const [mensagem, setMensagem] = useState('');
 
   if (!candidato) return null;
+
+  // Funções auxiliares para nome seguro
+  const getNomeCompleto = () => candidato.nome_completo || 'Profissional';
+  const getPrimeiroNome = () => {
+    const nome = getNomeCompleto();
+    return nome.split(' ')[0];
+  };
+  const getInicialNome = () => {
+    const nome = getNomeCompleto();
+    return nome.charAt(0).toUpperCase();
+  };
 
   const calcularIdade = (dataNascimento: string) => {
     const hoje = new Date();
@@ -353,7 +364,7 @@ export default function CandidatoPerfilModal({
             <DialogHeader>
               <DialogTitle className="text-white flex items-center">
                 <Send className="w-5 h-5 mr-2 text-[#E31E24]" />
-                Enviar Proposta para {candidato.nome_completo.split(' ')[0]}
+                Enviar Proposta para {getPrimeiroNome()}
               </DialogTitle>
               <p className="text-sm text-slate-400 mt-1">
                 As informações de contato serão reveladas após o profissional aceitar sua proposta
@@ -459,7 +470,7 @@ export default function CandidatoPerfilModal({
                   <Avatar className="h-20 w-20">
                     <AvatarImage src={candidato.foto_url || undefined} />
                     <AvatarFallback className="bg-slate-600 text-white text-2xl">
-                      {candidato.nome_completo.charAt(0)}
+                      {getInicialNome()}
                     </AvatarFallback>
                   </Avatar>
                   {candidato.perfil_disc && (
@@ -472,7 +483,7 @@ export default function CandidatoPerfilModal({
                 <div className="flex-1">
                   {/* Mostra apenas PRIMEIRO NOME - contato oculto */}
                   <h2 className="text-xl font-bold text-white">
-                    {candidato.nome_completo.split(' ')[0]}
+                    {getPrimeiroNome()}
                   </h2>
                   <div className="flex flex-wrap items-center gap-2 mt-1 text-slate-400 text-sm">
                     {(candidato.cidade || candidato.estado) && (

@@ -305,7 +305,7 @@ export default function Contratados() {
                       <Avatar className="h-12 w-12 ring-2 ring-emerald-500/30">
                         <AvatarImage src={contratacao.candidato.foto_url || undefined} />
                         <AvatarFallback className="bg-zinc-700 text-white font-bold">
-                          {contratacao.candidato.nome_completo.charAt(0)}
+                          {(contratacao.candidato.nome_completo || 'P').charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       {contratacao.candidato.perfil_disc && discColor && (
