@@ -1,16 +1,16 @@
 // =====================================================
 // VER CURRICULO CANDIDATO - Página dedicada para Empresa
-// Reutiliza layout do CurriculoPublico com botões de ação
+// IGUAL ao MeuCurriculoCandidato + CurriculoDISCReport
+// Com botões de ação: Salvar e Solicitar Entrevista
 // =====================================================
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { discProfiles } from '@/data/discProfiles';
 import { useToast } from '@/hooks/use-toast';
 import {
   MapPin,
@@ -19,53 +19,38 @@ import {
   Car,
   Plane,
   Home,
+  Clock,
+  DollarSign,
   Play,
-  Star,
   Target,
   CheckCircle,
-  Lock,
   Building2,
-  Send,
-  Shield,
-  ShieldCheck,
-  ShieldAlert,
-  ShieldX,
-  Award,
-  TrendingUp,
-  Users,
   Brain,
-  Zap,
-  AlertTriangle,
-  Sparkles,
-  BadgeCheck,
   ChevronDown,
   ChevronUp,
   ArrowLeft,
   Heart,
   Loader2,
+  Send,
+  Star,
+  Calendar,
 } from 'lucide-react';
 
-// Cores oficiais DISC
-const DISC_COLORS = {
-  D: '#E53935',
-  I: '#FBC02D',
-  S: '#43A047',
-  C: '#1E88E5',
-};
+// IMPORTA O COMPONENTE DE RELATÓRIO DISC QUE JÁ FUNCIONA (35KB, 20+ seções)
+import CurriculoDISCReport from '@/recrutamento/candidato/components/CurriculoDISCReport';
 
-const DISC_LABELS = {
-  D: 'Dominância',
-  I: 'Influência',
-  S: 'Estabilidade',
-  C: 'Conformidade',
-};
+interface Profile {
+  D: number;
+  I: number;
+  S: number;
+  C: number;
+}
 
-const DISC_EMOJIS = {
-  D: '🎯',
-  I: '💬',
-  S: '🤝',
-  C: '📊',
-};
+interface ConfiabilidadeData {
+  score: number | null;
+  nivel: string | null;
+  flags: string[] | null;
+}
 
 interface Candidato {
   id: string;
@@ -77,16 +62,17 @@ interface Candidato {
   telefone: string;
   cidade: string;
   estado: string;
-  sexo: string | null;
+  bairro: string | null;
   perfil_disc: string | null;
-  teste_disc_id: string | null;
+  perfil_natural: Record<string, number> | null;
   objetivo_profissional: string | null;
-  status: string;
+  confiabilidade: number | null;
   areas_experiencia: string[] | null;
   anos_experiencia: number | null;
   ultima_empresa: string | null;
   ultimo_cargo: string | null;
   tempo_ultima_empresa: string | null;
+  motivo_saida: string | null;
   escolaridade: string | null;
   curso: string | null;
   certificacoes: string | null;
@@ -98,19 +84,11 @@ interface Candidato {
   possui_veiculo: string | null;
   aceita_viajar: string | null;
   aceita_mudanca: string | null;
-  valores_empresa: string[] | null;
-  areas_interesse: string[] | null;
   estado_civil: string | null;
   tem_filhos: boolean | null;
-}
-
-interface DadosDISC {
-  perfil_natural: { D: number; I: number; S: number; C: number } | null;
-  perfil_adaptado: { D: number; I: number; S: number; C: number } | null;
-  perfil_tipo: string | null;
-  confiabilidade_score: number | null;
-  confiabilidade_nivel: string | null;
-  flags_detectadas: string[] | null;
+  valores_empresa: string[] | null;
+  areas_interesse: string[] | null;
+  status: string;
 }
 
 interface Empresa {
@@ -121,71 +99,17 @@ interface Empresa {
   cadastro_completo?: boolean;
 }
 
-// Mapeamento das flags para descrições
-const FLAG_DESCRIPTIONS: Record<string, string> = {
-  'Detectadas respostas socialmente desejáveis': 'Algumas respostas parecem socialmente desejáveis',
-  'Item de atenção respondido incorretamente': 'Falha no item de verificação de atenção',
-  'Padrão de respostas inconsistente detectado': 'Padrão de respostas inconsistente',
-  'Tempo de resposta muito rápido - possível aleatoriedade': 'Tempo de resposta muito rápido',
-  'Tempo de resposta acima do esperado': 'Tempo de resposta acima do esperado',
-  'Perfil muito homogêneo - pode indicar respostas aleatórias': 'Perfil muito homogêneo',
-  'Padrão contraditório nas escolhas': 'Padrão contraditório nas escolhas',
-  'fake_responses': 'Algumas respostas parecem socialmente desejáveis',
-  'attention_failed': 'Falha no item de verificação de atenção',
-  'inconsistent': 'Padrão de respostas inconsistente',
-  'rushed': 'Tempo de resposta muito rápido',
-  'slow': 'Tempo de resposta acima do esperado',
-  'flat_profile': 'Perfil muito homogêneo',
-  'contradictory': 'Padrão contraditório nas escolhas',
-};
-
-// Função de normalização
-const normalizeScore = (score: number): number => {
-  return Math.round(((score + 25) / 50) * 100);
-};
-
-// Calcular competências
-const calcularCompetencias = (nD: number, nI: number, nS: number, nC: number) => [
-  { name: 'Ousadia', value: Math.round(nD * 0.9 + nI * 0.1), profile: 'D' as const },
-  { name: 'Comando', value: Math.round(nD * 0.85 + nC * 0.15), profile: 'D' as const },
-  { name: 'Assertividade', value: Math.round(nD * 0.7 + nI * 0.3), profile: 'D' as const },
-  { name: 'Objetividade', value: Math.round(nD * 0.6 + nC * 0.4), profile: 'D' as const },
-  { name: 'Persuasão', value: Math.round(nI * 0.8 + nD * 0.2), profile: 'I' as const },
-  { name: 'Entusiasmo', value: Math.round(nI * 0.9 + nD * 0.1), profile: 'I' as const },
-  { name: 'Sociabilidade', value: Math.round(nI * 0.7 + nS * 0.3), profile: 'I' as const },
-  { name: 'Comunicação', value: Math.round(nI * 0.85 + nS * 0.15), profile: 'I' as const },
-  { name: 'Paciência', value: Math.round(nS * 0.9 + nC * 0.1), profile: 'S' as const },
-  { name: 'Persistência', value: Math.round(nS * 0.7 + nD * 0.3), profile: 'S' as const },
-  { name: 'Empatia', value: Math.round(nS * 0.8 + nI * 0.2), profile: 'S' as const },
-  { name: 'Cooperação', value: Math.round(nS * 0.85 + nI * 0.15), profile: 'S' as const },
-  { name: 'Precisão', value: Math.round(nC * 0.9 + nD * 0.1), profile: 'C' as const },
-  { name: 'Organização', value: Math.round(nC * 0.7 + nS * 0.3), profile: 'C' as const },
-  { name: 'Análise', value: Math.round(nC * 0.85 + nS * 0.15), profile: 'C' as const },
-  { name: 'Planejamento', value: Math.round(nC * 0.75 + nD * 0.25), profile: 'C' as const },
-];
-
-// Calcular estilos de liderança
-const calcularLideranca = (nD: number, nI: number, nS: number, nC: number) => {
-  const total = nD + nI + nS + nC;
-  return [
-    { name: 'Executor', profile: 'D', value: Math.round((nD / total) * 100), color: DISC_COLORS.D },
-    { name: 'Motivador', profile: 'I', value: Math.round((nI / total) * 100), color: DISC_COLORS.I },
-    { name: 'Apoiador', profile: 'S', value: Math.round((nS / total) * 100), color: DISC_COLORS.S },
-    { name: 'Analítico', profile: 'C', value: Math.round((nC / total) * 100), color: DISC_COLORS.C },
-  ];
-};
-
 export default function VerCurriculoCandidato() {
   const { candidatoId } = useParams<{ candidatoId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const [candidato, setCandidato] = useState<Candidato | null>(null);
-  const [dadosDISC, setDadosDISC] = useState<DadosDISC | null>(null);
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const [secaoExpandida, setSecaoExpandida] = useState<string | null>('perfil');
+  const [showDISCReport, setShowDISCReport] = useState(true);
+  const [confiabilidade, setConfiabilidade] = useState<ConfiabilidadeData | null>(null);
   const [isSalvando, setIsSalvando] = useState(false);
   const [isSolicitando, setIsSolicitando] = useState(false);
   const [jaSalvo, setJaSalvo] = useState(false);
@@ -222,7 +146,7 @@ export default function VerCurriculoCandidato() {
 
       setEmpresa(empresaData as any);
 
-      // 2. Buscar candidato
+      // 2. Buscar candidato COMPLETO
       const { data: candidatoData, error: candidatoError } = await supabase
         .from('candidatos_recrutamento')
         .select('*')
@@ -241,19 +165,24 @@ export default function VerCurriculoCandidato() {
         return;
       }
 
-      setCandidato(candidatoData);
+      // Converter para o tipo correto
+      const candidatoFormatado: Candidato = {
+        ...candidatoData,
+        perfil_natural: candidatoData.perfil_natural as Record<string, number> | null,
+        confiabilidade: candidatoData.confiabilidade ?? null,
+      };
 
-      // 3. Buscar dados DISC completos
-      if (candidatoData.teste_disc_id) {
-        const { data: discData } = await supabase
-          .from('candidatos_disc')
-          .select('perfil_natural, perfil_adaptado, perfil_tipo, confiabilidade_score, confiabilidade_nivel, flags_detectadas')
-          .eq('id', candidatoData.teste_disc_id)
-          .single();
+      setCandidato(candidatoFormatado);
 
-        if (discData) {
-          setDadosDISC(discData as any);
-        }
+      // 3. Montar dados de confiabilidade
+      if (candidatoData.confiabilidade !== null) {
+        const nivel = candidatoData.confiabilidade >= 80 ? 'ALTA' :
+          candidatoData.confiabilidade >= 50 ? 'MEDIA' : 'BAIXA';
+        setConfiabilidade({
+          score: candidatoData.confiabilidade,
+          nivel,
+          flags: null,
+        });
       }
 
       // 4. Verificar se já está salvo
@@ -275,52 +204,6 @@ export default function VerCurriculoCandidato() {
     }
   };
 
-  // Dados calculados
-  const perfilData = useMemo(() => {
-    if (!dadosDISC?.perfil_natural || !candidato?.perfil_disc) return null;
-    const tipo = dadosDISC.perfil_tipo || candidato.perfil_disc;
-    return discProfiles[tipo] || discProfiles[candidato.perfil_disc] || null;
-  }, [dadosDISC, candidato]);
-
-  const scoresNormalizados = useMemo(() => {
-    if (!dadosDISC?.perfil_natural) return null;
-    return {
-      D: normalizeScore(dadosDISC.perfil_natural.D),
-      I: normalizeScore(dadosDISC.perfil_natural.I),
-      S: normalizeScore(dadosDISC.perfil_natural.S),
-      C: normalizeScore(dadosDISC.perfil_natural.C),
-    };
-  }, [dadosDISC]);
-
-  const competencias = useMemo(() => {
-    if (!scoresNormalizados) return [];
-    return calcularCompetencias(
-      scoresNormalizados.D,
-      scoresNormalizados.I,
-      scoresNormalizados.S,
-      scoresNormalizados.C
-    );
-  }, [scoresNormalizados]);
-
-  const lideranca = useMemo(() => {
-    if (!scoresNormalizados) return [];
-    return calcularLideranca(
-      scoresNormalizados.D,
-      scoresNormalizados.I,
-      scoresNormalizados.S,
-      scoresNormalizados.C
-    );
-  }, [scoresNormalizados]);
-
-  const topCompetencias = useMemo(() => {
-    return [...competencias].sort((a, b) => b.value - a.value).slice(0, 6);
-  }, [competencias]);
-
-  const liderancaDominante = useMemo(() => {
-    if (lideranca.length === 0) return null;
-    return lideranca.reduce((prev, curr) => curr.value > prev.value ? curr : prev);
-  }, [lideranca]);
-
   // Helpers
   const calcularIdade = (data: string) => {
     const hoje = new Date();
@@ -330,53 +213,76 @@ export default function VerCurriculoCandidato() {
     return idade;
   };
 
-  const getConfiabilidadeConfig = (nivel: string | null) => {
-    switch (nivel) {
-      case 'ALTA': return {
-        color: 'text-emerald-400',
-        bg: 'bg-emerald-500/10',
-        border: 'border-emerald-500/30',
-        icon: ShieldCheck,
-        label: 'Alta Confiabilidade',
-        description: 'As respostas apresentam alto grau de consistência e autenticidade.'
-      };
-      case 'MEDIA': return {
-        color: 'text-amber-400',
-        bg: 'bg-amber-500/10',
-        border: 'border-amber-500/30',
-        icon: ShieldAlert,
-        label: 'Confiabilidade Moderada',
-        description: 'Algumas respostas apresentam variações que merecem atenção.'
-      };
-      case 'BAIXA': return {
-        color: 'text-orange-400',
-        bg: 'bg-orange-500/10',
-        border: 'border-orange-500/30',
-        icon: ShieldAlert,
-        label: 'Confiabilidade Reduzida',
-        description: 'Recomenda-se cautela na interpretação dos resultados.'
-      };
-      case 'SUSPEITA': return {
-        color: 'text-red-400',
-        bg: 'bg-red-500/10',
-        border: 'border-red-500/30',
-        icon: ShieldX,
-        label: 'Confiabilidade Comprometida',
-        description: 'Os resultados podem não refletir o perfil real. Considere reaplicar o teste.'
-      };
-      default: return {
-        color: 'text-slate-400',
-        bg: 'bg-slate-500/10',
-        border: 'border-slate-500/30',
-        icon: Shield,
-        label: 'Não avaliado',
-        description: 'Confiabilidade não calculada.'
-      };
+  const getCorPerfil = (perfil: string | null) => {
+    switch (perfil) {
+      case 'D': return 'bg-red-500';
+      case 'I': return 'bg-yellow-500';
+      case 'S': return 'bg-green-500';
+      case 'C': return 'bg-blue-500';
+      default: return 'bg-slate-500';
     }
   };
 
-  const toggleSecao = (secao: string) => {
-    setSecaoExpandida(secaoExpandida === secao ? null : secao);
+  const getNomePerfil = (perfil: string | null) => {
+    switch (perfil) {
+      case 'D': return 'Dominância';
+      case 'I': return 'Influência';
+      case 'S': return 'Estabilidade';
+      case 'C': return 'Conformidade';
+      default: return 'Não avaliado';
+    }
+  };
+
+  const getDescricaoPerfil = (perfil: string | null) => {
+    switch (perfil) {
+      case 'D': return 'Direto, decisivo, orientado a resultados. Gosta de desafios e de assumir o controle das situações.';
+      case 'I': return 'Comunicativo, entusiasta, otimista. Adora interagir com pessoas e criar conexões.';
+      case 'S': return 'Calmo, paciente, leal. Valoriza estabilidade e trabalha bem em equipe.';
+      case 'C': return 'Analítico, preciso, detalhista. Preza pela qualidade e segue procedimentos.';
+      default: return '';
+    }
+  };
+
+  const getFaixaSalarialLabel = (faixa: string) => {
+    const faixas: Record<string, string> = {
+      'ate_1500': 'Até R$ 1.500',
+      '1500_2500': 'R$ 1.500 - R$ 2.500',
+      '2500_4000': 'R$ 2.500 - R$ 4.000',
+      '4000_6000': 'R$ 4.000 - R$ 6.000',
+      '6000_10000': 'R$ 6.000 - R$ 10.000',
+      'acima_10000': 'Acima de R$ 10.000',
+    };
+    return faixas[faixa] || faixa;
+  };
+
+  const getDisponibilidadeLabel = (disp: string) => {
+    const disps: Record<string, string> = {
+      'imediata': 'Imediata',
+      '15_dias': 'Em 15 dias',
+      '30_dias': 'Em 30 dias',
+      'a_combinar': 'A combinar',
+    };
+    return disps[disp] || disp;
+  };
+
+  // Converte perfil_natural para o formato do CurriculoDISCReport
+  const getProfileFromDisc = (disc: string): Profile => {
+    const base = { D: 10, I: 10, S: 10, C: 10 };
+    if (disc === 'D') return { ...base, D: 20 };
+    if (disc === 'I') return { ...base, I: 20 };
+    if (disc === 'S') return { ...base, S: 20 };
+    if (disc === 'C') return { ...base, C: 20 };
+    return base;
+  };
+
+  const convertToProfile = (data: Record<string, number> | null): Profile | null => {
+    if (!data) return null;
+    return {
+      D: data.D ?? data.d ?? 10,
+      I: data.I ?? data.i ?? 10,
+      S: data.S ?? data.s ?? 10,
+      C: data.C ?? data.c ?? 10,
+    };
   };
 
   // Ações
@@ -390,7 +296,6 @@ export default function VerCurriculoCandidato() {
     setIsSalvando(true);
     try {
       if (jaSalvo) {
-        // Remover dos favoritos
         await supabase
           .from('candidatos_favoritos')
           .delete()
@@ -403,7 +308,6 @@ export default function VerCurriculoCandidato() {
           description: 'O candidato foi removido dos seus salvos.',
         });
       } else {
-        // Adicionar aos favoritos
         await supabase
           .from('candidatos_favoritos')
           .insert({
@@ -432,7 +336,6 @@ export default function VerCurriculoCandidato() {
   const handleSolicitarEntrevista = async () => {
     if (!empresa || !candidato) return;
 
-    // Verificar créditos
     if ((empresa.creditos || 0) < 39.9) {
       toast({
         title: 'Créditos insuficientes',
@@ -445,7 +348,6 @@ export default function VerCurriculoCandidato() {
 
     setIsSolicitando(true);
     try {
-      // Criar proposta
       const { error } = await supabase
         .from('propostas_entrevista')
         .insert({
@@ -457,7 +359,6 @@ export default function VerCurriculoCandidato() {
 
       if (error) throw error;
 
-      // Debitar créditos
       await supabase
         .from('empresas_recrutamento')
         .update({ creditos: (empresa.creditos || 0) - 39.9 })
@@ -484,7 +385,7 @@ export default function VerCurriculoCandidato() {
   // Loading
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#E31E24] mx-auto mb-4" />
           <p className="text-slate-400">Carregando currículo...</p>
@@ -496,11 +397,11 @@ export default function VerCurriculoCandidato() {
   // Erro
   if (erro || !candidato) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center p-4">
-        <Card className="bg-gray-900 border-gray-800 max-w-md w-full">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <Card className="bg-slate-800/60 border-slate-700 max-w-md w-full">
           <CardContent className="pt-8 pb-6 text-center">
             <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
-              <Lock className="w-8 h-8 text-red-400" />
+              <Target className="w-8 h-8 text-red-400" />
             </div>
             <h2 className="text-xl font-bold text-white mb-2">{erro || 'Currículo não encontrado'}</h2>
             <Button onClick={handleVoltar} className="mt-4 bg-gradient-to-r from-[#E31E24] to-[#B91C1C]">
@@ -512,21 +413,15 @@ export default function VerCurriculoCandidato() {
     );
   }
 
-  const perfilPrincipal = candidato.perfil_disc || 'D';
-  const confiabilidadeConfig = getConfiabilidadeConfig(dadosDISC?.confiabilidade_nivel || null);
+  // Montar naturalProfile para o CurriculoDISCReport
+  const naturalProfile: Profile = convertToProfile(candidato.perfil_natural) ||
+    (candidato.perfil_disc ? getProfileFromDisc(candidato.perfil_disc) : { D: 10, I: 10, S: 10, C: 10 });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 pb-32">
-      {/* Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#E31E24]/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-[#003DA5]/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00D9FF]/5 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative z-10 container mx-auto px-4 py-6 max-w-4xl">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-black pb-28">
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-black/95 backdrop-blur-xl border-b border-white/10">
+        <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto">
           <button
             onClick={handleVoltar}
             className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
@@ -541,521 +436,284 @@ export default function VerCurriculoCandidato() {
             </Badge>
           )}
         </div>
+      </div>
 
-        {/* ========== HERO CARD - PERFIL PRINCIPAL ========== */}
-        <Card className="bg-gray-900/80 border-gray-800 overflow-hidden mb-6">
-          {/* Barra de cores DISC no topo */}
-          {scoresNormalizados && (
-            <div className="h-2 flex">
-              <div style={{ width: `${scoresNormalizados.D}%`, backgroundColor: DISC_COLORS.D }} />
-              <div style={{ width: `${scoresNormalizados.I}%`, backgroundColor: DISC_COLORS.I }} />
-              <div style={{ width: `${scoresNormalizados.S}%`, backgroundColor: DISC_COLORS.S }} />
-              <div style={{ width: `${scoresNormalizados.C}%`, backgroundColor: DISC_COLORS.C }} />
-            </div>
-          )}
-
-          <div className="p-6">
-            <div className="flex flex-col md:flex-row gap-6">
-              {/* Foto e dados básicos */}
-              <div className="flex-shrink-0 text-center md:text-left">
-                <Avatar className="h-32 w-32 mx-auto md:mx-0 border-4 border-white/10 shadow-2xl">
-                  <AvatarImage src={candidato.foto_url || undefined} />
-                  <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-4xl font-bold">
-                    {(candidato.nome_completo || 'P').charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-
-                {/* Badge DISC grande */}
-                <div
-                  className="mt-4 w-20 h-20 mx-auto md:mx-0 rounded-2xl flex flex-col items-center justify-center text-white shadow-lg"
-                  style={{ backgroundColor: DISC_COLORS[perfilPrincipal as keyof typeof DISC_COLORS] }}
-                >
-                  <span className="text-3xl font-black">{perfilPrincipal}</span>
-                  <span className="text-xs opacity-80">{DISC_LABELS[perfilPrincipal as keyof typeof DISC_LABELS]}</span>
-                </div>
-              </div>
-
-              {/* Info principal */}
+      <div className="max-w-lg mx-auto px-4 py-4 space-y-4">
+        {/* ========== CARD PRINCIPAL - IGUAL MeuCurriculoCandidato ========== */}
+        <Card className="bg-slate-800/60 border-slate-700 overflow-hidden">
+          {/* Header com foto */}
+          <div className="bg-gradient-to-r from-[#E31E24]/20 to-[#003DA5]/20 p-6">
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-20 w-20 border-2 border-white/20">
+                <AvatarImage src={candidato.foto_url || undefined} />
+                <AvatarFallback className="bg-slate-600 text-white text-2xl">
+                  {candidato.nome_completo.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
               <div className="flex-1">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h1 className="text-3xl font-bold text-white mb-1">{candidato.nome_completo}</h1>
-                    <p className="text-slate-300 flex items-center gap-2 mb-2">
-                      <MapPin className="w-4 h-4" />
-                      {candidato.cidade}, {candidato.estado} - {calcularIdade(candidato.data_nascimento)} anos
-                      {candidato.sexo && ` - ${candidato.sexo === 'M' ? 'Masculino' : candidato.sexo === 'F' ? 'Feminino' : candidato.sexo}`}
-                    </p>
-                  </div>
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Disponível
-                  </Badge>
-                </div>
-
-                {/* Título do perfil */}
-                {perfilData && (
-                  <div className="mt-4">
-                    <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                      <span>{DISC_EMOJIS[perfilPrincipal as keyof typeof DISC_EMOJIS]}</span>
-                      {perfilData.nome}
-                    </h2>
-                    <p className="text-slate-400 mt-1">{perfilData.descricaoCurta}</p>
-                  </div>
-                )}
-
-                {/* Confiabilidade Expandida */}
-                {dadosDISC?.confiabilidade_score !== null && dadosDISC?.confiabilidade_score !== undefined && (
-                  <div className={`mt-4 p-4 rounded-xl border ${confiabilidadeConfig.bg} ${confiabilidadeConfig.border}`}>
-                    <div className="flex items-start gap-3">
-                      <div className={`w-10 h-10 rounded-lg ${confiabilidadeConfig.bg} flex items-center justify-center flex-shrink-0`}>
-                        <confiabilidadeConfig.icon className={`w-5 h-5 ${confiabilidadeConfig.color}`} />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className={`font-semibold ${confiabilidadeConfig.color}`}>
-                            {confiabilidadeConfig.label}
-                          </span>
-                          <span className={`text-xl font-bold ${confiabilidadeConfig.color}`}>
-                            {dadosDISC.confiabilidade_score}/100
-                          </span>
-                        </div>
-                        <p className="text-sm text-slate-400 mb-2">{confiabilidadeConfig.description}</p>
-
-                        {/* Barra de progresso */}
-                        <div className="h-2 bg-gray-800 rounded-full overflow-hidden mb-3">
-                          <div
-                            className={`h-full rounded-full transition-all ${
-                              dadosDISC.confiabilidade_nivel === 'ALTA' ? 'bg-emerald-500' :
-                              dadosDISC.confiabilidade_nivel === 'MEDIA' ? 'bg-amber-500' :
-                              dadosDISC.confiabilidade_nivel === 'BAIXA' ? 'bg-orange-500' :
-                              dadosDISC.confiabilidade_nivel === 'SUSPEITA' ? 'bg-red-500' : 'bg-slate-500'
-                            }`}
-                            style={{ width: `${dadosDISC.confiabilidade_score}%` }}
-                          />
-                        </div>
-
-                        {/* Observações Detectadas */}
-                        {dadosDISC.flags_detectadas && dadosDISC.flags_detectadas.length > 0 && (
-                          <div className="pt-3 border-t border-gray-700/50">
-                            <p className={`text-xs font-semibold ${confiabilidadeConfig.color} uppercase tracking-wide mb-2`}>
-                              Observações Detectadas:
-                            </p>
-                            <ul className="space-y-1.5">
-                              {dadosDISC.flags_detectadas.map((flag, index) => (
-                                <li key={index} className="flex items-start gap-2">
-                                  <AlertTriangle className={`w-3.5 h-3.5 ${confiabilidadeConfig.color} mt-0.5 flex-shrink-0`} />
-                                  <span className="text-sm text-slate-300">
-                                    {FLAG_DESCRIPTIONS[flag] || flag}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Objetivo */}
-                {candidato.objetivo_profissional && (
-                  <div className="mt-4 p-3 bg-gray-800/50 rounded-lg">
-                    <p className="text-sm text-slate-400 flex items-start gap-2">
-                      <Target className="w-4 h-4 mt-0.5 text-[#E31E24]" />
-                      <span className="text-white">{candidato.objetivo_profissional}</span>
-                    </p>
-                  </div>
-                )}
+                <h2 className="text-xl font-bold text-white">
+                  {candidato.nome_completo}
+                </h2>
+                <p className="text-slate-400 flex items-center mt-1">
+                  <MapPin className="w-4 h-4 mr-1" />
+                  {candidato.cidade}, {candidato.estado}
+                </p>
+                <p className="text-slate-400 text-sm">
+                  {calcularIdade(candidato.data_nascimento)} anos
+                </p>
               </div>
             </div>
-          </div>
-        </Card>
 
-        {/* ========== RECOMENDAÇÃO PARA EMPRESA ========== */}
-        {perfilData && (
-          <Card className="bg-gradient-to-r from-[#E31E24]/10 to-[#003DA5]/10 border-[#E31E24]/30 mb-6">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-[#E31E24] to-[#003DA5] rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="w-7 h-7 text-white" />
+            {/* Perfil DISC */}
+            {candidato.perfil_disc && (
+              <div className="mt-4 flex items-center space-x-3">
+                <div className={`w-12 h-12 rounded-full ${getCorPerfil(candidato.perfil_disc)} flex items-center justify-center text-xl font-bold text-white`}>
+                  {candidato.perfil_disc}
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white mb-2">
-                    Recomendação para sua Empresa
-                  </h3>
-                  <p className="text-slate-300 mb-4">{perfilData.melhorAdequacao}</p>
-
-                  {/* Cargos ideais */}
-                  <div className="flex flex-wrap gap-2">
-                    {perfilData.cargosIdeais.map((cargo, i) => (
-                      <Badge key={i} className="bg-white/10 text-white border-white/20 hover:bg-white/20">
-                        <Award className="w-3 h-3 mr-1" />
-                        {cargo}
-                      </Badge>
-                    ))}
-                  </div>
+                  <p className="text-white font-medium">
+                    Perfil {getNomePerfil(candidato.perfil_disc)}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {getDescricaoPerfil(candidato.perfil_disc)}
+                  </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            )}
+          </div>
 
-        {/* ========== GRÁFICO DISC ========== */}
-        {scoresNormalizados && (
-          <Card className="bg-gray-900/60 border-gray-800 mb-6">
-            <CardContent className="p-6">
-              <button
-                onClick={() => toggleSecao('disc')}
-                className="w-full flex items-center justify-between text-left"
-              >
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Brain className="w-5 h-5 text-[#E31E24]" />
-                  Perfil Comportamental DISC
+          <CardContent className="p-4 space-y-6">
+            {/* Objetivo */}
+            {candidato.objetivo_profissional && (
+              <div>
+                <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
+                  <Target className="w-4 h-4 mr-2" />
+                  Objetivo Profissional
                 </h3>
-                {secaoExpandida === 'disc' ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
-              </button>
+                <p className="text-white">{candidato.objetivo_profissional}</p>
+              </div>
+            )}
 
-              {secaoExpandida === 'disc' && (
-                <div className="mt-6 space-y-4">
-                  {(['D', 'I', 'S', 'C'] as const).map((key) => (
-                    <div key={key}>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
-                            style={{ backgroundColor: DISC_COLORS[key] }}
-                          >
-                            {key}
-                          </div>
-                          <div>
-                            <span className="text-white font-medium">{DISC_LABELS[key]}</span>
-                            <p className="text-xs text-slate-400">
-                              {key === 'D' && 'Como enfrenta desafios e toma decisões'}
-                              {key === 'I' && 'Como se comunica e influencia pessoas'}
-                              {key === 'S' && 'Como lida com mudanças e ritmo'}
-                              {key === 'C' && 'Como segue regras e analisa dados'}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-2xl font-bold" style={{ color: DISC_COLORS[key] }}>
-                          {scoresNormalizados[key]}%
-                        </span>
-                      </div>
-                      <div className="h-4 bg-gray-800 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{ width: `${scoresNormalizados[key]}%`, backgroundColor: DISC_COLORS[key] }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Descrição completa */}
-                  {perfilData && (
-                    <div className="mt-6 p-4 bg-gray-800/50 rounded-lg">
-                      <p className="text-slate-300 text-sm leading-relaxed">
-                        {perfilData.descricaoCompleta}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ========== COMPETÊNCIAS TOP 6 ========== */}
-        {topCompetencias.length > 0 && (
-          <Card className="bg-gray-900/60 border-gray-800 mb-6">
-            <CardContent className="p-6">
-              <button
-                onClick={() => toggleSecao('competencias')}
-                className="w-full flex items-center justify-between text-left"
-              >
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-yellow-400" />
-                  Competências Principais
+            {/* Vídeo */}
+            {candidato.video_url && (
+              <div>
+                <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
+                  <Play className="w-4 h-4 mr-2" />
+                  Vídeo de Apresentação
                 </h3>
-                {secaoExpandida === 'competencias' ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
-              </button>
-
-              {secaoExpandida === 'competencias' && (
-                <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {topCompetencias.map((comp, i) => (
-                    <div
-                      key={comp.name}
-                      className="p-4 rounded-xl border-2 transition-all hover:scale-105"
-                      style={{
-                        backgroundColor: `${DISC_COLORS[comp.profile]}10`,
-                        borderColor: `${DISC_COLORS[comp.profile]}30`,
-                      }}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-white font-medium">{comp.name}</span>
-                        <span
-                          className="text-sm font-bold px-2 py-0.5 rounded-full text-white"
-                          style={{ backgroundColor: DISC_COLORS[comp.profile] }}
-                        >
-                          {comp.value}%
-                        </span>
-                      </div>
-                      <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${comp.value}%`, backgroundColor: DISC_COLORS[comp.profile] }}
-                        />
-                      </div>
-                      <div className="mt-2 flex items-center gap-1">
-                        {i < 3 && <Star className="w-3 h-3 text-yellow-400" />}
-                        <span className="text-xs text-slate-400">
-                          {comp.value >= 70 ? 'Muito forte' : comp.value >= 50 ? 'Forte' : 'Moderado'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                <div className="aspect-video rounded-lg overflow-hidden bg-slate-900">
+                  <video
+                    src={candidato.video_url}
+                    controls
+                    className="w-full h-full object-contain"
+                    poster={candidato.foto_url || undefined}
+                  />
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+              </div>
+            )}
 
-        {/* ========== ESTILO DE LIDERANÇA ========== */}
-        {liderancaDominante && (
-          <Card className="bg-gray-900/60 border-gray-800 mb-6">
-            <CardContent className="p-6">
-              <button
-                onClick={() => toggleSecao('lideranca')}
-                className="w-full flex items-center justify-between text-left"
-              >
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Users className="w-5 h-5 text-purple-400" />
-                  Estilo de Liderança
-                </h3>
-                {secaoExpandida === 'lideranca' ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
-              </button>
-
-              {secaoExpandida === 'lideranca' && (
-                <div className="mt-6">
-                  {/* Estilo dominante */}
-                  <div
-                    className="p-5 rounded-xl border-2 mb-4"
-                    style={{ backgroundColor: `${liderancaDominante.color}15`, borderColor: `${liderancaDominante.color}50` }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl"
-                        style={{ backgroundColor: liderancaDominante.color }}
-                      >
-                        {liderancaDominante.profile}
-                      </div>
-                      <div>
-                        <span className="text-xs text-slate-400">Estilo principal:</span>
-                        <h4 className="text-xl font-bold text-white">Líder {liderancaDominante.name}</h4>
-                      </div>
-                      <span className="ml-auto text-4xl font-bold" style={{ color: liderancaDominante.color }}>
-                        {liderancaDominante.value}%
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Todos os estilos */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {lideranca.map((style) => (
-                      <div key={style.name} className="p-3 bg-gray-800/50 rounded-lg text-center">
-                        <div
-                          className="w-10 h-10 mx-auto rounded-full flex items-center justify-center text-white font-bold mb-2"
-                          style={{ backgroundColor: style.color }}
-                        >
-                          {style.profile}
-                        </div>
-                        <p className="text-white text-sm font-medium">{style.name}</p>
-                        <p className="text-lg font-bold" style={{ color: style.color }}>{style.value}%</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ========== POTENCIALIDADES E DESENVOLVIMENTO ========== */}
-        {perfilData && (
-          <Card className="bg-gray-900/60 border-gray-800 mb-6">
-            <CardContent className="p-6">
-              <button
-                onClick={() => toggleSecao('potencial')}
-                className="w-full flex items-center justify-between text-left"
-              >
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-green-400" />
-                  Potencialidades & Desenvolvimento
-                </h3>
-                {secaoExpandida === 'potencial' ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
-              </button>
-
-              {secaoExpandida === 'potencial' && (
-                <div className="mt-6 grid md:grid-cols-2 gap-6">
-                  {/* Potencialidades */}
-                  <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
-                    <h4 className="text-green-400 font-semibold mb-3 flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4" />
-                      Pontos Fortes
-                    </h4>
-                    <ul className="space-y-2">
-                      {perfilData.potencialidades.slice(0, 5).map((item, i) => (
-                        <li key={i} className="text-slate-300 text-sm flex items-start gap-2">
-                          <span className="text-green-400">-</span>
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Desenvolvimento */}
-                  <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
-                    <h4 className="text-blue-400 font-semibold mb-3 flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4" />
-                      Oportunidades de Crescimento
-                    </h4>
-                    <ul className="space-y-2">
-                      {perfilData.pontosDesenvolver.slice(0, 5).map((item, i) => (
-                        <li key={i} className="text-slate-300 text-sm flex items-start gap-2">
-                          <span className="text-blue-400">-</span>
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ========== EXPERIÊNCIA E FORMAÇÃO ========== */}
-        <Card className="bg-gray-900/60 border-gray-800 mb-6">
-          <CardContent className="p-6">
-            <button
-              onClick={() => toggleSecao('experiencia')}
-              className="w-full flex items-center justify-between text-left"
-            >
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Briefcase className="w-5 h-5 text-orange-400" />
-                Experiência & Formação
+            {/* Experiência */}
+            <div>
+              <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
+                <Briefcase className="w-4 h-4 mr-2" />
+                Experiência Profissional
               </h3>
-              {secaoExpandida === 'experiencia' ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
-            </button>
-
-            {secaoExpandida === 'experiencia' && (
-              <div className="mt-6 space-y-6">
-                {/* Última experiência */}
-                {candidato.ultima_empresa && (
-                  <div className="p-4 bg-gray-800/50 rounded-xl">
-                    <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
-                        <Briefcase className="w-6 h-6 text-orange-400" />
-                      </div>
-                      <div>
-                        <h4 className="text-white font-semibold">{candidato.ultimo_cargo}</h4>
-                        <p className="text-slate-400">{candidato.ultima_empresa}</p>
-                        <p className="text-slate-500 text-sm mt-1">Período: {candidato.tempo_ultima_empresa}</p>
-                      </div>
-                    </div>
+              {candidato.ultima_empresa ? (
+                <div className="space-y-2">
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <p className="text-white font-medium">{candidato.ultimo_cargo}</p>
+                    <p className="text-slate-400 text-sm">{candidato.ultima_empresa}</p>
+                    {candidato.tempo_ultima_empresa && (
+                      <p className="text-slate-500 text-xs mt-1">
+                        Período: {candidato.tempo_ultima_empresa}
+                      </p>
+                    )}
                   </div>
-                )}
-
-                {/* Áreas de experiência */}
-                {candidato.areas_experiencia && candidato.areas_experiencia.length > 0 && (
-                  <div>
-                    <p className="text-slate-400 text-sm mb-2">Áreas de atuação:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {candidato.areas_experiencia.map((area, i) => (
-                        <Badge key={i} className="bg-orange-500/20 text-orange-300 border-orange-500/30">
-                          {area}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Formação */}
-                <div className="p-4 bg-gray-800/50 rounded-xl">
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                      <GraduationCap className="w-6 h-6 text-purple-400" />
-                    </div>
-                    <div>
-                      <h4 className="text-white font-semibold">{candidato.escolaridade || 'Não informado'}</h4>
-                      {candidato.curso && <p className="text-slate-400">{candidato.curso}</p>}
-                      {candidato.certificacoes && <p className="text-slate-500 text-sm mt-1">Certificações: {candidato.certificacoes}</p>}
-                    </div>
-                  </div>
+                  {candidato.anos_experiencia && (
+                    <p className="text-slate-400 text-sm">
+                      {candidato.anos_experiencia} {candidato.anos_experiencia === 1 ? 'ano' : 'anos'} de experiência total
+                    </p>
+                  )}
                 </div>
+              ) : (
+                <p className="text-slate-500">Primeiro emprego</p>
+              )}
 
-                {/* Características */}
+              {/* Áreas de experiência */}
+              {candidato.areas_experiencia && candidato.areas_experiencia.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {candidato.areas_experiencia.map((area, i) => (
+                    <Badge key={i} className="bg-orange-500/20 text-orange-300 border-orange-500/30">
+                      {area}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Formação */}
+            <div>
+              <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
+                <GraduationCap className="w-4 h-4 mr-2" />
+                Formação e Certificações
+              </h3>
+              <div className="space-y-2">
+                <p className="text-white">{candidato.escolaridade || 'Não informado'}</p>
+                {candidato.curso && (
+                  <p className="text-slate-400 text-sm">{candidato.curso}</p>
+                )}
+                {candidato.certificacoes && (
+                  <p className="text-slate-500 text-sm">
+                    Certificações: {candidato.certificacoes}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Disponibilidade */}
+            <div>
+              <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
+                <Clock className="w-4 h-4 mr-2" />
+                Disponibilidade
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                {candidato.disponibilidade_inicio && (
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <p className="text-xs text-slate-500">Início</p>
+                    <p className="text-white text-sm">{getDisponibilidadeLabel(candidato.disponibilidade_inicio)}</p>
+                  </div>
+                )}
+                {candidato.disponibilidade_horario && (
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <p className="text-xs text-slate-500">Horário</p>
+                    <p className="text-white text-sm">{candidato.disponibilidade_horario}</p>
+                  </div>
+                )}
+                {candidato.regime_preferido && (
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <p className="text-xs text-slate-500">Regime</p>
+                    <p className="text-white text-sm">{candidato.regime_preferido.toUpperCase()}</p>
+                  </div>
+                )}
+                {candidato.pretensao_salarial && (
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <p className="text-xs text-slate-500">Pretensão</p>
+                    <p className="text-white text-sm">{getFaixaSalarialLabel(candidato.pretensao_salarial)}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Badges extras */}
+            <div className="flex flex-wrap gap-2">
+              {candidato.possui_cnh && candidato.possui_cnh !== 'Não' && (
+                <Badge className="bg-blue-500/20 text-blue-400">
+                  <Car className="w-3 h-3 mr-1" />
+                  CNH {candidato.possui_cnh}
+                </Badge>
+              )}
+              {candidato.possui_veiculo && candidato.possui_veiculo !== 'Não' && (
+                <Badge className="bg-green-500/20 text-green-400">
+                  <Car className="w-3 h-3 mr-1" />
+                  {candidato.possui_veiculo}
+                </Badge>
+              )}
+              {candidato.aceita_viajar === 'sim' && (
+                <Badge className="bg-purple-500/20 text-purple-400">
+                  <Plane className="w-3 h-3 mr-1" />
+                  Aceita viajar
+                </Badge>
+              )}
+              {candidato.aceita_mudanca === 'sim' && (
+                <Badge className="bg-orange-500/20 text-orange-400">
+                  <Home className="w-3 h-3 mr-1" />
+                  Aceita mudança
+                </Badge>
+              )}
+            </div>
+
+            {/* Áreas de interesse */}
+            {candidato.areas_interesse && candidato.areas_interesse.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
+                  <Star className="w-4 h-4 mr-2" />
+                  Áreas de Interesse
+                </h3>
                 <div className="flex flex-wrap gap-2">
-                  {candidato.possui_cnh && candidato.possui_cnh !== 'Não' && (
-                    <Badge className="bg-blue-500/20 text-blue-400"><Car className="w-3 h-3 mr-1" />CNH {candidato.possui_cnh}</Badge>
-                  )}
-                  {candidato.possui_veiculo && candidato.possui_veiculo !== 'Não' && (
-                    <Badge className="bg-green-500/20 text-green-400"><Car className="w-3 h-3 mr-1" />{candidato.possui_veiculo}</Badge>
-                  )}
-                  {candidato.aceita_viajar === 'sim' && (
-                    <Badge className="bg-purple-500/20 text-purple-400"><Plane className="w-3 h-3 mr-1" />Aceita viajar</Badge>
-                  )}
-                  {candidato.aceita_mudanca === 'sim' && (
-                    <Badge className="bg-orange-500/20 text-orange-400"><Home className="w-3 h-3 mr-1" />Aceita mudança</Badge>
-                  )}
+                  {candidato.areas_interesse.map((area, i) => (
+                    <Badge key={i} className="bg-slate-700 text-slate-300">
+                      {area}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Valores que busca */}
+            {candidato.valores_empresa && candidato.valores_empresa.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
+                  <Building2 className="w-4 h-4 mr-2" />
+                  O que busca em uma empresa
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {candidato.valores_empresa.map((valor, i) => (
+                    <Badge key={i} className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      {valor}
+                    </Badge>
+                  ))}
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* ========== VÍDEO DE APRESENTAÇÃO ========== */}
-        {candidato.video_url && (
-          <Card className="bg-gray-900/60 border-gray-800 mb-6">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
-                <Play className="w-5 h-5 text-red-400" />
-                Vídeo de Apresentação
-              </h3>
-              <div className="aspect-video rounded-xl overflow-hidden bg-gray-950">
-                <video
-                  src={candidato.video_url}
-                  controls
-                  className="w-full h-full object-contain"
-                  poster={candidato.foto_url || undefined}
-                />
+        {/* ========== RELATÓRIO DISC COMPLETO ========== */}
+        {candidato.perfil_disc && (
+          <div className="space-y-4">
+            <button
+              onClick={() => setShowDISCReport(!showDISCReport)}
+              className="w-full flex items-center justify-between bg-gradient-to-r from-[#E31E24]/20 to-[#003DA5]/20 border border-[#E31E24]/30 rounded-2xl p-4 text-left hover:border-[#E31E24]/50 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#E31E24] to-[#003DA5] flex items-center justify-center">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold text-lg">Relatório DISC Completo</h3>
+                  <p className="text-slate-400 text-sm">Análise comportamental detalhada</p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              {showDISCReport ? (
+                <ChevronUp className="w-6 h-6 text-white/70" />
+              ) : (
+                <ChevronDown className="w-6 h-6 text-white/70" />
+              )}
+            </button>
 
-        {/* Footer */}
-        <div className="text-center pb-8">
-          <div className="flex items-center justify-center gap-2 text-slate-500 text-sm">
-            <BadgeCheck className="w-4 h-4" />
-            <span>Currículo verificado por VEON Recrutamento</span>
+            {/* COMPONENTE DISC REPORT - 20+ SEÇÕES */}
+            {showDISCReport && (
+              <CurriculoDISCReport
+                naturalProfile={naturalProfile}
+                nomeCompleto={candidato.nome_completo}
+                confiabilidade={confiabilidade}
+              />
+            )}
           </div>
-          <p className="text-slate-600 text-xs mt-2">
-            Metodologia DISC validada cientificamente
-          </p>
-        </div>
+        )}
       </div>
 
       {/* ========== BOTÕES DE AÇÃO FIXOS ========== */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-950/95 backdrop-blur-xl border-t border-gray-800 p-4 safe-area-bottom">
-        <div className="container mx-auto max-w-4xl flex items-center gap-3">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-xl border-t border-white/10 p-4 safe-area-bottom">
+        <div className="max-w-lg mx-auto flex items-center gap-3">
           {/* Botão Voltar */}
           <Button
             variant="outline"
             onClick={handleVoltar}
-            className="border-gray-700 text-white hover:bg-gray-800"
+            className="border-slate-700 text-white hover:bg-slate-800"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
+            <ArrowLeft className="w-4 h-4" />
           </Button>
 
           {/* Botão Salvar */}
@@ -1063,7 +721,7 @@ export default function VerCurriculoCandidato() {
             variant="outline"
             onClick={handleSalvarCandidato}
             disabled={isSalvando}
-            className={`flex-1 ${jaSalvo ? 'bg-pink-500/20 border-pink-500/50 text-pink-400' : 'border-gray-700 text-white hover:bg-gray-800'}`}
+            className={`flex-1 ${jaSalvo ? 'bg-pink-500/20 border-pink-500/50 text-pink-400' : 'border-slate-700 text-white hover:bg-slate-800'}`}
           >
             {isSalvando ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
