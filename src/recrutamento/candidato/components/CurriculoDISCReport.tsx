@@ -105,6 +105,25 @@ const getAmplitudeInterpretation = (factor: string, natural: number, adapted: nu
   return `Tudo certo! ${firstName} está agindo no trabalho de forma parecida com seu jeito natural.`;
 };
 
+// Mapeamento das flags para descrições em português
+const FLAG_DESCRIPTIONS: Record<string, string> = {
+  'Detectadas respostas socialmente desejáveis': 'Algumas respostas parecem socialmente desejáveis',
+  'Item de atenção respondido incorretamente': 'Falha no item de verificação de atenção',
+  'Padrão de respostas inconsistente detectado': 'Padrão de respostas inconsistente',
+  'Tempo de resposta muito rápido - possível aleatoriedade': 'Tempo de resposta muito rápido',
+  'Tempo de resposta acima do esperado': 'Tempo de resposta acima do esperado',
+  'Perfil muito homogêneo - pode indicar respostas aleatórias': 'Perfil muito homogêneo',
+  'Padrão contraditório nas escolhas': 'Padrão contraditório nas escolhas',
+  // Flags em inglês (caso existam)
+  'fake_responses': 'Algumas respostas parecem socialmente desejáveis',
+  'attention_failed': 'Falha no item de verificação de atenção',
+  'inconsistent': 'Padrão de respostas inconsistente',
+  'rushed': 'Tempo de resposta muito rápido',
+  'slow': 'Tempo de resposta acima do esperado',
+  'flat_profile': 'Perfil muito homogêneo',
+  'contradictory': 'Padrão contraditório nas escolhas',
+};
+
 // Helper para obter estilo da confiabilidade
 const getConfiabilidadeStyle = (nivel: string | null) => {
   switch (nivel) {
@@ -280,12 +299,33 @@ export default function CurriculoDISCReport({
                   </span>
                 </div>
                 <p className="text-sm text-zinc-300 mb-3">{style.description}</p>
-                <div className="h-3 bg-zinc-700 rounded-full overflow-hidden">
+
+                {/* Barra de progresso */}
+                <div className="h-3 bg-zinc-700 rounded-full overflow-hidden mb-4">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${style.iconBg}`}
                     style={{ width: `${confiabilidade.score}%` }}
                   />
                 </div>
+
+                {/* Observações Detectadas */}
+                {confiabilidade.flags && confiabilidade.flags.length > 0 && (
+                  <div className="pt-4 border-t border-current/20">
+                    <p className={`text-xs font-semibold ${style.textColor} uppercase tracking-wide mb-3`}>
+                      Observações Detectadas:
+                    </p>
+                    <ul className="space-y-2">
+                      {confiabilidade.flags.map((flag, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <AlertTriangle className={`w-4 h-4 ${style.textColor} mt-0.5 flex-shrink-0`} />
+                          <span className="text-sm text-zinc-300">
+                            {FLAG_DESCRIPTIONS[flag] || flag}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           </section>
