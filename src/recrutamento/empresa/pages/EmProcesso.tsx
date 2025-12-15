@@ -53,6 +53,7 @@ import {
   Play,
   Mail,
 } from 'lucide-react';
+import CurriculoCompletoModal from '../components/CurriculoCompletoModal';
 
 interface Empresa {
   id: string;
@@ -127,6 +128,20 @@ export default function EmProcesso() {
 
   // Contatos desbloqueados
   const [contatoDesbloqueado, setContatoDesbloqueado] = useState<string[]>([]);
+
+  // Modal de currículo completo
+  const [modalCurriculoAberto, setModalCurriculoAberto] = useState(false);
+  const [candidatoIdCurriculo, setCandidatoIdCurriculo] = useState<string | null>(null);
+
+  const abrirCurriculo = (candidatoId: string) => {
+    setCandidatoIdCurriculo(candidatoId);
+    setModalCurriculoAberto(true);
+  };
+
+  const fecharCurriculo = () => {
+    setModalCurriculoAberto(false);
+    setCandidatoIdCurriculo(null);
+  };
 
   useEffect(() => {
     if (empresa?.id) {
@@ -503,15 +518,24 @@ export default function EmProcesso() {
                         {proposta.candidato.cidade}, {proposta.candidato.estado}
                       </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        setPropostaSelecionada(proposta);
-                        setSheetAcoesAberto(true);
-                      }}
-                      className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
-                    >
-                      <MoreVertical className="w-5 h-5 text-zinc-400" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => abrirCurriculo(proposta.candidato.id)}
+                        className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                        title="Ver currículo completo"
+                      >
+                        <Eye className="w-5 h-5 text-zinc-400 hover:text-white" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setPropostaSelecionada(proposta);
+                          setSheetAcoesAberto(true);
+                        }}
+                        className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                      >
+                        <MoreVertical className="w-5 h-5 text-zinc-400" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Tags */}
@@ -857,6 +881,14 @@ export default function EmProcesso() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Currículo Completo com DISC */}
+      <CurriculoCompletoModal
+        candidatoId={candidatoIdCurriculo}
+        isOpen={modalCurriculoAberto}
+        onClose={fecharCurriculo}
+        empresa={empresa}
+      />
     </div>
   );
 }
