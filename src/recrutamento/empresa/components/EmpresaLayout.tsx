@@ -86,6 +86,18 @@ export default function EmpresaLayout() {
     carregarEmpresa();
   }, []);
 
+  // Redirecionar para completar cadastro se necessário
+  useEffect(() => {
+    if (empresa && !isLoading) {
+      const isCompletarCadastroPage = location.pathname === '/recrutamento/empresa/completar-cadastro';
+      
+      // Se cadastro não está completo e não está na página de completar
+      if (empresa.cadastro_completo === false && !isCompletarCadastroPage) {
+        navigate('/recrutamento/empresa/completar-cadastro', { replace: true });
+      }
+    }
+  }, [empresa, isLoading, location.pathname, navigate]);
+
   const carregarEmpresa = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
