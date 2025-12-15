@@ -615,7 +615,7 @@ export default function BuscarCandidatos() {
   ).length;
 
   return (
-    <div className="max-w-lg mx-auto -mx-4 sm:mx-auto">
+    <div className="w-full max-w-lg mx-auto overflow-x-hidden">
       {/* Header com busca */}
       <div className="sticky top-0 z-30 bg-black/95 backdrop-blur-xl px-4 py-3 border-b border-zinc-800">
         <div className="flex items-center gap-2">
@@ -704,7 +704,7 @@ export default function BuscarCandidatos() {
           <div className="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-[#E31E24]" />
         </div>
       ) : candidatos.length > 0 ? (
-        <div className="px-4 pb-4 space-y-3">
+        <div className="px-4 pb-4 space-y-3 w-full max-w-full">
           {candidatos.map((candidato) => {
             const discColor = candidato.perfil_disc ? DISC_COLORS[candidato.perfil_disc as keyof typeof DISC_COLORS] : null;
             const matchScore = calcularMatchSimples(candidato);
@@ -713,12 +713,12 @@ export default function BuscarCandidatos() {
             return (
               <div
                 key={candidato.id}
-                className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden active:scale-[0.98] transition-transform"
+                className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden active:scale-[0.98] transition-transform w-full max-w-full"
               >
                 {/* Header do Card */}
-                <div className="flex items-center gap-3 p-4">
-                  <div className="relative" onClick={() => abrirPerfil(candidato)}>
-                    <Avatar className="h-12 w-12 ring-2 ring-white/10">
+                <div className="flex items-center gap-2 p-3 w-full min-w-0">
+                  <div className="relative flex-shrink-0" onClick={() => abrirPerfil(candidato)}>
+                    <Avatar className="h-11 w-11 ring-2 ring-white/10">
                       <AvatarImage src={candidato.foto_url || undefined} />
                       <AvatarFallback className="bg-zinc-700 text-white font-bold">
                         {(candidato.nome_completo || 'P').charAt(0)}
@@ -730,19 +730,19 @@ export default function BuscarCandidatos() {
                       </div>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0" onClick={() => abrirPerfil(candidato)}>
+                  <div className="flex-1 min-w-0 overflow-hidden" onClick={() => abrirPerfil(candidato)}>
                     <p className="text-white font-semibold text-sm truncate">
                       {candidato.nome_completo}
                     </p>
                     <div className="flex items-center gap-1 text-zinc-400">
-                      <MapPin className="w-3 h-3" />
+                      <MapPin className="w-3 h-3 flex-shrink-0" />
                       <span className="text-xs truncate">{candidato.cidade}, {candidato.estado}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={() => toggleFavorito(candidato.id)}
-                      className={`p-2 rounded-full transition-colors ${
+                      className={`p-1.5 rounded-full transition-colors ${
                         isFavorito ? 'text-red-500' : 'text-zinc-500 hover:text-white'
                       }`}
                     >
@@ -755,7 +755,7 @@ export default function BuscarCandidatos() {
                           : matchScore >= 80
                           ? 'bg-gradient-to-r from-blue-500 to-indigo-600'
                           : 'bg-gradient-to-r from-zinc-600 to-zinc-700'
-                      } text-white text-xs font-bold px-2 py-0.5 rounded-full`}
+                      } text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full`}
                     >
                       {matchScore}%
                     </Badge>
@@ -763,29 +763,29 @@ export default function BuscarCandidatos() {
                 </div>
 
                 {/* Conteúdo */}
-                <div className="px-4 pb-3" onClick={() => abrirPerfil(candidato)}>
+                <div className="px-3 pb-3 w-full min-w-0" onClick={() => abrirPerfil(candidato)}>
                   {candidato.objetivo_profissional && (
-                    <p className="text-zinc-400 text-sm line-clamp-2 mb-3">
+                    <p className="text-zinc-400 text-xs line-clamp-2 mb-2">
                       {candidato.objetivo_profissional}
                     </p>
                   )}
 
                   {/* Tags */}
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-1 w-full">
                     {candidato.anos_experiencia && candidato.anos_experiencia > 0 && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 text-[11px] font-medium">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-medium">
                         <Briefcase className="w-3 h-3" />
                         {candidato.anos_experiencia} anos
                       </span>
                     )}
                     {candidato.disponibilidade_inicio && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[11px] font-medium">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-medium">
                         <Clock className="w-3 h-3" />
                         {candidato.disponibilidade_inicio === 'imediata' ? 'Imediato' : candidato.disponibilidade_inicio}
                       </span>
                     )}
                     {candidato.areas_experiencia?.slice(0, 1).map((area, i) => (
-                      <span key={i} className="inline-flex items-center px-2 py-1 rounded-full bg-zinc-800 text-zinc-400 text-[11px]">
+                      <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-[10px] truncate max-w-[120px]">
                         {area}
                       </span>
                     ))}
@@ -793,13 +793,13 @@ export default function BuscarCandidatos() {
                 </div>
 
                 {/* Ações */}
-                <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-800 bg-zinc-900/50">
+                <div className="flex items-center justify-between gap-2 px-3 py-3 border-t border-zinc-800 bg-zinc-900/50 w-full min-w-0">
                   <button
                     onClick={() => abrirCurriculoCompleto(candidato.id)}
-                    className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors text-sm"
+                    className="flex items-center gap-1 text-white/70 hover:text-white transition-colors text-xs flex-shrink-0"
                   >
                     <Eye className="w-4 h-4" />
-                    Ver currículo
+                    <span className="hidden xs:inline">Ver</span> currículo
                   </button>
                   <Button
                     onClick={() => {
@@ -809,9 +809,9 @@ export default function BuscarCandidatos() {
                       }
                       abrirPerfil(candidato);
                     }}
-                    className="h-8 bg-gradient-to-r from-[#E31E24] to-[#003DA5] text-white font-semibold rounded-lg text-xs active:scale-95"
+                    className="h-8 bg-gradient-to-r from-[#E31E24] to-[#003DA5] text-white font-semibold rounded-lg text-xs active:scale-95 flex-shrink-0 px-3"
                   >
-                    <Send className="w-3.5 h-3.5 mr-1.5" />
+                    <Send className="w-3.5 h-3.5 mr-1" />
                     Proposta
                   </Button>
                 </div>
