@@ -204,7 +204,7 @@ export default function VerCurriculoCandidato() {
 
       // 4. Verificar se já está salvo
       const { data: favoritoExiste } = await supabase
-        .from('candidatos_favoritos')
+        .from('favoritos_recrutamento')
         .select('id')
         .eq('empresa_id', empresaId)
         .eq('candidato_id', candidatoId)
@@ -314,7 +314,7 @@ export default function VerCurriculoCandidato() {
     try {
       if (jaSalvo) {
         await supabase
-          .from('candidatos_favoritos')
+          .from('favoritos_recrutamento')
           .delete()
           .eq('empresa_id', empresa.id)
           .eq('candidato_id', candidato.id);
@@ -326,7 +326,7 @@ export default function VerCurriculoCandidato() {
         });
       } else {
         await supabase
-          .from('candidatos_favoritos')
+          .from('favoritos_recrutamento')
           .insert({
             empresa_id: empresa.id,
             candidato_id: candidato.id,
@@ -366,7 +366,7 @@ export default function VerCurriculoCandidato() {
     setIsSolicitando(true);
     try {
       const { error } = await supabase
-        .from('propostas_entrevista')
+        .from('propostas_recrutamento')
         .insert({
           empresa_id: empresa.id,
           candidato_id: candidato.id,

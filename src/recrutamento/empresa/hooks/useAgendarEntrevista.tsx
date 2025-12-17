@@ -52,7 +52,7 @@ export function useAgendarEntrevista({ empresa }: UseAgendarEntrevistaProps) {
     try {
       // Criar proposta de entrevista
       const { error } = await supabase
-        .from("propostas_entrevista")
+        .from("propostas_recrutamento")
         .insert({
           empresa_id: empresa.id,
           candidato_id: candidatoSelecionado.id,
