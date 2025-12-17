@@ -2,7 +2,23 @@
   "permissions": {
     "allow": [
       "Bash(powershell.exe -Command \"cd ''C:\\Users\\insti\\Documents\\GitHub\\insitutoveon''; node node_modules\\typescript\\bin\\tsc --noEmit 2>&1 | Select -First 80\")",
-      "Bash(powershell.exe -Command \"cd ''C:\\Users\\insti\\Documents\\GitHub\\insitutoveon''; npm install; npm run build 2>&1 | Select -First 100\")"
+      "Bash(powershell.exe -Command \"cd ''C:\\Users\\insti\\Documents\\GitHub\\insitutoveon''; npm install; npm run build 2>&1 | Select -First 100\")",
+      "Bash(powershell.exe -Command:*)",
+      "Bash(cmd.exe /c \"set ANDROID_HOME=C:\\Users\\insti\\AppData\\Local\\Android\\Sdk && set JAVA_HOME=C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.17.10-hotspot && npx cap add android\":*)",
+      "Bash(ANDROID_HOME=\"C:/Users/insti/AppData/Local/Android/Sdk\" JAVA_HOME=\"C:/Program Files/Eclipse Adoptium/jdk-17.0.17.10-hotspot\" npx cap:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(cordova-res:*)",
+      "Bash(keytool:*)",
+      "Bash(ANDROID_HOME=\"C:/Users/insti/AppData/Local/Android/Sdk\" JAVA_HOME=\"C:/Program Files/Eclipse Adoptium/jdk-17.0.17.10-hotspot\" npx cap sync:*)",
+      "Bash(ANDROID_HOME=\"C:/Users/insti/AppData/Local/Android/Sdk\" JAVA_HOME=\"C:/Program Files/Eclipse Adoptium/jdk-17.0.17.10-hotspot\" ./gradlew.bat bundleRelease:*)",
+      "Bash(ANDROID_HOME=\"C:/Users/insti/AppData/Local/Android/Sdk\" JAVA_HOME=\"C:/Program Files/Eclipse Adoptium/jdk-17.0.17.10-hotspot\" ./gradlew.bat:*)",
+      "Bash(where:*)",
+      "Bash(winget install:*)",
+      "Bash(ANDROID_HOME=\"C:/Users/insti/AppData/Local/Android/Sdk\" JAVA_HOME=\"C:/Program Files/Eclipse Adoptium/jdk-21.0.9.10-hotspot\" ./gradlew.bat:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
