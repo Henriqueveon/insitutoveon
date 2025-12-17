@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Android Build
+*.aab
+*.apk
+android/app/build/
+android/.gradle/
+android/app/keystore/
+android/app/keystore.properties
+android/local.properties
+
+# Resources generated
+resources/

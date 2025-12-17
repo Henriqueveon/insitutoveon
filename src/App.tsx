@@ -104,6 +104,9 @@ import {
 } from "./recrutamento/candidato/pages";
 import DiscConcluido from "./recrutamento/candidato/pages/DiscConcluido";
 
+// Tela Inicial de Recrutamento
+import TelaInicial from "./recrutamento/TelaInicial";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -116,8 +119,12 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <Routes>
+                {/* Rota inicial - Direciona para tela de recrutamento */}
+                <Route path="/" element={<Navigate to="/recrutamento" replace />} />
+                <Route path="/recrutamento" element={<TelaInicial />} />
+
                 {/* Rotas públicas do teste */}
-                <Route path="/" element={<Index />} />
+                <Route path="/inicio" element={<Index />} />
                 <Route path="/teste" element={<Assessment />} />
                 <Route path="/teste/:linkUnico" element={<TesteAnalista />} />
                 <Route path="/teste-situacional" element={<SituationalTest />} />
