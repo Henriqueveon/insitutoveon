@@ -218,7 +218,7 @@ export default function CandidatoPerfilModal({
     try {
       // Criar proposta de entrevista
       const { error } = await supabase
-        .from('propostas_entrevista')
+        .from('propostas_recrutamento')
         .insert({
           empresa_id: empresa.id,
           candidato_id: candidato.id,
