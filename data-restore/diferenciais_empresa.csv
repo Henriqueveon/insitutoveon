@@ -1,0 +1,25 @@
+id;categoria;nome;icone;ordem;ativo
+1;Benefícios;Vale Refeição;🍽️;1;true
+2;Benefícios;Vale Alimentação;🛒;2;true
+3;Benefícios;Vale Transporte;🚌;3;true
+4;Benefícios;Plano de Saúde;🏥;4;true
+5;Benefícios;Plano Odontológico;🦷;5;true
+6;Benefícios;Seguro de Vida;🛡️;6;true
+7;Benefícios;Participação nos Lucros;💰;7;true
+8;Benefícios;Bonificação por Metas;🎯;8;true
+9;Benefícios;Day Off no Aniversário;🎂;9;true
+10;Estrutura;Cozinha/Refeitório;🍳;10;true
+11;Estrutura;Área de Descanso;🛋️;11;true
+12;Estrutura;Estacionamento;🅿️;12;true
+13;Estrutura;Ambiente Climatizado;❄️;13;true
+14;Estrutura;Home Office;🏠;14;true
+15;Estrutura;Horário Flexível;⏰;15;true
+16;Desenvolvimento;Treinamentos Profissionalizantes;📚;16;true
+17;Desenvolvimento;Plano de Carreira;📈;17;true
+18;Desenvolvimento;Bolsa de Estudos;🎓;18;true
+19;Desenvolvimento;Cursos e Certificações;📜;19;true
+20;Desenvolvimento;Mentoria;👨‍🏫;20;true
+21;Cultura;Ambiente Descontraído;😄;21;true
+22;Cultura;Eventos de Integração;🎉;22;true
+23;Cultura;Confraternizações;🥳;23;true
+24;Cultura;Dress Code Livre;👕;24;true

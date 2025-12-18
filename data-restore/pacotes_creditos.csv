@@ -1,0 +1,4 @@
+id;nome;quantidade_entrevistas;preco;preco_por_entrevista;preco_original;economia;destaque;badge;cor_botao;ativo;ordem;created_at
+063a49dd-8042-4842-b611-f65bca8a34da;Avulso;1;39.90;39.90;;0.00;false;;gray;true;1;2025-12-13 21:57:27.146149
+60e8d9c7-26c9-4840-9d60-5ad5d095b602;Popular;5;189.00;37.80;199.50;10.50;true;MAIS POPULAR;red;true;2;2025-12-13 21:57:27.146149
+a93eb4af-cda1-44fc-b259-c10b90657da2;Profissional;10;299.00;29.90;399.00;100.00;false;MELHOR CUSTO-BENEFÍCIO;blue;true;3;2025-12-13 21:57:27.146149

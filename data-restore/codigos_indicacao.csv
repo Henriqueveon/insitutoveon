@@ -1,0 +1,5 @@
+id;tipo_usuario;usuario_id;codigo;total_indicacoes;creditos_ganhos;ativo;created_at
+baad833a-8b75-4ce5-973c-365cd9455aca;empresa;a52b073d-5d4b-48ab-b5f3-c3202491a891;2F7937;0;0.00;true;2025-12-13 22:59:29.752464
+6e4cffa0-62bd-44f6-a311-8461c9a3a685;candidato;df963026-8f16-477f-9663-71db1f10f0cb;284340;0;0.00;true;2025-12-15 00:50:02.990038
+58ff52fb-662f-4100-9279-6acb1eaaa7ba;candidato;37cafc92-58cf-463c-9e68-b59262e9910f;1EEAA2;0;0.00;true;2025-12-15 01:36:28.50462
+ce12ec3a-3b11-4a26-8f78-ff2f90429639;candidato;fc275cf2-860e-4271-ae0d-0276b1cf0005;A391C9;0;0.00;true;2025-12-15 01:50:02.446986

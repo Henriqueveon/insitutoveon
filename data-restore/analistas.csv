@@ -1,0 +1,4 @@
+id;nome;email;senha;telefone;empresa;tipo;licencas_total;licencas_usadas;link_unico;ativo;data_cadastro;ultimo_acesso;cpf_cnpj;updated_at
+64764447-c15f-43d2-9ed9-66cf42febd09;Ederson Marques;operacional1@assessoriaveon.com;Eusouabussola;45998386876;Instituto Veon LTDA;empresa;10;0;f78ee024-487d-40b2-bc59-130bbbf55369;true;2025-12-12 21:03:53.386578+00;;11552198995;2025-12-12 21:03:53.386578+00
+a500c828-599f-477a-a499-e8f35d5c4616;Henrique Alves;henriquealves01648@gmail.com;Eufaturo1M$;45998116723;Instituto Veon LTDA;empresa;10;1;5804d05f-01b0-4f5c-883c-134f9aa45bfd;true;2025-12-12 20:48:20.822571+00;2025-12-12 21:20:26.697+00;51065648000187;2025-12-12 20:48:20.822571+00
+aa146ce3-0083-4e99-adad-cc093dd165cd;Hermes da Costa Marques;hermescostaconsultor@gmail.com;alterar1234;65996090833;MIND3;empresa;10;3;adf44014-20c6-441f-be20-2ed8837b8469;true;2025-12-12 22:39:06.125442+00;2025-12-12 22:40:15.416+00;63436470000112;2025-12-12 22:39:06.125442+00
