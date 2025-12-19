@@ -19,7 +19,11 @@ Deno.serve(async (req) => {
   try {
     const { email, codigo }: VerifyOTPRequest = await req.json();
 
-    console.log('Verificando OTP para:', email);
+    console.log('=== VERIFY OTP DEBUG ===');
+    console.log('Email recebido:', email);
+    console.log('Código recebido:', codigo);
+    console.log('Código length:', codigo?.length);
+    console.log('Código chars:', codigo?.split('').map(c => c.charCodeAt(0)));
 
     if (!email || !codigo) {
       // SEMPRE retornar 200 para evitar erro no supabase.functions.invoke
@@ -53,7 +57,20 @@ Deno.serve(async (req) => {
       .order('created_at', { ascending: false })
       .limit(5);
 
-    console.log('OTPs encontrados para este email:', JSON.stringify(todosOtps, null, 2));
+    console.log('=== OTPs NO BANCO ===');
+    if (todosOtps && todosOtps.length > 0) {
+      todosOtps.forEach((otp, i) => {
+        console.log(`OTP ${i + 1}:`, {
+          codigo_banco: otp.codigo,
+          codigo_digitado: codigo,
+          match: otp.codigo === codigo,
+          verificado: otp.verificado,
+          expira_em: otp.expira_em
+        });
+      });
+    } else {
+      console.log('Nenhum OTP encontrado para este email!');
+    }
 
     // Buscar OTP pelo código (sem filtro de expiração primeiro)
     const { data: otpPorCodigo } = await supabase
