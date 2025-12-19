@@ -68,8 +68,6 @@ export function ModalExcluirConta({
       const { data, error } = await supabase.rpc('solicitar_exclusao_conta', {
         p_usuario_id: usuarioId,
         p_usuario_tipo: usuarioTipo,
-        p_usuario_email: usuarioEmail,
-        p_usuario_nome: usuarioNome,
         p_motivo: motivoSelecionado,
         p_comentario: comentario || null,
       });
