@@ -63,12 +63,15 @@ import CidadeAutocomplete from '@/components/recrutamento/CidadeAutocomplete';
 import DataNascimentoInput from '@/components/recrutamento/DataNascimentoInput';
 import ExperienciaSelector from '@/components/recrutamento/ExperienciaSelector';
 import CNHSelector from '@/components/recrutamento/CNHSelector';
+import { VerificacaoOTP } from '@/components/VerificacaoOTP';
+import { Mail, Shield, AlertTriangle } from 'lucide-react';
 
 interface Candidato {
   id: string;
   nome_completo: string;
   telefone: string;
   email: string;
+  email_verificado?: boolean;
   [key: string]: any;
 }
 
@@ -109,6 +112,41 @@ export default function CompletarCadastro() {
   const [showSenha, setShowSenha] = useState(false);
   const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
   const [senhaErrors, setSenhaErrors] = useState<Record<string, string>>({});
+
+  // Estado para verificação de email
+  const [emailVerificado, setEmailVerificado] = useState<boolean | null>(null);
+  const [verificandoEmail, setVerificandoEmail] = useState(true);
+  const [emailCandidato, setEmailCandidato] = useState('');
+
+  // Verificar se email está confirmado
+  useEffect(() => {
+    const verificarEmail = async () => {
+      if (!candidatoContext?.id) {
+        setVerificandoEmail(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('candidatos_recrutamento')
+          .select('email, email_verificado')
+          .eq('id', candidatoContext.id)
+          .single();
+
+        if (error) throw error;
+
+        setEmailCandidato(data?.email || '');
+        setEmailVerificado(data?.email_verificado === true);
+      } catch (error) {
+        console.error('Erro ao verificar email:', error);
+        setEmailVerificado(false);
+      } finally {
+        setVerificandoEmail(false);
+      }
+    };
+
+    verificarEmail();
+  }, [candidatoContext?.id]);
 
   // Carregar dados existentes
   useEffect(() => {
@@ -874,6 +912,81 @@ export default function CompletarCadastro() {
   };
 
   const progresso = calcularProgresso();
+
+  // Loading enquanto verifica email
+  if (verificandoEmail) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 text-[#E31E24] animate-spin" />
+      </div>
+    );
+  }
+
+  // Tela de verificação de email obrigatória
+  if (!emailVerificado && emailCandidato) {
+    return (
+      <div className="max-w-lg mx-auto space-y-6">
+        <Card className="bg-slate-800/60 border-slate-700">
+          <CardHeader className="text-center space-y-4">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <Mail className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <div>
+              <CardTitle className="text-xl font-bold text-white">
+                Confirme seu Email
+              </CardTitle>
+              <p className="text-slate-400 mt-2 text-sm">
+                Para completar seu cadastro, primeiro precisamos verificar seu email
+              </p>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {/* Aviso de segurança */}
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+              <div className="flex items-start gap-2">
+                <Shield className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-amber-200 text-sm font-medium">Por que verificar?</p>
+                  <p className="text-amber-300/70 text-xs mt-1">
+                    A verificação protege sua conta e garante que empresas entrem em contato pelo email correto.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Componente de verificação OTP */}
+            <VerificacaoOTP
+              email={emailCandidato}
+              nome={candidatoContext?.nome_completo}
+              tipo="candidato"
+              usuarioId={candidatoContext?.id}
+              onVerificado={() => {
+                setEmailVerificado(true);
+                toast({
+                  title: 'Email verificado!',
+                  description: 'Agora você pode completar seu cadastro.',
+                });
+                recarregarCandidato();
+              }}
+              onPular={() => {
+                navigate('/recrutamento/candidato/inicio');
+                toast({
+                  title: 'Verificação pendente',
+                  description: 'Você precisa verificar seu email para completar o cadastro.',
+                  variant: 'destructive',
+                });
+              }}
+              mostrarBotaoPular={true}
+              autoEnviar={true}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
