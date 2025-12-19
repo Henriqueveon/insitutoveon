@@ -40,8 +40,14 @@ export function ModalVerificacaoPendente({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+      onClick={handlePular}
+    >
+      <div
+        className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-t-xl flex items-center justify-between">
           <h2 className="text-xl font-bold flex items-center gap-2">
@@ -56,7 +62,7 @@ export function ModalVerificacaoPendente({
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 pb-8">
           {/* Mensagem */}
           <div className="mb-6 text-center">
             <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
