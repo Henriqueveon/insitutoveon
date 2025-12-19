@@ -29,6 +29,7 @@ import {
   FileText,
   Calendar,
   DollarSign,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -46,6 +47,7 @@ const recrutamentoSubmenu = [
   { name: 'Vagas', href: '/painel/recrutamento/vagas', icon: FileText },
   { name: 'Entrevistas', href: '/painel/recrutamento/entrevistas', icon: Calendar },
   { name: 'Financeiro', href: '/painel/recrutamento/financeiro', icon: DollarSign },
+  { name: 'Exclusões', href: '/painel/recrutamento/exclusoes', icon: Trash2 },
 ];
 
 export default function PainelLayout() {

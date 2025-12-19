@@ -12,26 +12,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { ModalExcluirConta } from '@/components/ModalExcluirConta';
 import { useToast } from '@/hooks/use-toast';
 import {
   Building2,
   User,
-  Mail,
-  Phone,
-  MapPin,
   Save,
   Loader2,
-  Camera,
   Trash2,
   LogOut,
 } from 'lucide-react';
@@ -70,7 +57,7 @@ export default function Configuracoes() {
     descricao: '',
   });
   const [isSaving, setIsSaving] = useState(false);
-  const [dialogExcluir, setDialogExcluir] = useState(false);
+  const [modalExcluir, setModalExcluir] = useState(false);
 
   useEffect(() => {
     if (empresa) {
@@ -120,15 +107,6 @@ export default function Configuracoes() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/recrutamento/empresa/login');
-  };
-
-  const excluirConta = async () => {
-    // Em produção, isso deveria enviar um email para o suporte
-    toast({
-      title: 'Solicitação enviada',
-      description: 'Nossa equipe entrará em contato em até 48h para confirmar a exclusão.',
-    });
-    setDialogExcluir(false);
   };
 
   if (!empresa) return null;
@@ -329,7 +307,7 @@ export default function Configuracoes() {
             </div>
             <Button
               variant="outline"
-              onClick={() => setDialogExcluir(true)}
+              onClick={() => setModalExcluir(true)}
               className="border-red-500/50 text-red-400 hover:bg-red-500/10"
             >
               <Trash2 className="w-4 h-4 mr-2" />
@@ -339,32 +317,15 @@ export default function Configuracoes() {
         </CardContent>
       </Card>
 
-      {/* Dialog de Confirmação de Exclusão */}
-      <AlertDialog open={dialogExcluir} onOpenChange={setDialogExcluir}>
-        <AlertDialogContent className="bg-slate-800 border-slate-700">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">
-              Tem certeza que deseja excluir sua conta?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
-              Esta ação não pode ser desfeita. Todos os seus dados, vagas,
-              propostas e histórico de contratações serão permanentemente removidos.
-              Os créditos não utilizados serão perdidos.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600">
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={excluirConta}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              Sim, excluir minha conta
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Modal de Exclusão de Conta */}
+      <ModalExcluirConta
+        isOpen={modalExcluir}
+        onClose={() => setModalExcluir(false)}
+        usuarioTipo="empresa"
+        usuarioId={empresa.id}
+        usuarioEmail={empresa.socio_email}
+        usuarioNome={empresa.nome_fantasia}
+      />
     </div>
   );
 }

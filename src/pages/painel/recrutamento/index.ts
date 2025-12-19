@@ -9,3 +9,4 @@ export { default as RecrutamentoVagas } from './Vagas';
 export { default as RecrutamentoEntrevistas } from './Entrevistas';
 export { default as RecrutamentoFinanceiro } from './Financeiro';
 export { default as RecrutamentoNotificacoes } from './Notificacoes';
+export { default as RecrutamentoExclusoes } from './Exclusoes';

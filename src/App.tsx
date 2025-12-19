@@ -40,6 +40,7 @@ import {
   RecrutamentoEntrevistas,
   RecrutamentoFinanceiro,
   RecrutamentoNotificacoes,
+  RecrutamentoExclusoes,
 } from "./pages/painel/recrutamento";
 
 // Painel do Fundador
@@ -198,6 +199,7 @@ const App = () => (
                   <Route path="recrutamento/entrevistas" element={<RecrutamentoEntrevistas />} />
                   <Route path="recrutamento/financeiro" element={<RecrutamentoFinanceiro />} />
                   <Route path="recrutamento/notificacoes" element={<RecrutamentoNotificacoes />} />
+                  <Route path="recrutamento/exclusoes" element={<RecrutamentoExclusoes />} />
                 </Route>
 
                 {/* Área de Recrutamento - Empresa */}

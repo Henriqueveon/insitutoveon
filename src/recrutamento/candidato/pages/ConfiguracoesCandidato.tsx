@@ -27,33 +27,19 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { ModalExcluirConta } from '@/components/ModalExcluirConta';
 import { useToast } from '@/hooks/use-toast';
 import {
   User,
   Camera,
   Video,
-  MapPin,
-  Phone,
-  Mail,
   Save,
   Loader2,
   Trash2,
   LogOut,
-  Play,
   RotateCcw,
   Circle,
   Square,
-  AlertCircle,
 } from 'lucide-react';
 
 interface Candidato {
@@ -123,8 +109,8 @@ export default function ConfiguracoesCandidato() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
 
-  // Dialog de exclusão
-  const [dialogExcluir, setDialogExcluir] = useState(false);
+  // Modal de exclusão
+  const [modalExcluir, setModalExcluir] = useState(false);
 
   useEffect(() => {
     if (candidatoContext?.id) {
@@ -433,14 +419,6 @@ export default function ConfiguracoesCandidato() {
     navigate('/recrutamento/candidato/bem-vindo');
   };
 
-  const excluirConta = async () => {
-    // Em produção, enviaria para suporte
-    toast({
-      title: 'Solicitação enviada',
-      description: 'Nossa equipe entrará em contato em até 48h.',
-    });
-    setDialogExcluir(false);
-  };
 
   const formatarTempo = (segundos: number) => {
     const m = Math.floor(segundos / 60);
@@ -688,7 +666,7 @@ export default function ConfiguracoesCandidato() {
 
           <Button
             variant="outline"
-            onClick={() => setDialogExcluir(true)}
+            onClick={() => setModalExcluir(true)}
             className="w-full border-red-500/50 text-red-400 hover:bg-red-500/10"
           >
             <Trash2 className="w-4 h-4 mr-2" />
@@ -850,31 +828,17 @@ export default function ConfiguracoesCandidato() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de Exclusão */}
-      <AlertDialog open={dialogExcluir} onOpenChange={setDialogExcluir}>
-        <AlertDialogContent className="bg-slate-800 border-slate-700">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">
-              Excluir sua conta?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
-              Esta ação não pode ser desfeita. Todos os seus dados serão
-              permanentemente removidos conforme a LGPD.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600">
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={excluirConta}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              Sim, excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Modal de Exclusão de Conta */}
+      {candidato && (
+        <ModalExcluirConta
+          isOpen={modalExcluir}
+          onClose={() => setModalExcluir(false)}
+          usuarioTipo="candidato"
+          usuarioId={candidato.id}
+          usuarioEmail={candidato.email}
+          usuarioNome={candidato.nome_completo}
+        />
+      )}
     </div>
   );
 }
