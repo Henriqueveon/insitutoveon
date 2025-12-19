@@ -55,15 +55,21 @@ export function VerificacaoOTP({
     }
   }, [countdown]);
 
-  // Auto enviar OTP quando componente monta
+  // Auto enviar OTP quando componente monta (apenas se email válido)
   useEffect(() => {
-    if (autoEnviar && !otpEnviado) {
+    if (autoEnviar && !otpEnviado && email && email.includes('@')) {
       enviarCodigoOTP();
     }
-  }, []);
+  }, [email]);
 
   // Enviar código OTP
   const enviarCodigoOTP = async () => {
+    // Validar email antes de enviar
+    if (!email || !email.includes('@')) {
+      console.log('Email inválido, não enviando OTP:', email);
+      return;
+    }
+
     setIsLoading(true);
     setErro('');
 
