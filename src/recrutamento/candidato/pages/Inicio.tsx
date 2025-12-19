@@ -70,6 +70,10 @@ export default function InicioCandidato() {
   // Estado para modal de verificação de email
   const [modalVerificacaoAberto, setModalVerificacaoAberto] = useState(false);
   const [emailParaVerificar, setEmailParaVerificar] = useState<string>('');
+  const [modalDescartado, setModalDescartado] = useState(() => {
+    // Verificar se o usuário já descartou o modal nesta sessão
+    return sessionStorage.getItem('email_verificacao_descartado') === 'true';
+  });
 
   useEffect(() => {
     if (candidato?.id) {
@@ -78,9 +82,9 @@ export default function InicioCandidato() {
     }
   }, [candidato?.id]);
 
-  // Verificar email pendente ao carregar
+  // Verificar email pendente ao carregar (apenas se não foi descartado)
   useEffect(() => {
-    if (candidato && candidato.email_verificado !== true) {
+    if (candidato && candidato.email_verificado !== true && !modalDescartado) {
       // Email não verificado - buscar email e abrir modal
       const buscarEmailCandidato = async () => {
         const { data } = await supabase
@@ -97,7 +101,7 @@ export default function InicioCandidato() {
 
       buscarEmailCandidato();
     }
-  }, [candidato?.id, candidato?.email_verificado]);
+  }, [candidato?.id, candidato?.email_verificado, modalDescartado]);
 
   const carregarStats = async () => {
     if (!candidato?.id) return;
@@ -447,6 +451,8 @@ export default function InicioCandidato() {
           isOpen={modalVerificacaoAberto}
           onClose={() => {
             setModalVerificacaoAberto(false);
+            setModalDescartado(true);
+            sessionStorage.setItem('email_verificacao_descartado', 'true');
             toast({
               title: 'Verificação pendente',
               description: 'Você pode verificar seu email a qualquer momento nas configurações.',
@@ -459,6 +465,8 @@ export default function InicioCandidato() {
           usuarioId={candidato.id}
           onVerificado={() => {
             setModalVerificacaoAberto(false);
+            // Limpar flag pois email foi verificado
+            sessionStorage.removeItem('email_verificacao_descartado');
             toast({
               title: 'Email verificado!',
               description: 'Seu email foi verificado com sucesso.',
