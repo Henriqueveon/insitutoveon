@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import {
   Eye,
   Mail,
@@ -22,16 +23,19 @@ import {
 } from 'lucide-react';
 import SecaoIndicacaoCandidato from '../components/SecaoIndicacaoCandidato';
 import StatusIndicador from '../components/StatusIndicador';
+import { ModalVerificacaoPendente } from '@/components/ModalVerificacaoPendente';
 
 interface Candidato {
   id: string;
   nome_completo: string;
+  email?: string;
   foto_url: string | null;
   video_url: string | null;
   status: string;
   perfil_disc: string | null;
   objetivo_profissional: string | null;
   cadastro_completo: boolean;
+  email_verificado?: boolean;
   data_nascimento?: string | null;
   cpf?: string | null;
   estado?: string | null;
@@ -49,6 +53,7 @@ interface Stats {
 
 export default function InicioCandidato() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { candidato, propostasNovas } = useOutletContext<{
     candidato: Candidato | null;
     propostasNovas: number;
@@ -62,12 +67,37 @@ export default function InicioCandidato() {
   const [progressoPerfil, setProgressoPerfil] = useState(0);
   const [itensIncompletos, setItensIncompletos] = useState<string[]>([]);
 
+  // Estado para modal de verificação de email
+  const [modalVerificacaoAberto, setModalVerificacaoAberto] = useState(false);
+  const [emailParaVerificar, setEmailParaVerificar] = useState<string>('');
+
   useEffect(() => {
     if (candidato?.id) {
       carregarStats();
       calcularProgressoPerfil();
     }
   }, [candidato?.id]);
+
+  // Verificar email pendente ao carregar
+  useEffect(() => {
+    if (candidato && candidato.email_verificado !== true) {
+      // Email não verificado - buscar email e abrir modal
+      const buscarEmailCandidato = async () => {
+        const { data } = await supabase
+          .from('candidatos_recrutamento')
+          .select('email')
+          .eq('id', candidato.id)
+          .single();
+
+        if (data?.email) {
+          setEmailParaVerificar(data.email);
+          setModalVerificacaoAberto(true);
+        }
+      };
+
+      buscarEmailCandidato();
+    }
+  }, [candidato?.id, candidato?.email_verificado]);
 
   const carregarStats = async () => {
     if (!candidato?.id) return;
@@ -409,6 +439,34 @@ export default function InicioCandidato() {
       {/* Seção de Indicação */}
       {candidato && (
         <SecaoIndicacaoCandidato candidato={candidato} />
+      )}
+
+      {/* Modal de Verificação de Email Pendente */}
+      {candidato && emailParaVerificar && (
+        <ModalVerificacaoPendente
+          isOpen={modalVerificacaoAberto}
+          onClose={() => {
+            setModalVerificacaoAberto(false);
+            toast({
+              title: 'Verificação pendente',
+              description: 'Você pode verificar seu email a qualquer momento nas configurações.',
+              variant: 'default',
+            });
+          }}
+          email={emailParaVerificar}
+          nome={candidato.nome_completo}
+          tipo="candidato"
+          usuarioId={candidato.id}
+          onVerificado={() => {
+            setModalVerificacaoAberto(false);
+            toast({
+              title: 'Email verificado!',
+              description: 'Seu email foi verificado com sucesso.',
+            });
+            // Recarregar a página para atualizar o estado
+            window.location.reload();
+          }}
+        />
       )}
     </div>
   );

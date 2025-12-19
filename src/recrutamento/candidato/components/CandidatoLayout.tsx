@@ -42,6 +42,7 @@ interface Candidato {
   status: string;
   perfil_disc: string | null;
   cadastro_completo: boolean;
+  email_verificado?: boolean;
 }
 
 const menuItems = [
