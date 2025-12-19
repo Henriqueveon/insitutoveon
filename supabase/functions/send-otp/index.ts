@@ -51,27 +51,37 @@ Deno.serve(async (req) => {
 
     // Gerar código de 6 dígitos
     const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const emailLower = email.toLowerCase().trim();
+
+    console.log('Gerando OTP para:', emailLower, 'código:', codigo);
 
     // Invalidar OTPs anteriores do mesmo email
-    await supabase
+    const { data: invalidados } = await supabase
       .from('email_otps')
       .update({ verificado: true })
-      .eq('email', email.toLowerCase())
-      .eq('verificado', false);
+      .eq('email', emailLower)
+      .eq('verificado', false)
+      .select('id');
 
-    // Criar novo OTP (expira em 10 minutos)
-    const expiraEm = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    console.log('OTPs anteriores invalidados:', invalidados?.length || 0);
+
+    // Criar novo OTP (expira em 30 minutos para debug)
+    const expiraEm = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
+    console.log('Novo OTP expira em:', expiraEm);
 
     const { error: otpError } = await supabase
       .from('email_otps')
       .insert({
-        email: email.toLowerCase(),
+        email: emailLower,
         codigo,
         tipo,
         expira_em: expiraEm,
         tentativas: 0,
         verificado: false,
       });
+
+    console.log('OTP criado:', otpError ? 'ERRO: ' + otpError.message : 'sucesso');
 
     if (otpError) {
       console.error('Erro ao criar OTP:', otpError);

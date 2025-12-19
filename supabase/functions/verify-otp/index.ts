@@ -41,6 +41,37 @@ Deno.serve(async (req) => {
     });
 
     const emailLower = email.toLowerCase().trim();
+    const agora = new Date().toISOString();
+
+    console.log('Hora atual (ISO):', agora);
+
+    // Primeiro, buscar TODOS os OTPs deste email para debug
+    const { data: todosOtps } = await supabase
+      .from('email_otps')
+      .select('id, codigo, verificado, expira_em, created_at')
+      .eq('email', emailLower)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    console.log('OTPs encontrados para este email:', JSON.stringify(todosOtps, null, 2));
+
+    // Buscar OTP pelo código (sem filtro de expiração primeiro)
+    const { data: otpPorCodigo } = await supabase
+      .from('email_otps')
+      .select('*')
+      .eq('email', emailLower)
+      .eq('codigo', codigo)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    console.log('OTP com este código:', otpPorCodigo ? {
+      id: otpPorCodigo.id,
+      verificado: otpPorCodigo.verificado,
+      expira_em: otpPorCodigo.expira_em,
+      agora: agora,
+      expirado: otpPorCodigo.expira_em < agora
+    } : 'não encontrado');
 
     // Buscar OTP válido (não verificado, não expirado)
     const { data: otp, error: selectError } = await supabase
@@ -49,14 +80,27 @@ Deno.serve(async (req) => {
       .eq('email', emailLower)
       .eq('codigo', codigo)
       .eq('verificado', false)
-      .gt('expira_em', new Date().toISOString())
+      .gt('expira_em', agora)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
 
-    console.log('Busca OTP resultado:', { otp: !!otp, error: selectError?.message });
+    console.log('Busca OTP válido resultado:', { otp: !!otp, error: selectError?.message });
 
     if (selectError || !otp) {
+      // Determinar motivo específico do erro
+      let motivoErro = 'Código inválido ou expirado';
+
+      if (otpPorCodigo) {
+        if (otpPorCodigo.verificado) {
+          motivoErro = 'Este código já foi utilizado. Solicite um novo.';
+        } else if (otpPorCodigo.expira_em < agora) {
+          motivoErro = 'Código expirado. Solicite um novo.';
+        }
+      } else {
+        motivoErro = 'Código incorreto. Verifique e tente novamente.';
+      }
+
       // Incrementar tentativas no OTP mais recente (se existir)
       const { data: lastOtp } = await supabase
         .from('email_otps')
@@ -90,7 +134,7 @@ Deno.serve(async (req) => {
         JSON.stringify({
           success: false,
           valid: false,
-          error: 'Código inválido ou expirado'
+          error: motivoErro
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
