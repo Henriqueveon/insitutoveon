@@ -2,6 +2,9 @@
 -- TABELA PARA ARMAZENAR CÓDIGOS OTP
 -- =====================================================
 
+-- Dropar tabela se existir com schema incorreto
+DROP TABLE IF EXISTS public.email_otps CASCADE;
+
 -- Tabela de OTPs para verificação de email
 CREATE TABLE IF NOT EXISTS public.email_otps (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

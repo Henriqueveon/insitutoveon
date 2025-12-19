@@ -4,26 +4,35 @@
 // =====================================================
 //
 // COMO EXECUTAR:
-// 1. npx ts-node data-restore/restore-data.ts
-// ou
-// 2. npx tsx data-restore/restore-data.ts
-//
-// IMPORTANTE: Configure as variáveis de ambiente antes de executar:
-// - SUPABASE_URL (ou use o valor do .env)
-// - SUPABASE_SERVICE_KEY (chave de serviço, não a anon key!)
+// npx tsx data-restore/restore-data.ts
 // =====================================================
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
+
+// ESM compatibility
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Carregar .env.restore se existir
+const envPath = path.join(__dirname, '.env.restore');
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf-8');
+  envContent.split('\n').forEach(line => {
+    const [key, ...valueParts] = line.split('=');
+    if (key && valueParts.length > 0) {
+      process.env[key.trim()] = valueParts.join('=').trim();
+    }
+  });
+}
 
 // =====================================================
 // CONFIGURAÇÃO DO SUPABASE
 // =====================================================
 
-// Usar variáveis de ambiente ou valores diretos
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://lzrquwyvguxywvlxsthj.supabase.co';
-// IMPORTANTE: Use a SERVICE_ROLE_KEY para bypass de RLS!
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
 
 if (!SUPABASE_SERVICE_KEY) {
