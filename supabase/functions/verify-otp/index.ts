@@ -17,18 +17,26 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, codigo }: VerifyOTPRequest = await req.json();
+    const body = await req.json();
+    const email = body.email;
+    // IMPORTANTE: Normalizar o código - remover espaços e garantir que é string
+    const codigo = String(body.codigo || '').trim().replace(/\s/g, '');
 
     console.log('=== VERIFY OTP DEBUG ===');
     console.log('Email recebido:', email);
-    console.log('Código recebido:', codigo);
-    console.log('Código length:', codigo?.length);
-    console.log('Código chars:', codigo?.split('').map(c => c.charCodeAt(0)));
+    console.log('Código recebido (normalizado):', codigo);
+    console.log('Código length:', codigo.length);
 
     if (!email || !codigo) {
-      // SEMPRE retornar 200 para evitar erro no supabase.functions.invoke
       return new Response(
         JSON.stringify({ success: false, valid: false, error: 'Email e código são obrigatórios' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (codigo.length !== 6) {
+      return new Response(
+        JSON.stringify({ success: false, valid: false, error: 'O código deve ter 6 dígitos' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -45,168 +53,149 @@ Deno.serve(async (req) => {
     });
 
     const emailLower = email.toLowerCase().trim();
-    const agora = new Date().toISOString();
+    const agora = new Date();
+    const agoraISO = agora.toISOString();
 
-    console.log('Hora atual (ISO):', agora);
+    console.log('Email normalizado:', emailLower);
+    console.log('Hora atual (ISO):', agoraISO);
 
-    // Primeiro, buscar TODOS os OTPs deste email para debug
-    const { data: todosOtps } = await supabase
+    // Buscar TODOS os OTPs deste email (para debug e para encontrar o correto)
+    const { data: todosOtps, error: fetchError } = await supabase
       .from('email_otps')
-      .select('id, codigo, verificado, expira_em, created_at')
+      .select('*')
       .eq('email', emailLower)
       .order('created_at', { ascending: false })
-      .limit(5);
+      .limit(10);
 
-    console.log('=== OTPs NO BANCO ===');
-    if (todosOtps && todosOtps.length > 0) {
-      todosOtps.forEach((otp, i) => {
-        console.log(`OTP ${i + 1}:`, {
-          codigo_banco: otp.codigo,
-          codigo_digitado: codigo,
-          match: otp.codigo === codigo,
-          verificado: otp.verificado,
-          expira_em: otp.expira_em
-        });
-      });
-    } else {
-      console.log('Nenhum OTP encontrado para este email!');
+    console.log('Fetch error:', fetchError?.message || 'nenhum');
+    console.log('Total OTPs encontrados:', todosOtps?.length || 0);
+
+    if (fetchError) {
+      console.error('Erro ao buscar OTPs:', fetchError);
+      return new Response(
+        JSON.stringify({ success: false, valid: false, error: 'Erro ao verificar código. Tente novamente.' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Buscar OTP pelo código (sem filtro de expiração primeiro)
-    const { data: otpPorCodigo } = await supabase
-      .from('email_otps')
-      .select('*')
-      .eq('email', emailLower)
-      .eq('codigo', codigo)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+    if (!todosOtps || todosOtps.length === 0) {
+      console.log('Nenhum OTP encontrado para este email');
+      return new Response(
+        JSON.stringify({ success: false, valid: false, error: 'Nenhum código encontrado. Solicite um novo.' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    console.log('OTP com este código:', otpPorCodigo ? {
-      id: otpPorCodigo.id,
-      verificado: otpPorCodigo.verificado,
-      expira_em: otpPorCodigo.expira_em,
-      agora: agora,
-      expirado: otpPorCodigo.expira_em < agora
-    } : 'não encontrado');
+    // Log de todos os OTPs para debug
+    console.log('=== TODOS OS OTPs ===');
+    todosOtps.forEach((otp, i) => {
+      const codigoBanco = String(otp.codigo).trim();
+      const match = codigoBanco === codigo;
+      const expiraEmDate = new Date(otp.expira_em);
+      const expirado = expiraEmDate < agora;
 
-    // Buscar OTP válido (não verificado, não expirado)
-    const { data: otp, error: selectError } = await supabase
-      .from('email_otps')
-      .select('*')
-      .eq('email', emailLower)
-      .eq('codigo', codigo)
-      .eq('verificado', false)
-      .gt('expira_em', agora)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+      console.log(`OTP ${i + 1}:`, {
+        id: otp.id,
+        codigo_banco: codigoBanco,
+        codigo_digitado: codigo,
+        match: match,
+        verificado: otp.verificado,
+        expira_em: otp.expira_em,
+        expirado: expirado,
+        tentativas: otp.tentativas
+      });
+    });
 
-    console.log('Busca OTP válido resultado:', { otp: !!otp, error: selectError?.message });
+    // Encontrar OTP que corresponde ao código digitado
+    const otpEncontrado = todosOtps.find(otp => {
+      const codigoBanco = String(otp.codigo).trim();
+      return codigoBanco === codigo;
+    });
 
-    if (selectError || !otp) {
-      // Determinar motivo específico do erro
-      let motivoErro = 'Código inválido ou expirado';
+    console.log('OTP encontrado com código correspondente:', otpEncontrado ? 'SIM' : 'NAO');
 
-      if (otpPorCodigo) {
-        if (otpPorCodigo.verificado) {
-          motivoErro = 'Este código já foi utilizado. Solicite um novo.';
-        } else if (otpPorCodigo.expira_em < agora) {
-          motivoErro = 'Código expirado. Solicite um novo.';
-        }
-      } else {
-        motivoErro = 'Código incorreto. Verifique e tente novamente.';
-      }
-
-      // Incrementar tentativas no OTP mais recente (se existir)
-      const { data: lastOtp } = await supabase
-        .from('email_otps')
-        .select('id, tentativas, max_tentativas')
-        .eq('email', emailLower)
-        .eq('verificado', false)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (lastOtp) {
+    if (!otpEncontrado) {
+      // Código incorreto - incrementar tentativas no OTP mais recente não verificado
+      const otpMaisRecente = todosOtps.find(otp => !otp.verificado);
+      if (otpMaisRecente) {
+        const novasTentativas = (otpMaisRecente.tentativas || 0) + 1;
         await supabase
           .from('email_otps')
-          .update({ tentativas: (lastOtp.tentativas || 0) + 1 })
-          .eq('id', lastOtp.id);
+          .update({ tentativas: novasTentativas })
+          .eq('id', otpMaisRecente.id);
 
-        // Verificar se excedeu tentativas
-        if ((lastOtp.tentativas || 0) + 1 >= (lastOtp.max_tentativas || 3)) {
+        if (novasTentativas >= 5) {
           return new Response(
-            JSON.stringify({
-              success: false,
-              valid: false,
-              error: 'Muitas tentativas incorretas. Solicite um novo código.'
-            }),
+            JSON.stringify({ success: false, valid: false, error: 'Muitas tentativas incorretas. Solicite um novo código.' }),
             { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
       }
 
       return new Response(
-        JSON.stringify({
-          success: false,
-          valid: false,
-          error: motivoErro
-        }),
+        JSON.stringify({ success: false, valid: false, error: 'Código incorreto. Verifique e tente novamente.' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Verificar max tentativas
-    if ((otp.tentativas || 0) >= (otp.max_tentativas || 3)) {
+    // Verificar se já foi usado
+    if (otpEncontrado.verificado) {
+      console.log('OTP já foi verificado anteriormente');
       return new Response(
-        JSON.stringify({
-          success: false,
-          valid: false,
-          error: 'Muitas tentativas. Solicite um novo código.'
-        }),
+        JSON.stringify({ success: false, valid: false, error: 'Este código já foi utilizado. Solicite um novo.' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Marcar como verificado
+    // Verificar expiração
+    const expiraEmDate = new Date(otpEncontrado.expira_em);
+    if (expiraEmDate < agora) {
+      console.log('OTP expirado. Expira em:', expiraEmDate.toISOString(), 'Agora:', agoraISO);
+      return new Response(
+        JSON.stringify({ success: false, valid: false, error: 'Código expirado. Solicite um novo.' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verificar tentativas
+    if ((otpEncontrado.tentativas || 0) >= 5) {
+      return new Response(
+        JSON.stringify({ success: false, valid: false, error: 'Muitas tentativas. Solicite um novo código.' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // SUCESSO! Marcar como verificado
+    console.log('Marcando OTP como verificado:', otpEncontrado.id);
+
     const { error: updateError } = await supabase
       .from('email_otps')
       .update({
         verificado: true,
-        verificado_em: new Date().toISOString()
+        verificado_em: agoraISO
       })
-      .eq('id', otp.id);
+      .eq('id', otpEncontrado.id);
 
     if (updateError) {
       console.error('Erro ao marcar OTP como verificado:', updateError);
+      // Mesmo com erro no update, consideramos válido pois o código estava correto
     }
 
-    // Verificar se usuário já existe no auth (busca específica)
-    let userExists = false;
-    try {
-      const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(emailLower);
-      userExists = !userError && !!userData?.user;
-    } catch (e) {
-      console.log('Usuário não encontrado no auth (normal para novos cadastros)');
-    }
-
-    console.log('OTP verificado com sucesso para:', emailLower);
+    console.log('=== OTP VERIFICADO COM SUCESSO ===');
+    console.log('Email:', emailLower);
 
     return new Response(
       JSON.stringify({
         success: true,
         valid: true,
         message: 'Código verificado com sucesso!',
-        email: emailLower,
-        user_exists: userExists
+        email: emailLower
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Erro inesperado:', error);
-    // SEMPRE retornar 200 para evitar erro no supabase.functions.invoke
     return new Response(
       JSON.stringify({ success: false, valid: false, error: 'Erro interno do servidor: ' + String(error) }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

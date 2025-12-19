@@ -49,47 +49,51 @@ Deno.serve(async (req) => {
       },
     });
 
-    // Gerar código de 6 dígitos
-    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    // Gerar código de 6 dígitos como STRING
+    const codigoNumero = Math.floor(100000 + Math.random() * 900000);
+    const codigo = String(codigoNumero);
     const emailLower = email.toLowerCase().trim();
 
-    console.log('Gerando OTP para:', emailLower, 'código:', codigo);
+    console.log('=== SEND OTP DEBUG ===');
+    console.log('Email:', emailLower);
+    console.log('Código gerado:', codigo);
+    console.log('Código tipo:', typeof codigo);
 
-    // Invalidar OTPs anteriores do mesmo email
-    const { data: invalidados } = await supabase
-      .from('email_otps')
-      .update({ verificado: true })
-      .eq('email', emailLower)
-      .eq('verificado', false)
-      .select('id');
+    // NÃO invalidar OTPs anteriores - deixar que expirem naturalmente
+    // Isso evita race conditions e problemas de timing
 
-    console.log('OTPs anteriores invalidados:', invalidados?.length || 0);
-
-    // Criar novo OTP (expira em 30 minutos para debug)
+    // Criar novo OTP (expira em 30 minutos)
     const expiraEm = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
-    console.log('Novo OTP expira em:', expiraEm);
+    console.log('Expira em:', expiraEm);
 
-    const { error: otpError } = await supabase
+    const { data: insertedOtp, error: otpError } = await supabase
       .from('email_otps')
       .insert({
         email: emailLower,
-        codigo,
+        codigo: codigo, // Garantir que é string
         tipo,
         expira_em: expiraEm,
         tentativas: 0,
+        max_tentativas: 5,
         verificado: false,
-      });
-
-    console.log('OTP criado:', otpError ? 'ERRO: ' + otpError.message : 'sucesso');
+      })
+      .select()
+      .single();
 
     if (otpError) {
       console.error('Erro ao criar OTP:', otpError);
       return new Response(
-        JSON.stringify({ success: false, error: 'Erro ao gerar código de verificação' }),
+        JSON.stringify({ success: false, error: 'Erro ao gerar código de verificação: ' + otpError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('OTP criado com sucesso:', {
+      id: insertedOtp?.id,
+      codigo: insertedOtp?.codigo,
+      email: insertedOtp?.email
+    });
 
     // Enviar email via Resend com domínio verificado
     const emailResponse = await fetch('https://api.resend.com/emails', {
@@ -145,7 +149,7 @@ Deno.serve(async (req) => {
                         </table>
 
                         <p style="color: #6B7280; font-size: 14px; margin: 30px 0 0 0; text-align: center;">
-                          Este código expira em <strong>10 minutos</strong>
+                          Este código expira em <strong>30 minutos</strong>
                         </p>
 
                         <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
@@ -187,7 +191,7 @@ Deno.serve(async (req) => {
     }
 
     const emailResult = await emailResponse.json();
-    console.log('Email enviado:', emailResult);
+    console.log('Email enviado com sucesso:', emailResult);
 
     return new Response(
       JSON.stringify({
