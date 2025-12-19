@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Loader2, User, CheckCircle } from 'lucide-react';
 import { obterMensagemErro } from '../utils/traduzirErro';
+import { ModalVerificacaoPendente } from '@/components/ModalVerificacaoPendente';
 
 export default function CandidatoLogin() {
   const navigate = useNavigate();
@@ -24,6 +25,14 @@ export default function CandidatoLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const [emailVerificado, setEmailVerificado] = useState(false);
   const [verificandoSessao, setVerificandoSessao] = useState(true);
+
+  // Estado para modal de verificação pendente
+  const [modalVerificacaoAberto, setModalVerificacaoAberto] = useState(false);
+  const [candidatoParaVerificar, setCandidatoParaVerificar] = useState<{
+    id: string;
+    nome: string;
+    email: string;
+  } | null>(null);
 
   // Verificar se veio de verificação de email ou já tem sessão
   useEffect(() => {
@@ -112,7 +121,7 @@ export default function CandidatoLogin() {
       // 2. Buscar candidato pelo auth_user_id ou email
       let { data: candidato } = await supabase
         .from('candidatos_recrutamento')
-        .select('id, nome_completo, auth_user_id')
+        .select('id, nome_completo, auth_user_id, email, email_verificado')
         .eq('auth_user_id', authData.user.id)
         .single();
 
@@ -120,7 +129,7 @@ export default function CandidatoLogin() {
       if (!candidato) {
         const { data: candidatoByEmail } = await supabase
           .from('candidatos_recrutamento')
-          .select('id, nome_completo, auth_user_id')
+          .select('id, nome_completo, auth_user_id, email, email_verificado')
           .eq('email', email.toLowerCase().trim())
           .single();
 
@@ -141,7 +150,20 @@ export default function CandidatoLogin() {
         throw new Error('Cadastro de candidato não encontrado. Por favor, faça seu cadastro.');
       }
 
-      // 3. Login bem-sucedido
+      // 3. Verificar se email está verificado
+      if (candidato.email_verificado !== true) {
+        // Email não verificado - mostrar modal
+        setCandidatoParaVerificar({
+          id: candidato.id,
+          nome: candidato.nome_completo || '',
+          email: candidato.email || email,
+        });
+        setModalVerificacaoAberto(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // 4. Login bem-sucedido com email verificado
       toast({
         title: 'Bem-vindo!',
         description: `Olá, ${candidato.nome_completo?.split(' ')[0]}!`,
@@ -320,6 +342,35 @@ export default function CandidatoLogin() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal de verificação pendente */}
+      {candidatoParaVerificar && (
+        <ModalVerificacaoPendente
+          isOpen={modalVerificacaoAberto}
+          onClose={() => {
+            setModalVerificacaoAberto(false);
+            // Usuário pulou a verificação - redirecionar para o painel
+            toast({
+              title: 'Verificação pendente',
+              description: 'Você pode verificar seu email a qualquer momento nas configurações.',
+              variant: 'default',
+            });
+            navigate('/recrutamento/candidato/inicio');
+          }}
+          email={candidatoParaVerificar.email}
+          nome={candidatoParaVerificar.nome}
+          tipo="candidato"
+          usuarioId={candidatoParaVerificar.id}
+          onVerificado={() => {
+            setModalVerificacaoAberto(false);
+            toast({
+              title: 'Email verificado!',
+              description: `Bem-vindo, ${candidatoParaVerificar.nome.split(' ')[0]}!`,
+            });
+            navigate('/recrutamento/candidato/inicio');
+          }}
+        />
+      )}
     </div>
   );
 }

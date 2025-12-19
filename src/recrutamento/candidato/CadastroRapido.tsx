@@ -1,9 +1,8 @@
 // =====================================================
-// CADASTRO RÁPIDO CANDIDATO - 3 Etapas com OTP
-// Etapa 1: Nome, Telefone, Email
-// Etapa 2: Verificar código OTP por email
-// Etapa 3: Criar Senha
-// Usa Supabase Auth para autenticação segura
+// CADASTRO RÁPIDO CANDIDATO - 2 Etapas com OTP Opcional
+// Etapa 1: Nome, Telefone, Email, Senha
+// Etapa 2: Verificar código OTP (opcional - pode pular)
+// Conta é criada na etapa 1, email verificado na etapa 2
 // =====================================================
 
 import { useState, useRef, useEffect } from 'react';
@@ -31,6 +30,7 @@ import {
   EyeOff,
   KeyRound,
   RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import { obterMensagemErro } from '../utils/traduzirErro';
 
@@ -58,7 +58,7 @@ export default function CadastroRapido() {
   const [searchParams] = useSearchParams();
   const ref = searchParams.get('ref');
 
-  // Etapa atual (1, 2 ou 3)
+  // Etapa atual (1 ou 2)
   const [etapa, setEtapa] = useState(1);
 
   // Dados do formulário
@@ -69,6 +69,9 @@ export default function CadastroRapido() {
     senha: '',
     confirmarSenha: '',
   });
+
+  // ID do candidato criado (para atualizar email_verificado)
+  const [candidatoId, setCandidatoId] = useState<string | null>(null);
 
   // OTP
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
@@ -106,25 +109,17 @@ export default function CadastroRapido() {
       novosErros.email = 'Digite um e-mail válido';
     }
 
-    if (!aceiteTermos) {
-      novosErros.termos = 'Você precisa aceitar os termos';
-    }
-
-    setErrors(novosErros);
-    return Object.keys(novosErros).length === 0;
-  };
-
-  // Validação Etapa 3 (senha)
-  const validarEtapa3 = () => {
-    const novosErros: Record<string, string> = {};
     const validacao = validarSenha(form.senha);
-
     if (!validacao.valido) {
       novosErros.senha = 'A senha não atende aos requisitos';
     }
 
     if (form.senha !== form.confirmarSenha) {
       novosErros.confirmarSenha = 'As senhas não conferem';
+    }
+
+    if (!aceiteTermos) {
+      novosErros.termos = 'Você precisa aceitar os termos';
     }
 
     setErrors(novosErros);
@@ -140,7 +135,7 @@ export default function CadastroRapido() {
       const { data, error } = await supabase.functions.invoke('send-otp', {
         body: {
           email: form.email.toLowerCase().trim(),
-          tipo: 'cadastro_candidato',
+          tipo: 'verificacao_email',
           nome: form.nome_completo.trim(),
         },
       });
@@ -154,13 +149,12 @@ export default function CadastroRapido() {
       }
 
       setOtpEnviado(true);
-      setCountdown(60); // 60 segundos para reenviar
+      setCountdown(60);
       toast({
         title: 'Código enviado!',
         description: `Verifique sua caixa de entrada: ${data.email_masked}`,
       });
 
-      // Focar no primeiro input
       setTimeout(() => otpInputRefs.current[0]?.focus(), 100);
 
     } catch (error: any) {
@@ -188,9 +182,11 @@ export default function CadastroRapido() {
     setErrors({});
 
     try {
+      const emailLower = form.email.toLowerCase().trim();
+
       const { data, error } = await supabase.functions.invoke('verify-otp', {
         body: {
-          email: form.email.toLowerCase().trim(),
+          email: emailLower,
           codigo,
         },
       });
@@ -204,12 +200,26 @@ export default function CadastroRapido() {
         return;
       }
 
+      // Marcar email como verificado na tabela candidatos_recrutamento
+      if (candidatoId) {
+        await supabase
+          .from('candidatos_recrutamento')
+          .update({
+            email_verificado: true,
+            email_verificado_em: new Date().toISOString(),
+          })
+          .eq('id', candidatoId);
+      }
+
       toast({
         title: 'Email verificado!',
-        description: 'Agora crie sua senha para finalizar o cadastro.',
+        description: 'Seu cadastro está completo. Redirecionando...',
       });
 
-      setEtapa(3);
+      // Ir para o painel
+      setTimeout(() => {
+        navigate('/recrutamento/candidato/inicio');
+      }, 1000);
 
     } catch (error: any) {
       console.error('Erro ao verificar OTP:', error);
@@ -221,19 +231,16 @@ export default function CadastroRapido() {
 
   // Manipular input OTP
   const handleOtpChange = (index: number, value: string) => {
-    // Só aceitar números
     const digit = value.replace(/\D/g, '').slice(-1);
 
     const newDigits = [...otpDigits];
     newDigits[index] = digit;
     setOtpDigits(newDigits);
 
-    // Auto-avançar para próximo input
     if (digit && index < 5) {
       otpInputRefs.current[index + 1]?.focus();
     }
 
-    // Se completou todos, verificar automaticamente
     if (digit && index === 5 && newDigits.every(d => d)) {
       setTimeout(() => verificarCodigoOTP(), 100);
     }
@@ -259,17 +266,17 @@ export default function CadastroRapido() {
     }
   };
 
-  // Avançar para etapa 2 (OTP)
-  const avancarEtapa = async () => {
+  // Criar conta e avançar para etapa 2
+  const criarContaEAvancar = async () => {
     if (!validarEtapa1()) return;
 
     setIsLoading(true);
 
-    try {
-      const emailLower = form.email.toLowerCase().trim();
-      const telefoneNumeros = form.telefone.replace(/\D/g, '');
+    const emailLower = form.email.toLowerCase().trim();
+    const telefoneNumeros = form.telefone.replace(/\D/g, '');
 
-      // Verificar se já existe cadastro com este email
+    try {
+      // 1. Verificar se já existe cadastro com este email
       const { data: existenteEmail } = await supabase
         .from('candidatos_recrutamento')
         .select('id, email')
@@ -288,7 +295,7 @@ export default function CadastroRapido() {
         return;
       }
 
-      // Verificar se já existe cadastro com este telefone
+      // 2. Verificar se já existe cadastro com este telefone
       const { data: existenteTelefone } = await supabase
         .from('candidatos_recrutamento')
         .select('id, email, telefone')
@@ -307,35 +314,7 @@ export default function CadastroRapido() {
         return;
       }
 
-      // Avançar para etapa 2 e enviar OTP
-      setEtapa(2);
-      setIsLoading(false);
-
-      // Enviar código automaticamente
-      setTimeout(() => enviarCodigoOTP(), 300);
-
-    } catch (error) {
-      console.error('Erro ao verificar cadastro:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível verificar o cadastro. Tente novamente.',
-        variant: 'destructive',
-      });
-      setIsLoading(false);
-    }
-  };
-
-  // Finalizar cadastro
-  const finalizarCadastro = async () => {
-    if (!validarEtapa3()) return;
-
-    setIsLoading(true);
-
-    const emailLower = form.email.toLowerCase().trim();
-    const telefoneNumeros = form.telefone.replace(/\D/g, '');
-
-    try {
-      // 1. Criar usuário no Supabase Auth
+      // 3. Criar usuário no Supabase Auth
       console.log('Criando usuário Auth...');
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: emailLower,
@@ -345,7 +324,6 @@ export default function CadastroRapido() {
             nome: form.nome_completo,
             tipo: 'candidato',
           },
-          // Não enviar email de confirmação, já verificamos com OTP
           emailRedirectTo: `${window.location.origin}/recrutamento/candidato/login`,
         },
       });
@@ -372,7 +350,7 @@ export default function CadastroRapido() {
 
       console.log('Usuário Auth criado:', authData.user.id);
 
-      // 2. Criar candidato na tabela usando RPC (bypassa RLS)
+      // 4. Criar candidato na tabela usando RPC (email_verificado = false por padrão)
       console.log('Criando candidato na tabela via RPC...');
       const { data: rpcResult, error: rpcError } = await supabase.rpc('cadastrar_candidato_rapido', {
         p_nome_completo: form.nome_completo.trim(),
@@ -389,7 +367,6 @@ export default function CadastroRapido() {
         throw new Error(`Erro ao criar perfil: ${rpcError.message}`);
       }
 
-      // Verificar se a RPC retornou erro
       const resultado = rpcResult as { success: boolean; error?: string; candidato_id?: string };
       if (!resultado.success) {
         console.error('Erro retornado pela RPC:', resultado.error);
@@ -397,22 +374,22 @@ export default function CadastroRapido() {
       }
 
       console.log('Candidato criado:', resultado.candidato_id);
-      const novoCandidatoId = resultado.candidato_id;
+      setCandidatoId(resultado.candidato_id || null);
 
-      // 3. Processar indicação se houver
-      if (ref && novoCandidatoId) {
+      // 5. Processar indicação se houver
+      if (ref && resultado.candidato_id) {
         try {
           await (supabase.rpc as any)('processar_indicacao', {
             p_codigo: ref,
             p_indicado_tipo: 'candidato',
-            p_indicado_id: novoCandidatoId,
+            p_indicado_id: resultado.candidato_id,
           });
         } catch (e) {
           console.log('Indicação não processada:', e);
         }
       }
 
-      // 4. Fazer login automático
+      // 6. Fazer login automático
       const { error: loginError } = await supabase.auth.signInWithPassword({
         email: emailLower,
         password: form.senha,
@@ -420,23 +397,19 @@ export default function CadastroRapido() {
 
       if (loginError) {
         console.warn('Erro no login automático:', loginError);
-        toast({
-          title: 'Cadastro criado!',
-          description: 'Faça login para acessar sua conta.',
-        });
-        navigate('/recrutamento/candidato/login', {
-          state: { email: emailLower }
-        });
-        return;
       }
 
       toast({
-        title: 'Bem-vindo ao Recruta Veon!',
-        description: 'Seu cadastro foi criado. Complete seu perfil para aparecer para empresas.',
+        title: 'Conta criada com sucesso!',
+        description: 'Agora verifique seu email para ativar completamente sua conta.',
       });
 
-      // 5. Ir para o painel do candidato
-      navigate('/recrutamento/candidato/inicio');
+      // 7. Avançar para etapa de verificação
+      setEtapa(2);
+      setIsLoading(false);
+
+      // 8. Enviar código OTP automaticamente
+      setTimeout(() => enviarCodigoOTP(), 300);
 
     } catch (error) {
       console.error('Erro ao criar cadastro:', error);
@@ -450,6 +423,16 @@ export default function CadastroRapido() {
     }
   };
 
+  // Pular verificação e ir para o painel
+  const pularVerificacao = () => {
+    toast({
+      title: 'Verificação pendente',
+      description: 'Você pode verificar seu email a qualquer momento nas configurações.',
+      variant: 'default',
+    });
+    navigate('/recrutamento/candidato/inicio');
+  };
+
   const beneficiosRapidos = [
     'Empresas te encontram e enviam propostas',
     'Descubra seus talentos naturais com teste DISC',
@@ -458,7 +441,7 @@ export default function CadastroRapido() {
 
   const validacaoSenha = validarSenha(form.senha);
 
-  const progressValue = etapa === 1 ? 33 : etapa === 2 ? 66 : 100;
+  const progressValue = etapa === 1 ? 50 : 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -475,23 +458,19 @@ export default function CadastroRapido() {
             <Sparkles className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">
-            {etapa === 1 ? 'Cadastre-se em segundos' :
-             etapa === 2 ? 'Verifique seu email' :
-             'Crie sua senha'}
+            {etapa === 1 ? 'Cadastre-se em segundos' : 'Verifique seu email'}
           </h1>
           <p className="text-slate-400">
             {etapa === 1
               ? 'Crie sua conta e comece a receber propostas de emprego'
-              : etapa === 2
-              ? 'Digite o código de 6 dígitos enviado para seu email'
-              : 'Escolha uma senha segura para proteger sua conta'}
+              : 'Digite o código de 6 dígitos enviado para seu email'}
           </p>
         </div>
 
         {/* Progress */}
         <div className="mb-6">
           <div className="flex justify-between text-sm text-slate-400 mb-2">
-            <span>Etapa {etapa} de 3</span>
+            <span>Etapa {etapa} de 2</span>
             <span>{progressValue}%</span>
           </div>
           <Progress value={progressValue} className="h-2 bg-slate-700" />
@@ -512,7 +491,7 @@ export default function CadastroRapido() {
         {/* Formulário */}
         <Card className="bg-slate-800/60 border-slate-700 backdrop-blur-sm">
           <CardContent className="p-6 space-y-4">
-            {/* ========== ETAPA 1: DADOS BÁSICOS ========== */}
+            {/* ========== ETAPA 1: DADOS + SENHA ========== */}
             {etapa === 1 && (
               <>
                 {/* Nome */}
@@ -569,149 +548,6 @@ export default function CadastroRapido() {
                   )}
                 </div>
 
-                {/* Aceite de termos */}
-                <div className="flex items-start gap-3 pt-2">
-                  <Checkbox
-                    id="termos"
-                    checked={aceiteTermos}
-                    onCheckedChange={(checked) => setAceiteTermos(checked as boolean)}
-                    className={`mt-0.5 border-slate-500 data-[state=checked]:bg-[#E31E24] data-[state=checked]:border-[#E31E24] ${errors.termos ? 'border-red-500' : ''}`}
-                  />
-                  <label htmlFor="termos" className="text-xs text-slate-400 leading-relaxed cursor-pointer">
-                    Concordo com os <span className="text-slate-300 underline">termos de uso</span> e{' '}
-                    <span className="text-slate-300 underline">política de privacidade</span> (LGPD)
-                  </label>
-                </div>
-                {errors.termos && (
-                  <p className="text-red-400 text-xs">{errors.termos}</p>
-                )}
-
-                {/* Botão Continuar */}
-                <Button
-                  onClick={avancarEtapa}
-                  disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-[#E31E24] to-[#B91C1C] hover:from-[#C91920] hover:to-[#991B1B] py-6 text-lg"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Verificando...
-                    </>
-                  ) : (
-                    <>
-                      Continuar
-                      <ArrowRight className="w-5 h-5 ml-2" />
-                    </>
-                  )}
-                </Button>
-              </>
-            )}
-
-            {/* ========== ETAPA 2: VERIFICAR OTP ========== */}
-            {etapa === 2 && (
-              <>
-                {/* Resumo */}
-                <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-700 mb-4">
-                  <p className="text-xs text-slate-500 mb-1">Código enviado para:</p>
-                  <p className="text-white text-sm font-medium flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-blue-400" />
-                    {form.email}
-                  </p>
-                </div>
-
-                {/* Input OTP */}
-                <div className="space-y-2">
-                  <label className="text-sm text-slate-300 flex items-center gap-2">
-                    <KeyRound className="w-4 h-4" />
-                    Código de verificação
-                  </label>
-                  <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
-                    {otpDigits.map((digit, index) => (
-                      <Input
-                        key={index}
-                        ref={(el) => (otpInputRefs.current[index] = el)}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleOtpChange(index, e.target.value)}
-                        onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                        className={`w-12 h-14 text-center text-2xl font-bold bg-slate-900/50 border-slate-600 text-white ${errors.otp ? 'border-red-500' : ''}`}
-                      />
-                    ))}
-                  </div>
-                  {errors.otp && (
-                    <p className="text-red-400 text-xs text-center">{errors.otp}</p>
-                  )}
-                </div>
-
-                {/* Reenviar código */}
-                <div className="text-center">
-                  {countdown > 0 ? (
-                    <p className="text-sm text-slate-500">
-                      Reenviar código em <span className="text-white font-mono">{countdown}s</span>
-                    </p>
-                  ) : (
-                    <button
-                      onClick={enviarCodigoOTP}
-                      disabled={isLoading}
-                      className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 mx-auto"
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                      Reenviar código
-                    </button>
-                  )}
-                </div>
-
-                {/* Botões */}
-                <div className="flex gap-3 pt-2">
-                  <Button
-                    onClick={() => {
-                      setEtapa(1);
-                      setOtpDigits(['', '', '', '', '', '']);
-                      setOtpEnviado(false);
-                    }}
-                    variant="outline"
-                    className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700"
-                    disabled={isLoading}
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Voltar
-                  </Button>
-                  <Button
-                    onClick={verificarCodigoOTP}
-                    disabled={isLoading || otpDigits.some(d => !d)}
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Verificando...
-                      </>
-                    ) : (
-                      <>
-                        Verificar
-                        <CheckCircle2 className="w-5 h-5 ml-2" />
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {/* ========== ETAPA 3: CRIAR SENHA ========== */}
-            {etapa === 3 && (
-              <>
-                {/* Resumo dos dados */}
-                <div className="p-3 bg-green-900/20 rounded-lg border border-green-700/50 mb-4">
-                  <p className="text-xs text-green-400 mb-1 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
-                    Email verificado
-                  </p>
-                  <p className="text-white text-sm font-medium">{form.nome_completo}</p>
-                  <p className="text-slate-400 text-xs">{form.email}</p>
-                </div>
-
                 {/* Senha */}
                 <div className="space-y-2">
                   <label className="text-sm text-slate-300 flex items-center gap-2">
@@ -725,7 +561,6 @@ export default function CadastroRapido() {
                       value={form.senha}
                       onChange={(e) => setForm(prev => ({ ...prev, senha: e.target.value }))}
                       className={`bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 pr-10 ${errors.senha ? 'border-red-500' : ''}`}
-                      autoFocus
                     />
                     <button
                       type="button"
@@ -800,33 +635,140 @@ export default function CadastroRapido() {
                   )}
                 </div>
 
+                {/* Aceite de termos */}
+                <div className="flex items-start gap-3 pt-2">
+                  <Checkbox
+                    id="termos"
+                    checked={aceiteTermos}
+                    onCheckedChange={(checked) => setAceiteTermos(checked as boolean)}
+                    className={`mt-0.5 border-slate-500 data-[state=checked]:bg-[#E31E24] data-[state=checked]:border-[#E31E24] ${errors.termos ? 'border-red-500' : ''}`}
+                  />
+                  <label htmlFor="termos" className="text-xs text-slate-400 leading-relaxed cursor-pointer">
+                    Concordo com os <span className="text-slate-300 underline">termos de uso</span> e{' '}
+                    <span className="text-slate-300 underline">política de privacidade</span> (LGPD)
+                  </label>
+                </div>
+                {errors.termos && (
+                  <p className="text-red-400 text-xs">{errors.termos}</p>
+                )}
+
+                {/* Botão Criar Conta */}
+                <Button
+                  onClick={criarContaEAvancar}
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-[#E31E24] to-[#B91C1C] hover:from-[#C91920] hover:to-[#991B1B] py-6 text-lg"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Criando conta...
+                    </>
+                  ) : (
+                    <>
+                      Criar minha conta
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
+
+            {/* ========== ETAPA 2: VERIFICAR OTP ========== */}
+            {etapa === 2 && (
+              <>
+                {/* Aviso */}
+                <div className="p-3 bg-yellow-900/30 rounded-lg border border-yellow-700/50 mb-4">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-yellow-200 text-sm font-medium">Verifique seu email</p>
+                      <p className="text-yellow-300/70 text-xs mt-1">
+                        A verificação ajuda a proteger sua conta e garante que você receba notificações importantes.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Resumo */}
+                <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-700 mb-4">
+                  <p className="text-xs text-slate-500 mb-1">Código enviado para:</p>
+                  <p className="text-white text-sm font-medium flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-blue-400" />
+                    {form.email}
+                  </p>
+                </div>
+
+                {/* Input OTP */}
+                <div className="space-y-2">
+                  <label className="text-sm text-slate-300 flex items-center gap-2">
+                    <KeyRound className="w-4 h-4" />
+                    Código de verificação
+                  </label>
+                  <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
+                    {otpDigits.map((digit, index) => (
+                      <Input
+                        key={index}
+                        ref={(el) => (otpInputRefs.current[index] = el)}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleOtpChange(index, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                        className={`w-12 h-14 text-center text-2xl font-bold bg-slate-900/50 border-slate-600 text-white ${errors.otp ? 'border-red-500' : ''}`}
+                      />
+                    ))}
+                  </div>
+                  {errors.otp && (
+                    <p className="text-red-400 text-xs text-center">{errors.otp}</p>
+                  )}
+                </div>
+
+                {/* Reenviar código */}
+                <div className="text-center">
+                  {countdown > 0 ? (
+                    <p className="text-sm text-slate-500">
+                      Reenviar código em <span className="text-white font-mono">{countdown}s</span>
+                    </p>
+                  ) : (
+                    <button
+                      onClick={enviarCodigoOTP}
+                      disabled={isLoading}
+                      className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 mx-auto"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Reenviar código
+                    </button>
+                  )}
+                </div>
+
                 {/* Botões */}
-                <div className="flex gap-3 pt-2">
+                <div className="space-y-3 pt-2">
                   <Button
-                    onClick={() => setEtapa(2)}
-                    variant="outline"
-                    className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700"
-                    disabled={isLoading}
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Voltar
-                  </Button>
-                  <Button
-                    onClick={finalizarCadastro}
-                    disabled={isLoading || !validacaoSenha.valido || form.senha !== form.confirmarSenha}
-                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                    onClick={verificarCodigoOTP}
+                    disabled={isLoading || otpDigits.some(d => !d)}
+                    className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
                   >
                     {isLoading ? (
                       <>
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Criando...
+                        Verificando...
                       </>
                     ) : (
                       <>
-                        Criar conta
+                        Verificar e continuar
                         <CheckCircle2 className="w-5 h-5 ml-2" />
                       </>
                     )}
+                  </Button>
+
+                  <Button
+                    onClick={pularVerificacao}
+                    variant="ghost"
+                    className="w-full text-slate-400 hover:text-slate-200 hover:bg-slate-700/50"
+                  >
+                    Verificar depois
+                    <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
               </>
