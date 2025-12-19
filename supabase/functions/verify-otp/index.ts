@@ -19,10 +19,13 @@ Deno.serve(async (req) => {
   try {
     const { email, codigo }: VerifyOTPRequest = await req.json();
 
+    console.log('Verificando OTP para:', email);
+
     if (!email || !codigo) {
+      // SEMPRE retornar 200 para evitar erro no supabase.functions.invoke
       return new Response(
         JSON.stringify({ success: false, valid: false, error: 'Email e código são obrigatórios' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -37,7 +40,7 @@ Deno.serve(async (req) => {
       },
     });
 
-    const emailLower = email.toLowerCase();
+    const emailLower = email.toLowerCase().trim();
 
     // Buscar OTP válido (não verificado, não expirado)
     const { data: otp, error: selectError } = await supabase
@@ -50,6 +53,8 @@ Deno.serve(async (req) => {
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
+
+    console.log('Busca OTP resultado:', { otp: !!otp, error: selectError?.message });
 
     if (selectError || !otp) {
       // Incrementar tentativas no OTP mais recente (se existir)
@@ -76,7 +81,7 @@ Deno.serve(async (req) => {
               valid: false,
               error: 'Muitas tentativas incorretas. Solicite um novo código.'
             }),
-            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
       }
@@ -87,7 +92,7 @@ Deno.serve(async (req) => {
           valid: false,
           error: 'Código inválido ou expirado'
         }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -99,12 +104,12 @@ Deno.serve(async (req) => {
           valid: false,
           error: 'Muitas tentativas. Solicite um novo código.'
         }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Marcar como verificado
-    await supabase
+    const { error: updateError } = await supabase
       .from('email_otps')
       .update({
         verificado: true,
@@ -112,16 +117,20 @@ Deno.serve(async (req) => {
       })
       .eq('id', otp.id);
 
-    // Verificar se usuário já existe no auth
+    if (updateError) {
+      console.error('Erro ao marcar OTP como verificado:', updateError);
+    }
+
+    // Verificar se usuário já existe no auth (busca específica)
     let userExists = false;
     try {
-      const { data: existingUsers } = await supabase.auth.admin.listUsers();
-      userExists = existingUsers?.users?.some(
-        u => u.email?.toLowerCase() === emailLower
-      ) || false;
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(emailLower);
+      userExists = !userError && !!userData?.user;
     } catch (e) {
-      console.error('Erro ao verificar usuário existente:', e);
+      console.log('Usuário não encontrado no auth (normal para novos cadastros)');
     }
+
+    console.log('OTP verificado com sucesso para:', emailLower);
 
     return new Response(
       JSON.stringify({
@@ -136,9 +145,10 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Erro inesperado:', error);
+    // SEMPRE retornar 200 para evitar erro no supabase.functions.invoke
     return new Response(
-      JSON.stringify({ success: false, valid: false, error: 'Erro interno do servidor' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ success: false, valid: false, error: 'Erro interno do servidor: ' + String(error) }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
