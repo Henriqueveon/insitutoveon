@@ -72,14 +72,17 @@ export function ModalExcluirConta({
         p_comentario: comentario || null,
       });
 
+      console.log('Resposta RPC:', { data, error });
+
       if (error) {
         console.error('Erro ao solicitar exclusão:', error);
         setErro(error.message || 'Erro ao processar solicitação. Tente novamente.');
         return;
       }
 
-      if (data && !data.sucesso) {
-        setErro(data.mensagem || 'Erro ao processar solicitação.');
+      // Verificar resposta da função (retorna JSON com success/error)
+      if (data && data.success === false) {
+        setErro(data.error || 'Erro ao processar solicitação.');
         return;
       }
 
