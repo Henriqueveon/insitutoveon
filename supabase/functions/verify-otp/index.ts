@@ -8,7 +8,6 @@ const corsHeaders = {
 interface VerifyOTPRequest {
   email: string;
   codigo: string;
-  tipo?: string;
 }
 
 Deno.serve(async (req) => {
@@ -18,11 +17,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, codigo, tipo = 'cadastro_empresa' }: VerifyOTPRequest = await req.json();
+    const { email, codigo }: VerifyOTPRequest = await req.json();
 
     if (!email || !codigo) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Email e código são obrigatórios' }),
+        JSON.stringify({ success: false, valid: false, error: 'Email e código são obrigatórios' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -38,33 +37,107 @@ Deno.serve(async (req) => {
       },
     });
 
-    // Verificar OTP
-    const { data: result, error } = await supabase.rpc('verificar_otp', {
-      p_email: email,
-      p_codigo: codigo,
-      p_tipo: tipo,
-    });
+    const emailLower = email.toLowerCase();
 
-    if (error) {
-      console.error('Erro ao verificar OTP:', error);
+    // Buscar OTP válido (não verificado, não expirado)
+    const { data: otp, error: selectError } = await supabase
+      .from('email_otps')
+      .select('*')
+      .eq('email', emailLower)
+      .eq('codigo', codigo)
+      .eq('verificado', false)
+      .gt('expira_em', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (selectError || !otp) {
+      // Incrementar tentativas no OTP mais recente (se existir)
+      const { data: lastOtp } = await supabase
+        .from('email_otps')
+        .select('id, tentativas, max_tentativas')
+        .eq('email', emailLower)
+        .eq('verificado', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (lastOtp) {
+        await supabase
+          .from('email_otps')
+          .update({ tentativas: (lastOtp.tentativas || 0) + 1 })
+          .eq('id', lastOtp.id);
+
+        // Verificar se excedeu tentativas
+        if ((lastOtp.tentativas || 0) + 1 >= (lastOtp.max_tentativas || 3)) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              valid: false,
+              error: 'Muitas tentativas incorretas. Solicite um novo código.'
+            }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+
       return new Response(
-        JSON.stringify({ success: false, error: 'Erro ao verificar código' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({
+          success: false,
+          valid: false,
+          error: 'Código inválido ou expirado'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    // Verificar max tentativas
+    if ((otp.tentativas || 0) >= (otp.max_tentativas || 3)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          valid: false,
+          error: 'Muitas tentativas. Solicite um novo código.'
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Marcar como verificado
+    await supabase
+      .from('email_otps')
+      .update({
+        verificado: true,
+        verificado_em: new Date().toISOString()
+      })
+      .eq('id', otp.id);
+
+    // Verificar se usuário já existe no auth
+    let userExists = false;
+    try {
+      const { data: existingUsers } = await supabase.auth.admin.listUsers();
+      userExists = existingUsers?.users?.some(
+        u => u.email?.toLowerCase() === emailLower
+      ) || false;
+    } catch (e) {
+      console.error('Erro ao verificar usuário existente:', e);
+    }
+
     return new Response(
-      JSON.stringify(result),
-      {
-        status: result.success ? 200 : 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      JSON.stringify({
+        success: true,
+        valid: true,
+        message: 'Código verificado com sucesso!',
+        email: emailLower,
+        user_exists: userExists
+      }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Erro inesperado:', error);
     return new Response(
-      JSON.stringify({ success: false, error: 'Erro interno do servidor' }),
+      JSON.stringify({ success: false, valid: false, error: 'Erro interno do servidor' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

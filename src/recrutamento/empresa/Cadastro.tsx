@@ -44,7 +44,7 @@ import { CNPJResponse } from '../types/recrutamento.types';
 import { obterMensagemErro } from '../utils/traduzirErro';
 
 // URL base das Edge Functions do Supabase
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://xpvbwmtkvomccnnqzyqe.supabase.co';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://lzrquwyvguxywvlxsthj.supabase.co';
 
 // Máscaras
 const aplicarMascaraCNPJ = (value: string) => {
@@ -554,23 +554,22 @@ export default function EmpresaCadastro() {
 
   // Navegação entre etapas
   const proximaEtapa = () => {
-    // Pular etapa 3 (OTP) - o email será verificado pelo Supabase Auth automaticamente
+    // Etapa 2 -> 3 (OTP): Enviar código automaticamente
     if (etapa === 2) {
-      setEtapa(4); // Ir direto para foto
+      setEtapa(3);
+      // Enviar OTP automaticamente ao entrar na etapa 3
+      setTimeout(() => enviarOTP(), 300);
     } else if (etapa === 3) {
-      setEtapa(4); // Caso esteja na etapa 3, ir para 4
+      // Só avança da etapa 3 quando email verificado (controlado pelo verificarOTP)
+      setEtapa(4);
     } else {
       setEtapa((prev) => Math.min(prev + 1, 6));
     }
   };
 
   const etapaAnterior = () => {
-    // Pular etapa 3 (OTP) ao voltar também
-    if (etapa === 4) {
-      setEtapa(2); // Voltar direto para dados do sócio
-    } else {
-      setEtapa((prev) => Math.max(prev - 1, 1));
-    }
+    // Navegação normal entre todas as etapas
+    setEtapa((prev) => Math.max(prev - 1, 1));
   };
 
   // Validação por etapa

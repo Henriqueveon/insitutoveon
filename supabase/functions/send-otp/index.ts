@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, tipo = 'cadastro_empresa', nome = '' }: OTPRequest = await req.json();
+    const { email, tipo = 'verificacao', nome = '' }: OTPRequest = await req.json();
 
     if (!email) {
       return new Response(
@@ -49,23 +49,39 @@ Deno.serve(async (req) => {
       },
     });
 
-    // Criar OTP no banco
-    const { data: otpResult, error: otpError } = await supabase.rpc('criar_otp', {
-      p_email: email,
-      p_tipo: tipo,
-    });
+    // Gerar código de 6 dígitos
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
 
-    if (otpError || !otpResult?.success) {
-      console.error('Erro ao criar OTP:', otpError || otpResult?.error);
+    // Invalidar OTPs anteriores do mesmo email
+    await supabase
+      .from('email_otps')
+      .update({ verificado: true })
+      .eq('email', email.toLowerCase())
+      .eq('verificado', false);
+
+    // Criar novo OTP (expira em 10 minutos)
+    const expiraEm = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+    const { error: otpError } = await supabase
+      .from('email_otps')
+      .insert({
+        email: email.toLowerCase(),
+        codigo,
+        tipo,
+        expira_em: expiraEm,
+        tentativas: 0,
+        verificado: false,
+      });
+
+    if (otpError) {
+      console.error('Erro ao criar OTP:', otpError);
       return new Response(
         JSON.stringify({ success: false, error: 'Erro ao gerar código de verificação' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const codigo = otpResult.codigo;
-
-    // Enviar email via Resend
+    // Enviar email via Resend com domínio verificado
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -73,9 +89,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        // TEMPORÁRIO: Usando email de teste do Resend
-        // Quando tiver domínio próprio verificado, alterar para: 'Instituto Veon <noreply@institutoveon.com.br>'
-        from: 'Instituto Veon <onboarding@resend.dev>',
+        from: 'Veon Recrutamento <noreply@assessoriaveon.com>',
         to: [email],
         subject: `Seu código de verificação: ${codigo}`,
         html: `
@@ -92,36 +106,36 @@ Deno.serve(async (req) => {
                   <table cellpadding="0" cellspacing="0" border="0" width="600" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                     <!-- Header -->
                     <tr>
-                      <td style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
-                        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">Instituto Veon</h1>
-                        <p style="color: #a0c4e8; margin: 10px 0 0 0; font-size: 14px;">Plataforma de Recrutamento</p>
+                      <td style="background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%); padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">Veon Recrutamento</h1>
+                        <p style="color: #93C5FD; margin: 10px 0 0 0; font-size: 14px;">Plataforma de Recrutamento Inteligente</p>
                       </td>
                     </tr>
 
                     <!-- Content -->
                     <tr>
                       <td style="padding: 40px;">
-                        <h2 style="color: #1e3a5f; margin: 0 0 20px 0; font-size: 22px;">Verificação de Email</h2>
+                        <h2 style="color: #1E3A8A; margin: 0 0 20px 0; font-size: 22px;">Código de Verificação</h2>
 
-                        ${nome ? `<p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">Olá, <strong>${nome}</strong>!</p>` : ''}
+                        ${nome ? `<p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">Olá, <strong>${nome}</strong>!</p>` : '<p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">Olá!</p>'}
 
                         <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
-                          Use o código abaixo para verificar seu email e completar seu cadastro na plataforma de recrutamento do Instituto Veon.
+                          Use o código abaixo para verificar seu email e continuar seu acesso à plataforma.
                         </p>
 
                         <!-- OTP Code Box -->
                         <table cellpadding="0" cellspacing="0" border="0" width="100%">
                           <tr>
                             <td align="center">
-                              <div style="background-color: #f8f9fa; border: 2px dashed #1e3a5f; border-radius: 8px; padding: 25px 40px; display: inline-block;">
-                                <span style="font-size: 36px; font-weight: bold; color: #1e3a5f; letter-spacing: 8px; font-family: 'Courier New', monospace;">${codigo}</span>
+                              <div style="background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%); border-radius: 12px; padding: 30px 40px; display: inline-block;">
+                                <span style="font-size: 42px; font-weight: bold; color: #1E3A8A; letter-spacing: 8px; font-family: 'Courier New', monospace;">${codigo}</span>
                               </div>
                             </td>
                           </tr>
                         </table>
 
-                        <p style="color: #888; font-size: 14px; margin: 30px 0 0 0; text-align: center;">
-                          ⏱️ Este código expira em <strong>10 minutos</strong>
+                        <p style="color: #6B7280; font-size: 14px; margin: 30px 0 0 0; text-align: center;">
+                          Este código expira em <strong>10 minutos</strong>
                         </p>
 
                         <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
@@ -134,12 +148,12 @@ Deno.serve(async (req) => {
 
                     <!-- Footer -->
                     <tr>
-                      <td style="background-color: #f8f9fa; padding: 25px 40px; text-align: center; border-radius: 0 0 12px 12px;">
-                        <p style="color: #888; font-size: 12px; margin: 0;">
+                      <td style="background-color: #F9FAFB; padding: 25px 40px; text-align: center; border-radius: 0 0 12px 12px; border-top: 1px solid #E5E7EB;">
+                        <p style="color: #9CA3AF; font-size: 12px; margin: 0;">
                           © ${new Date().getFullYear()} Instituto Veon. Todos os direitos reservados.
                         </p>
-                        <p style="color: #aaa; font-size: 11px; margin: 10px 0 0 0;">
-                          Este é um email automático. Por favor, não responda.
+                        <p style="color: #9CA3AF; font-size: 11px; margin: 10px 0 0 0;">
+                          Cascavel, PR - Brasil
                         </p>
                       </td>
                     </tr>
