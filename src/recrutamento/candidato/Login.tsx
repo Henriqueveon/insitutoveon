@@ -10,8 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Loader2, User, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Loader2, User, CheckCircle, Mail } from 'lucide-react';
 import { obterMensagemErro } from '../utils/traduzirErro';
+import { VerificacaoOTP } from '@/components/VerificacaoOTP';
 
 export default function CandidatoLogin() {
   const navigate = useNavigate();
@@ -24,6 +25,11 @@ export default function CandidatoLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const [emailVerificado, setEmailVerificado] = useState(false);
   const [verificandoSessao, setVerificandoSessao] = useState(true);
+
+  // Estado para verificação de email pendente
+  const [mostrarVerificacaoEmail, setMostrarVerificacaoEmail] = useState(false);
+  const [emailPendente, setEmailPendente] = useState('');
+  const [senhaPendente, setSenhaPendente] = useState('');
 
   // Verificar se veio de verificação de email ou já tem sessão
   useEffect(() => {
@@ -92,13 +98,44 @@ export default function CandidatoLogin() {
     setIsLoading(true);
 
     try {
+      const emailLower = email.toLowerCase().trim();
+
       // 1. Tentar login com Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: email.toLowerCase().trim(),
+        email: emailLower,
         password: senha,
       });
 
       if (authError) {
+        // Verificar se é erro de email não confirmado
+        if (authError.message.includes('Email not confirmed')) {
+          console.log('Email não confirmado - mostrando verificação OTP');
+
+          // Verificar se o candidato existe na nossa tabela
+          const { data: candidatoExiste } = await supabase
+            .from('candidatos_recrutamento')
+            .select('id, nome_completo')
+            .eq('email', emailLower)
+            .single();
+
+          if (!candidatoExiste) {
+            throw new Error('Cadastro não encontrado. Por favor, faça seu cadastro primeiro.');
+          }
+
+          // Guardar email e senha para tentar login após verificação
+          setEmailPendente(emailLower);
+          setSenhaPendente(senha);
+          setMostrarVerificacaoEmail(true);
+
+          toast({
+            title: 'Verificação necessária',
+            description: 'Por favor, verifique seu email para continuar.',
+          });
+
+          setIsLoading(false);
+          return;
+        }
+
         if (authError.message.includes('Invalid login credentials')) {
           throw new Error('E-mail ou senha incorretos. Verifique e tente novamente.');
         }
@@ -161,11 +198,130 @@ export default function CandidatoLogin() {
     }
   };
 
+  // Callback quando email é verificado via OTP
+  const handleEmailVerificado = async () => {
+    setIsLoading(true);
+
+    try {
+      // Confirmar email no auth.users via função administrativa
+      // Primeiro, buscar o candidato para obter o auth_user_id
+      const { data: candidato } = await supabase
+        .from('candidatos_recrutamento')
+        .select('id, auth_user_id, nome_completo')
+        .eq('email', emailPendente)
+        .single();
+
+      if (candidato?.auth_user_id) {
+        // Chamar função RPC para confirmar email no Supabase Auth
+        await supabase.rpc('confirmar_email_usuario', {
+          p_auth_user_id: candidato.auth_user_id,
+        });
+      }
+
+      // Marcar email como verificado na nossa tabela
+      if (candidato?.id) {
+        await supabase
+          .from('candidatos_recrutamento')
+          .update({
+            email_verificado: true,
+            email_verificado_em: new Date().toISOString(),
+          })
+          .eq('id', candidato.id);
+      }
+
+      // Tentar login novamente
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: emailPendente,
+        password: senhaPendente,
+      });
+
+      if (authError) {
+        // Se ainda der erro, redirecionar para login
+        toast({
+          title: 'Email verificado!',
+          description: 'Por favor, faça login novamente.',
+        });
+        setMostrarVerificacaoEmail(false);
+        setEmail(emailPendente);
+        setSenha('');
+        return;
+      }
+
+      // Login bem-sucedido após verificação
+      toast({
+        title: 'Bem-vindo!',
+        description: `Email verificado e login realizado com sucesso!`,
+      });
+
+      navigate('/recrutamento/candidato/inicio');
+    } catch (error) {
+      console.error('Erro após verificação:', error);
+      toast({
+        title: 'Email verificado!',
+        description: 'Por favor, faça login novamente.',
+      });
+      setMostrarVerificacaoEmail(false);
+      setEmail(emailPendente);
+      setSenha('');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Loading enquanto verifica sessão
   if (verificandoSessao) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E31E24]" />
+      </div>
+    );
+  }
+
+  // Tela de verificação de email
+  if (mostrarVerificacaoEmail) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+        {/* Background decorativo */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#E31E24]/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#003DA5]/10 rounded-full blur-3xl" />
+        </div>
+
+        <Card className="w-full max-w-md bg-slate-800/80 border-slate-700 backdrop-blur-sm relative z-10">
+          <CardHeader className="text-center space-y-4">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <Mail className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <div>
+              <CardTitle className="text-2xl font-bold text-white">
+                Verificar Email
+              </CardTitle>
+              <CardDescription className="text-slate-400 mt-2">
+                Para sua segurança, precisamos verificar seu email
+              </CardDescription>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            <VerificacaoOTP
+              email={emailPendente}
+              tipo="candidato"
+              onVerificado={handleEmailVerificado}
+              onPular={() => {
+                setMostrarVerificacaoEmail(false);
+                toast({
+                  title: 'Verificação cancelada',
+                  description: 'Você pode tentar verificar seu email novamente.',
+                  variant: 'destructive',
+                });
+              }}
+              mostrarBotaoPular={true}
+              autoEnviar={true}
+            />
+          </CardContent>
+        </Card>
       </div>
     );
   }
