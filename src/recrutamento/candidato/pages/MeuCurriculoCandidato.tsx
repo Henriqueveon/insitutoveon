@@ -1,41 +1,38 @@
 // =====================================================
-// MEU CURRÍCULO CANDIDATO - Área de Recrutamento VEON
-// Visualização do perfil completo com DISC (85% do relatório)
+// MEU CURRÍCULO CANDIDATO - Design Instagram Style
+// Visualização do perfil completo com DISC
 // =====================================================
 
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import {
   Share2,
   Copy,
-  Download,
   MapPin,
-  Phone,
-  Mail,
   Briefcase,
   GraduationCap,
   Car,
   Plane,
   Home,
   Clock,
-  DollarSign,
-  Calendar,
-  Instagram,
   Play,
   Star,
   Target,
   CheckCircle,
   User,
-  Building2,
   Brain,
   ChevronDown,
   ChevronUp,
+  Eye,
+  FileText,
+  Send,
 } from 'lucide-react';
 import CurriculoDISCReport from '../components/CurriculoDISCReport';
 
@@ -67,6 +64,11 @@ interface Candidato {
   perfil_natural: Record<string, number> | null;
   objetivo_profissional: string | null;
   confiabilidade: number | null;
+  headline: string | null;
+  bio: string | null;
+  total_visualizacoes: number;
+  total_propostas_recebidas: number;
+  total_candidaturas: number;
 
   // Experiência
   areas_experiencia: string[] | null;
@@ -104,6 +106,21 @@ interface Candidato {
   areas_interesse: string[] | null;
 }
 
+// Cores DISC
+const coresDISC: Record<string, { bg: string; text: string; gradient: string }> = {
+  D: { bg: 'bg-red-500', text: 'text-white', gradient: 'from-red-500 to-red-600' },
+  I: { bg: 'bg-yellow-500', text: 'text-black', gradient: 'from-yellow-400 to-yellow-500' },
+  S: { bg: 'bg-green-500', text: 'text-white', gradient: 'from-green-500 to-green-600' },
+  C: { bg: 'bg-blue-500', text: 'text-white', gradient: 'from-blue-500 to-blue-600' },
+};
+
+const nomesDISC: Record<string, string> = {
+  D: 'Dominante',
+  I: 'Influente',
+  S: 'Estável',
+  C: 'Conforme',
+};
+
 export default function MeuCurriculoCandidato() {
   const { toast } = useToast();
   const { candidato: candidatoContext } = useOutletContext<{ candidato: { id: string } | null }>();
@@ -111,8 +128,9 @@ export default function MeuCurriculoCandidato() {
   const [candidato, setCandidato] = useState<Candidato | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [linkCompartilhamento, setLinkCompartilhamento] = useState('');
-  const [showDISCReport, setShowDISCReport] = useState(true);
+  const [showDISCReport, setShowDISCReport] = useState(false);
   const [confiabilidade, setConfiabilidade] = useState<ConfiabilidadeData | null>(null);
+  const [activeTab, setActiveTab] = useState('perfil');
 
   useEffect(() => {
     if (candidatoContext?.id) {
@@ -136,8 +154,13 @@ export default function MeuCurriculoCandidato() {
         ...data,
         perfil_natural: data.perfil_natural as Record<string, number> | null,
         confiabilidade: data.confiabilidade ?? null,
+        total_visualizacoes: data.total_visualizacoes ?? 0,
+        total_propostas_recebidas: data.total_propostas_recebidas ?? 0,
+        total_candidaturas: data.total_candidaturas ?? 0,
+        headline: data.headline ?? null,
+        bio: data.bio ?? null,
       };
-      
+
       setCandidato(candidatoFormatado);
 
       // Gerar link de compartilhamento
@@ -145,7 +168,7 @@ export default function MeuCurriculoCandidato() {
 
       // Usar dados de confiabilidade
       if (data.confiabilidade !== null) {
-        const nivel = data.confiabilidade >= 80 ? 'ALTA' : 
+        const nivel = data.confiabilidade >= 80 ? 'ALTA' :
                       data.confiabilidade >= 50 ? 'MEDIA' : 'BAIXA';
         setConfiabilidade({
           score: data.confiabilidade,
@@ -195,37 +218,12 @@ export default function MeuCurriculoCandidato() {
     return idade;
   };
 
-  const getCorPerfil = (perfil: string | null) => {
-    switch (perfil) {
-      case 'D': return 'bg-red-500';
-      case 'I': return 'bg-yellow-500';
-      case 'S': return 'bg-green-500';
-      case 'C': return 'bg-blue-500';
-      default: return 'bg-slate-500';
-    }
+  const getPrimeiroNome = (nomeCompleto: string) => {
+    return nomeCompleto.split(' ')[0];
   };
 
-  const getNomePerfil = (perfil: string | null) => {
-    switch (perfil) {
-      case 'D': return 'Dominância';
-      case 'I': return 'Influência';
-      case 'S': return 'Estabilidade';
-      case 'C': return 'Conformidade';
-      default: return 'Não avaliado';
-    }
-  };
-
-  const getDescricaoPerfil = (perfil: string | null) => {
-    switch (perfil) {
-      case 'D': return 'Direto, decisivo, orientado a resultados. Gosta de desafios e de assumir o controle das situações.';
-      case 'I': return 'Comunicativo, entusiasta, otimista. Adora interagir com pessoas e criar conexões.';
-      case 'S': return 'Calmo, paciente, leal. Valoriza estabilidade e trabalha bem em equipe.';
-      case 'C': return 'Analítico, preciso, detalhista. Preza pela qualidade e segue procedimentos.';
-      default: return '';
-    }
-  };
-
-  const getFaixaSalarialLabel = (faixa: string) => {
+  const getFaixaSalarialLabel = (faixa: string | null) => {
+    if (!faixa) return 'Não informado';
     const faixas: Record<string, string> = {
       'ate_1500': 'Até R$ 1.500',
       '1500_2500': 'R$ 1.500 - R$ 2.500',
@@ -237,7 +235,8 @@ export default function MeuCurriculoCandidato() {
     return faixas[faixa] || faixa;
   };
 
-  const getDisponibilidadeLabel = (disp: string) => {
+  const getDisponibilidadeLabel = (disp: string | null) => {
+    if (!disp) return 'Não informado';
     const disps: Record<string, string> = {
       'imediata': 'Imediata',
       '15_dias': 'Em 15 dias',
@@ -257,294 +256,362 @@ export default function MeuCurriculoCandidato() {
 
   if (!candidato) return null;
 
+  // Gerar perfil DISC para o relatório
+  const getProfileFromDisc = (disc: string): Profile => {
+    const primary = disc.charAt(0) as 'D' | 'I' | 'S' | 'C';
+    const secondary = disc.charAt(1) as 'D' | 'I' | 'S' | 'C' | undefined;
+    const profile: Profile = { D: 5, I: 5, S: 5, C: 5 };
+    profile[primary] = 20;
+    if (secondary && ['D', 'I', 'S', 'C'].includes(secondary)) {
+      profile[secondary] = 12;
+    }
+    return profile;
+  };
+
+  const convertToProfile = (data: Record<string, number> | null): Profile | null => {
+    if (!data) return null;
+    return {
+      D: data.D ?? data.d ?? 10,
+      I: data.I ?? data.i ?? 10,
+      S: data.S ?? data.s ?? 10,
+      C: data.C ?? data.c ?? 10,
+    };
+  };
+
+  const naturalProfile: Profile = convertToProfile(candidato.perfil_natural) ||
+    (candidato.perfil_disc ? getProfileFromDisc(candidato.perfil_disc) : { D: 10, I: 10, S: 10, C: 10 });
+
   return (
     <div className="space-y-4 max-w-lg mx-auto pb-8">
-      {/* Header com ações */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-white">Meu Currículo</h1>
-        <Button
-          onClick={compartilhar}
-          size="sm"
-          className="bg-gradient-to-r from-[#E31E24] to-[#B91C1C]"
-        >
-          <Share2 className="w-4 h-4 mr-2" />
-          Compartilhar
-        </Button>
-      </div>
-
-      {/* Card Principal */}
+      {/* Header Estilo Instagram */}
       <Card className="bg-slate-800/60 border-slate-700 overflow-hidden">
-        {/* Header com foto */}
-        <div className="bg-gradient-to-r from-[#E31E24]/20 to-[#003DA5]/20 p-6">
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-20 w-20 border-2 border-white/20">
-              <AvatarImage src={candidato.foto_url || undefined} />
-              <AvatarFallback className="bg-slate-600 text-white text-2xl">
-                {candidato.nome_completo.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-white">
-                {candidato.nome_completo}
-              </h2>
-              <p className="text-slate-400 flex items-center mt-1">
-                <MapPin className="w-4 h-4 mr-1" />
-                {candidato.cidade}, {candidato.estado}
+        <CardContent className="p-6">
+          {/* Foto com borda gradiente estilo Instagram */}
+          <div className="flex flex-col items-center">
+            <div className="relative mb-4">
+              <div className="p-1 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600">
+                <div className="p-0.5 rounded-full bg-slate-800">
+                  <Avatar className="h-24 w-24">
+                    <AvatarImage
+                      src={candidato.foto_url || undefined}
+                      className="object-cover"
+                    />
+                    <AvatarFallback className="bg-slate-600 text-white text-3xl">
+                      {candidato.nome_completo.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+              </div>
+            </div>
+
+            {/* Nome e Bio */}
+            <h2 className="text-xl font-bold text-white text-center">
+              {candidato.nome_completo}
+            </h2>
+
+            <p className="text-slate-400 flex items-center mt-1">
+              <MapPin className="w-4 h-4 mr-1" />
+              {candidato.cidade}, {candidato.estado} • {calcularIdade(candidato.data_nascimento)} anos
+            </p>
+
+            {/* Headline/Bio */}
+            {candidato.headline && (
+              <p className="text-white text-sm text-center mt-2 italic">
+                "{candidato.headline}"
               </p>
-              <p className="text-slate-400 text-sm">
-                {calcularIdade(candidato.data_nascimento)} anos
+            )}
+
+            {candidato.objetivo_profissional && !candidato.headline && (
+              <p className="text-slate-300 text-sm text-center mt-2 max-w-xs">
+                {candidato.objetivo_profissional}
               </p>
+            )}
+          </div>
+
+          {/* Estatísticas estilo Instagram */}
+          <div className="flex justify-around mt-6 py-4 border-t border-b border-slate-700">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-white">{candidato.total_visualizacoes}</p>
+              <p className="text-xs text-slate-400">visualizações</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-white">{candidato.total_propostas_recebidas}</p>
+              <p className="text-xs text-slate-400">propostas</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-white">{candidato.total_candidaturas}</p>
+              <p className="text-xs text-slate-400">candidaturas</p>
             </div>
           </div>
 
-          {/* Perfil DISC */}
+          {/* Badges DISC */}
           {candidato.perfil_disc && (
-            <div className="mt-4 flex items-center space-x-3">
-              <div className={`w-12 h-12 rounded-full ${getCorPerfil(candidato.perfil_disc)} flex items-center justify-center text-xl font-bold text-white`}>
-                {candidato.perfil_disc}
-              </div>
-              <div>
-                <p className="text-white font-medium">
-                  Perfil {getNomePerfil(candidato.perfil_disc)}
-                </p>
-                <p className="text-xs text-slate-400">
-                  {getDescricaoPerfil(candidato.perfil_disc)}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <CardContent className="p-4 space-y-6">
-          {/* Objetivo */}
-          {candidato.objetivo_profissional && (
-            <div>
-              <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
-                <Target className="w-4 h-4 mr-2" />
-                Objetivo Profissional
-              </h3>
-              <p className="text-white">{candidato.objetivo_profissional}</p>
+            <div className="flex justify-center gap-2 mt-4 flex-wrap">
+              {candidato.perfil_disc.split('').slice(0, 2).map((letra, idx) => {
+                const cores = coresDISC[letra] || { bg: 'bg-slate-500', text: 'text-white', gradient: 'from-slate-500 to-slate-600' };
+                const nome = nomesDISC[letra] || letra;
+                return (
+                  <Badge
+                    key={idx}
+                    className={`${cores.bg} ${cores.text} px-3 py-1 text-sm font-medium`}
+                  >
+                    {letra} - {nome}
+                  </Badge>
+                );
+              })}
             </div>
           )}
 
-          {/* Vídeo */}
-          {candidato.video_url && (
-            <div>
-              <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
-                <Play className="w-4 h-4 mr-2" />
-                Vídeo de Apresentação
-              </h3>
-              <div className="aspect-video rounded-lg overflow-hidden bg-slate-900">
-                <video
-                  src={candidato.video_url}
-                  controls
-                  className="w-full h-full object-contain"
-                  poster={candidato.foto_url || undefined}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Experiência */}
-          <div>
-            <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
-              <Briefcase className="w-4 h-4 mr-2" />
-              Experiência Profissional
-            </h3>
-            <div className="bg-slate-700/50 rounded-lg p-3">
-              <p className="text-white font-medium">{candidato.ultimo_cargo}</p>
-              <p className="text-slate-400 text-sm">{candidato.ultima_empresa}</p>
-              <p className="text-slate-500 text-xs mt-1">
-                Período: {candidato.tempo_ultima_empresa}
-              </p>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {candidato.areas_experiencia?.map((area, i) => (
-                <Badge key={i} variant="secondary" className="bg-slate-700 text-slate-300">
-                  {area}
-                </Badge>
-              ))}
-            </div>
+          {/* Botão Compartilhar */}
+          <div className="mt-4">
+            <Button
+              onClick={compartilhar}
+              className="w-full bg-gradient-to-r from-[#E31E24] to-[#B91C1C]"
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Compartilhar meu perfil
+            </Button>
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Formação */}
-          <div>
-            <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
-              <GraduationCap className="w-4 h-4 mr-2" />
-              Formação
-            </h3>
-            <p className="text-white">{candidato.escolaridade}</p>
-            {candidato.curso && (
-              <p className="text-slate-400 text-sm">{candidato.curso}</p>
-            )}
-            {candidato.certificacoes && (
-              <p className="text-slate-500 text-xs mt-1">
-                Certificações: {candidato.certificacoes}
-              </p>
-            )}
-          </div>
+      {/* Tabs de Conteúdo */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full bg-slate-800/60 border-slate-700 grid grid-cols-3">
+          <TabsTrigger value="perfil" className="data-[state=active]:bg-slate-700">
+            <User className="w-4 h-4 mr-1" />
+            Perfil
+          </TabsTrigger>
+          <TabsTrigger value="experiencia" className="data-[state=active]:bg-slate-700">
+            <Briefcase className="w-4 h-4 mr-1" />
+            Experiência
+          </TabsTrigger>
+          <TabsTrigger value="video" className="data-[state=active]:bg-slate-700">
+            <Play className="w-4 h-4 mr-1" />
+            Vídeo
+          </TabsTrigger>
+        </TabsList>
 
+        {/* Tab Perfil */}
+        <TabsContent value="perfil" className="space-y-4 mt-4">
           {/* Disponibilidade */}
-          <div>
-            <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
-              <Clock className="w-4 h-4 mr-2" />
-              Disponibilidade
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-slate-700/50 rounded-lg p-3">
-                <p className="text-xs text-slate-500">Início</p>
-                <p className="text-white text-sm">
-                  {getDisponibilidadeLabel(candidato.disponibilidade_inicio)}
-                </p>
+          <Card className="bg-slate-800/60 border-slate-700">
+            <CardContent className="p-4">
+              <h3 className="text-sm font-medium text-slate-400 mb-3 flex items-center">
+                <Clock className="w-4 h-4 mr-2" />
+                Disponibilidade
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-700/50 rounded-lg p-3">
+                  <p className="text-xs text-slate-500">Início</p>
+                  <p className="text-white text-sm">
+                    {getDisponibilidadeLabel(candidato.disponibilidade_inicio)}
+                  </p>
+                </div>
+                <div className="bg-slate-700/50 rounded-lg p-3">
+                  <p className="text-xs text-slate-500">Horário</p>
+                  <p className="text-white text-sm">{candidato.disponibilidade_horario || 'Não informado'}</p>
+                </div>
+                <div className="bg-slate-700/50 rounded-lg p-3">
+                  <p className="text-xs text-slate-500">Regime</p>
+                  <p className="text-white text-sm capitalize">{candidato.regime_preferido || 'Não informado'}</p>
+                </div>
+                <div className="bg-slate-700/50 rounded-lg p-3">
+                  <p className="text-xs text-slate-500">Pretensão</p>
+                  <p className="text-white text-sm">
+                    {getFaixaSalarialLabel(candidato.pretensao_salarial)}
+                  </p>
+                </div>
               </div>
-              <div className="bg-slate-700/50 rounded-lg p-3">
-                <p className="text-xs text-slate-500">Horário</p>
-                <p className="text-white text-sm">{candidato.disponibilidade_horario}</p>
-              </div>
-              <div className="bg-slate-700/50 rounded-lg p-3">
-                <p className="text-xs text-slate-500">Regime</p>
-                <p className="text-white text-sm capitalize">{candidato.regime_preferido}</p>
-              </div>
-              <div className="bg-slate-700/50 rounded-lg p-3">
-                <p className="text-xs text-slate-500">Pretensão</p>
-                <p className="text-white text-sm">
-                  {getFaixaSalarialLabel(candidato.pretensao_salarial)}
-                </p>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Características */}
-          <div className="flex flex-wrap gap-2">
-            {candidato.possui_cnh && (
-              <Badge className="bg-blue-500/20 text-blue-400">
-                <Car className="w-3 h-3 mr-1" />
-                CNH
-              </Badge>
-            )}
-            {candidato.possui_veiculo && (
-              <Badge className="bg-green-500/20 text-green-400">
-                <Car className="w-3 h-3 mr-1" />
-                Veículo
-              </Badge>
-            )}
-            {candidato.aceita_viajar && (
-              <Badge className="bg-purple-500/20 text-purple-400">
-                <Plane className="w-3 h-3 mr-1" />
-                Aceita viajar
-              </Badge>
-            )}
-            {candidato.aceita_mudanca && (
-              <Badge className="bg-orange-500/20 text-orange-400">
-                <Home className="w-3 h-3 mr-1" />
-                Aceita mudança
-              </Badge>
-            )}
-          </div>
+          <Card className="bg-slate-800/60 border-slate-700">
+            <CardContent className="p-4">
+              <div className="flex flex-wrap gap-2">
+                {candidato.possui_cnh && (
+                  <Badge className="bg-blue-500/20 text-blue-400">
+                    <Car className="w-3 h-3 mr-1" />
+                    CNH
+                  </Badge>
+                )}
+                {candidato.possui_veiculo && (
+                  <Badge className="bg-green-500/20 text-green-400">
+                    <Car className="w-3 h-3 mr-1" />
+                    Veículo
+                  </Badge>
+                )}
+                {candidato.aceita_viajar && (
+                  <Badge className="bg-purple-500/20 text-purple-400">
+                    <Plane className="w-3 h-3 mr-1" />
+                    Aceita viajar
+                  </Badge>
+                )}
+                {candidato.aceita_mudanca && (
+                  <Badge className="bg-orange-500/20 text-orange-400">
+                    <Home className="w-3 h-3 mr-1" />
+                    Aceita mudança
+                  </Badge>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Áreas de interesse */}
           {candidato.areas_interesse && candidato.areas_interesse.length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
-                <Star className="w-4 h-4 mr-2" />
-                Áreas de Interesse
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {candidato.areas_interesse.map((area, i) => (
-                  <Badge key={i} variant="outline" className="border-slate-600 text-slate-300">
-                    {area}
-                  </Badge>
-                ))}
-              </div>
-            </div>
+            <Card className="bg-slate-800/60 border-slate-700">
+              <CardContent className="p-4">
+                <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
+                  <Star className="w-4 h-4 mr-2" />
+                  Áreas de Interesse
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {candidato.areas_interesse.map((area, i) => (
+                    <Badge key={i} variant="outline" className="border-slate-600 text-slate-300">
+                      {area}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* Valores */}
           {candidato.valores_empresa && candidato.valores_empresa.length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
-                <CheckCircle className="w-4 h-4 mr-2" />
-                O que busca em uma empresa
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {candidato.valores_empresa.map((valor, i) => (
-                  <Badge key={i} variant="outline" className="border-slate-600 text-slate-300">
-                    {valor}
-                  </Badge>
-                ))}
-              </div>
-            </div>
+            <Card className="bg-slate-800/60 border-slate-700">
+              <CardContent className="p-4">
+                <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  O que busco em uma empresa
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {candidato.valores_empresa.map((valor, i) => (
+                    <Badge key={i} variant="outline" className="border-slate-600 text-slate-300">
+                      {valor}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        {/* Tab Experiência */}
+        <TabsContent value="experiencia" className="space-y-4 mt-4">
+          {/* Experiência */}
+          <Card className="bg-slate-800/60 border-slate-700">
+            <CardContent className="p-4">
+              <h3 className="text-sm font-medium text-slate-400 mb-3 flex items-center">
+                <Briefcase className="w-4 h-4 mr-2" />
+                Experiência Profissional
+              </h3>
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <p className="text-white font-medium">{candidato.ultimo_cargo || 'Não informado'}</p>
+                <p className="text-slate-400 text-sm">{candidato.ultima_empresa || 'Não informado'}</p>
+                {candidato.tempo_ultima_empresa && (
+                  <p className="text-slate-500 text-xs mt-1">
+                    Período: {candidato.tempo_ultima_empresa}
+                  </p>
+                )}
+              </div>
+              {candidato.areas_experiencia && candidato.areas_experiencia.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {candidato.areas_experiencia.map((area, i) => (
+                    <Badge key={i} variant="secondary" className="bg-slate-700 text-slate-300">
+                      {area}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Formação */}
+          <Card className="bg-slate-800/60 border-slate-700">
+            <CardContent className="p-4">
+              <h3 className="text-sm font-medium text-slate-400 mb-3 flex items-center">
+                <GraduationCap className="w-4 h-4 mr-2" />
+                Formação
+              </h3>
+              <p className="text-white">{candidato.escolaridade || 'Não informado'}</p>
+              {candidato.curso && (
+                <p className="text-slate-400 text-sm">{candidato.curso}</p>
+              )}
+              {candidato.certificacoes && (
+                <p className="text-slate-500 text-xs mt-1">
+                  Certificações: {candidato.certificacoes}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab Vídeo */}
+        <TabsContent value="video" className="space-y-4 mt-4">
+          {candidato.video_url ? (
+            <Card className="bg-slate-800/60 border-slate-700">
+              <CardContent className="p-4">
+                <h3 className="text-sm font-medium text-slate-400 mb-3 flex items-center">
+                  <Play className="w-4 h-4 mr-2" />
+                  Meu Vídeo de Apresentação
+                </h3>
+                <div className="aspect-video rounded-lg overflow-hidden bg-slate-900">
+                  <video
+                    src={candidato.video_url}
+                    controls
+                    className="w-full h-full object-contain"
+                    poster={candidato.foto_url || undefined}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="bg-slate-800/60 border-slate-700">
+              <CardContent className="p-8 text-center">
+                <Play className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+                <p className="text-slate-400">Você ainda não gravou um vídeo de apresentação</p>
+                <p className="text-sm text-slate-500 mt-1">
+                  Vá em Configurações para gravar seu vídeo
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Relatório DISC Completo */}
-      {(candidato.perfil_natural || candidato.perfil_disc) && (() => {
-        // Gerar perfil a partir do perfil_disc se não tiver perfil_natural
-        const getProfileFromDisc = (disc: string): Profile => {
-          const primary = disc.charAt(0) as 'D' | 'I' | 'S' | 'C';
-          const secondary = disc.charAt(1) as 'D' | 'I' | 'S' | 'C' | undefined;
-
-          // Valores base padrão
-          const profile: Profile = { D: 5, I: 5, S: 5, C: 5 };
-
-          // Aumentar valor do perfil primário
-          profile[primary] = 20;
-
-          // Aumentar valor do perfil secundário se existir
-          if (secondary && ['D', 'I', 'S', 'C'].includes(secondary)) {
-            profile[secondary] = 12;
-          }
-
-          return profile;
-        };
-
-        // Converter Record<string, number> para Profile
-        const convertToProfile = (data: Record<string, number> | null): Profile | null => {
-          if (!data) return null;
-          return {
-            D: data.D ?? data.d ?? 10,
-            I: data.I ?? data.i ?? 10,
-            S: data.S ?? data.s ?? 10,
-            C: data.C ?? data.c ?? 10,
-          };
-        };
-
-        const naturalProfile: Profile = convertToProfile(candidato.perfil_natural) ||
-          (candidato.perfil_disc ? getProfileFromDisc(candidato.perfil_disc) : { D: 10, I: 10, S: 10, C: 10 });
-
-        return (
-          <div className="space-y-4">
-            <button
-              onClick={() => setShowDISCReport(!showDISCReport)}
-              className="w-full flex items-center justify-between bg-gradient-to-r from-[#E31E24]/20 to-[#003DA5]/20 border border-[#E31E24]/30 rounded-2xl p-4 text-left hover:border-[#E31E24]/50 transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#E31E24] to-[#003DA5] flex items-center justify-center">
-                  <Brain className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-white font-bold text-lg">Relatório DISC Completo</h3>
-                  <p className="text-slate-400 text-sm">Análise comportamental detalhada</p>
-                </div>
+      {(candidato.perfil_natural || candidato.perfil_disc) && (
+        <div className="space-y-4">
+          <button
+            onClick={() => setShowDISCReport(!showDISCReport)}
+            className="w-full flex items-center justify-between bg-gradient-to-r from-[#E31E24]/20 to-[#003DA5]/20 border border-[#E31E24]/30 rounded-2xl p-4 text-left hover:border-[#E31E24]/50 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#E31E24] to-[#003DA5] flex items-center justify-center">
+                <Brain className="w-6 h-6 text-white" />
               </div>
-              {showDISCReport ? (
-                <ChevronUp className="w-6 h-6 text-white/70" />
-              ) : (
-                <ChevronDown className="w-6 h-6 text-white/70" />
-              )}
-            </button>
-
-            {showDISCReport && (
-              <CurriculoDISCReport
-                naturalProfile={naturalProfile}
-                nomeCompleto={candidato.nome_completo}
-                confiabilidade={confiabilidade}
-              />
+              <div>
+                <h3 className="text-white font-bold text-lg">Relatório DISC Completo</h3>
+                <p className="text-slate-400 text-sm">Sua análise comportamental detalhada</p>
+              </div>
+            </div>
+            {showDISCReport ? (
+              <ChevronUp className="w-6 h-6 text-white/70" />
+            ) : (
+              <ChevronDown className="w-6 h-6 text-white/70" />
             )}
-          </div>
-        );
-      })()}
+          </button>
+
+          {showDISCReport && (
+            <CurriculoDISCReport
+              naturalProfile={naturalProfile}
+              nomeCompleto={candidato.nome_completo}
+              confiabilidade={confiabilidade}
+            />
+          )}
+        </div>
+      )}
 
       {/* Link de compartilhamento */}
       <Card className="bg-slate-800/60 border-slate-700">
