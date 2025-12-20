@@ -6,15 +6,30 @@ import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client
 
 // Credenciais Cloudflare R2
 // IMPORTANTE: Em produção, usar variáveis de ambiente
-const R2_ACCOUNT_ID = import.meta.env.VITE_R2_ACCOUNT_ID || "51417a6d9fab76ef20513ae7e9a87093";
+const R2_ACCOUNT_ID = import.meta.env.VITE_R2_ACCOUNT_ID || "";
 const R2_ACCESS_KEY_ID = import.meta.env.VITE_R2_ACCESS_KEY_ID || "";
 const R2_SECRET_ACCESS_KEY = import.meta.env.VITE_R2_SECRET_ACCESS_KEY || "";
-const R2_BUCKET_NAME = import.meta.env.VITE_R2_BUCKET_NAME || "veon-recrutamento";
-const R2_PUBLIC_URL = import.meta.env.VITE_R2_PUBLIC_URL || `https://pub-${R2_ACCOUNT_ID}.r2.dev`;
+const R2_BUCKET_NAME = import.meta.env.VITE_R2_BUCKET_NAME || "recruta-veon";
+const R2_PUBLIC_URL = import.meta.env.VITE_R2_PUBLIC_URL || "";
+
+// Debug: Mostrar status das variáveis R2 (apenas em desenvolvimento)
+if (import.meta.env.DEV) {
+  console.log("🔧 R2 Config Status:", {
+    accountId: R2_ACCOUNT_ID ? "✓" : "✗",
+    accessKey: R2_ACCESS_KEY_ID ? "✓" : "✗",
+    secretKey: R2_SECRET_ACCESS_KEY ? "✓" : "✗",
+    bucket: R2_BUCKET_NAME,
+    publicUrl: R2_PUBLIC_URL ? "✓" : "✗",
+  });
+}
 
 // Verificar se as credenciais estão configuradas
 export const isR2Configured = () => {
-  return Boolean(R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY);
+  const configured = Boolean(R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_PUBLIC_URL);
+  if (!configured && import.meta.env.DEV) {
+    console.warn("⚠️ R2 não configurado. Verifique as variáveis VITE_R2_* no .env");
+  }
+  return configured;
 };
 
 // Cliente S3 para R2
