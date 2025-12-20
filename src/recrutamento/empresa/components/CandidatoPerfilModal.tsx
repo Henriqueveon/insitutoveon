@@ -1,16 +1,13 @@
 // =====================================================
-// MODAL PERFIL PROFISSIONAL - Área de Recrutamento VEON
+// MODAL PERFIL PROFISSIONAL - Design Instagram Style
 // Visualização do profissional + envio de proposta
-// IMPORTANTE: Oculta informações de contato (nome completo, telefone, email)
 // =====================================================
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 import {
   Tabs,
@@ -33,22 +30,17 @@ import {
   Car,
   Plane,
   Home,
-  Users,
-  Instagram,
   Play,
-  FileText,
-  Send,
-  Heart,
-  Download,
   Eye,
-  Target,
-  Star,
-  CheckCircle,
-  Building2,
   Calendar,
   Loader2,
   Shield,
   CheckCircle2,
+  Bookmark,
+  BookmarkCheck,
+  Building2,
+  User,
+  Star,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -66,7 +58,6 @@ interface Candidato {
   nome_completo?: string | null;
   foto_url?: string | null;
   video_url?: string | null;
-  documento_url?: string | null;
   cidade?: string | null;
   estado?: string | null;
   bairro?: string | null;
@@ -76,7 +67,6 @@ interface Candidato {
   pretensao_salarial?: string | null;
   escolaridade?: string | null;
   curso?: string | null;
-  certificacoes?: string | null;
   perfil_disc?: string | null;
   disponibilidade_inicio?: string | null;
   disponibilidade_horario?: string | null;
@@ -96,6 +86,11 @@ interface Candidato {
   instagram?: string | null;
   valores_empresa?: string[] | null;
   areas_interesse?: string[] | null;
+  headline?: string | null;
+  bio?: string | null;
+  total_visualizacoes?: number;
+  total_propostas_recebidas?: number;
+  total_candidaturas?: number;
 }
 
 interface Empresa {
@@ -115,6 +110,21 @@ interface Props {
   onToggleFavorito: (id: string) => void;
 }
 
+// Cores DISC
+const coresDISC: Record<string, { bg: string; text: string; gradient: string }> = {
+  D: { bg: 'bg-red-500', text: 'text-white', gradient: 'from-red-500 to-red-600' },
+  I: { bg: 'bg-yellow-500', text: 'text-black', gradient: 'from-yellow-400 to-yellow-500' },
+  S: { bg: 'bg-green-500', text: 'text-white', gradient: 'from-green-500 to-green-600' },
+  C: { bg: 'bg-blue-500', text: 'text-white', gradient: 'from-blue-500 to-blue-600' },
+};
+
+const nomesDISC: Record<string, string> = {
+  D: 'Dominante',
+  I: 'Influente',
+  S: 'Estável',
+  C: 'Conforme',
+};
+
 export default function CandidatoPerfilModal({
   candidato,
   isOpen,
@@ -127,19 +137,19 @@ export default function CandidatoPerfilModal({
   const [tabAtiva, setTabAtiva] = useState('perfil');
   const [showConfirmacaoEntrevista, setShowConfirmacaoEntrevista] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && candidato && empresa) {
+      registrarVisualizacao();
+    }
+  }, [isOpen, candidato?.id, empresa?.id]);
 
   if (!candidato) return null;
 
-  // Funções auxiliares para nome seguro
   const getNomeCompleto = () => candidato.nome_completo || 'Profissional';
-  const getPrimeiroNome = () => {
-    const nome = getNomeCompleto();
-    return nome.split(' ')[0];
-  };
-  const getInicialNome = () => {
-    const nome = getNomeCompleto();
-    return nome.charAt(0).toUpperCase();
-  };
+  const getPrimeiroNome = () => getNomeCompleto().split(' ')[0];
+  const getInicialNome = () => getNomeCompleto().charAt(0).toUpperCase();
 
   const calcularIdade = (dataNascimento: string) => {
     const hoje = new Date();
@@ -152,27 +162,20 @@ export default function CandidatoPerfilModal({
     return idade;
   };
 
-  const getCorPerfil = (perfil: string | null) => {
-    switch (perfil) {
-      case 'D': return 'bg-red-500';
-      case 'I': return 'bg-yellow-500';
-      case 'S': return 'bg-green-500';
-      case 'C': return 'bg-blue-500';
-      default: return 'bg-slate-500';
+  const registrarVisualizacao = async () => {
+    if (!empresa?.id || !candidato?.id) return;
+    try {
+      await supabase.rpc('registrar_visualizacao_perfil', {
+        p_candidato_id: candidato.id,
+        p_empresa_id: empresa.id,
+      });
+    } catch (error) {
+      console.error('Erro ao registrar visualização:', error);
     }
   };
 
-  const getNomePerfil = (perfil: string | null) => {
-    switch (perfil) {
-      case 'D': return 'Dominância';
-      case 'I': return 'Influência';
-      case 'S': return 'Estabilidade';
-      case 'C': return 'Conformidade';
-      default: return 'Não avaliado';
-    }
-  };
-
-  const getFaixaSalarialLabel = (faixa: string) => {
+  const getFaixaSalarialLabel = (faixa: string | null) => {
+    if (!faixa) return 'Não informado';
     const faixas: Record<string, string> = {
       'ate_1500': 'Até R$ 1.500',
       '1500_2500': 'R$ 1.500 - R$ 2.500',
@@ -184,7 +187,8 @@ export default function CandidatoPerfilModal({
     return faixas[faixa] || faixa;
   };
 
-  const getDisponibilidadeLabel = (disp: string) => {
+  const getDisponibilidadeLabel = (disp: string | null) => {
+    if (!disp) return 'Não informado';
     const disps: Record<string, string> = {
       'imediata': 'Imediata',
       '15_dias': 'Em 15 dias',
@@ -197,11 +201,10 @@ export default function CandidatoPerfilModal({
   const handleAgendarEntrevista = () => {
     if (!empresa) return;
 
-    // Verificar creditos
     if ((empresa.creditos || 0) < 39.9) {
       toast({
-        title: 'Creditos insuficientes',
-        description: 'Voce precisa de R$ 39,90 em creditos para agendar uma entrevista.',
+        title: 'Créditos insuficientes',
+        description: 'Você precisa de R$ 39,90 em créditos para agendar uma entrevista.',
         variant: 'destructive',
       });
       return;
@@ -216,7 +219,6 @@ export default function CandidatoPerfilModal({
     setIsLoading(true);
 
     try {
-      // Criar proposta de entrevista
       const { error } = await supabase
         .from('propostas_recrutamento')
         .insert({
@@ -228,20 +230,18 @@ export default function CandidatoPerfilModal({
 
       if (error) throw error;
 
-      // Debitar creditos
       await supabase
         .from('empresas_recrutamento')
         .update({ creditos: (empresa.creditos || 0) - 39.9 })
         .eq('id', empresa.id);
 
-      // Criar notificacao para o candidato
       await supabase
         .from('notificacoes_recrutamento')
         .insert({
           tipo_destinatario: 'candidato',
           destinatario_id: candidato.id,
           titulo: 'Nova proposta de entrevista!',
-          mensagem: `${empresa.nome_fantasia || empresa.razao_social} quer agendar uma entrevista com voce.`,
+          mensagem: `${empresa.nome_fantasia || empresa.razao_social} quer agendar uma entrevista com você.`,
           tipo_notificacao: 'entrevista',
         });
 
@@ -249,7 +249,7 @@ export default function CandidatoPerfilModal({
 
       toast({
         title: 'Entrevista solicitada!',
-        description: 'O candidato recebera sua proposta e entrara em contato.',
+        description: 'O candidato receberá sua proposta e entrará em contato.',
       });
 
       onClose();
@@ -257,7 +257,7 @@ export default function CandidatoPerfilModal({
       console.error('Erro ao solicitar entrevista:', error);
       toast({
         title: 'Erro ao solicitar',
-        description: 'Nao foi possivel solicitar a entrevista. Tente novamente.',
+        description: 'Não foi possível solicitar a entrevista. Tente novamente.',
         variant: 'destructive',
       });
     } finally {
@@ -265,448 +265,383 @@ export default function CandidatoPerfilModal({
     }
   };
 
+  const toggleSalvar = async () => {
+    if (!empresa?.id || !candidato?.id) return;
+    setSalvando(true);
+    try {
+      onToggleFavorito(candidato.id);
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  const getPerfisDisc = () => {
+    if (!candidato.perfil_disc) return [];
+    return candidato.perfil_disc.split(/[\s,]+/).filter(Boolean).slice(0, 2);
+  };
+
   return (
     <>
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden bg-slate-800 border-slate-700 p-0">
-        {/* Perfil do Candidato */}
-            {/* Header com foto e info básica */}
-            <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="relative">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={candidato.foto_url || undefined} />
-                    <AvatarFallback className="bg-slate-600 text-white text-2xl">
-                      {getInicialNome()}
-                    </AvatarFallback>
-                  </Avatar>
-                  {candidato.perfil_disc && (
-                    <div className={`absolute -bottom-1 -right-1 w-8 h-8 rounded-full ${getCorPerfil(candidato.perfil_disc)} flex items-center justify-center text-sm font-bold text-white border-2 border-slate-800`}>
-                      {candidato.perfil_disc}
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-lg max-h-[95vh] overflow-hidden bg-black border-gray-800 p-0 gap-0">
+          {/* ========== HEADER INSTAGRAM STYLE ========== */}
+          <div className="bg-black text-white">
+            {/* Botão Fechar */}
+            <div className="flex justify-end p-2">
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Foto + Stats */}
+            <div className="px-4 pb-4">
+              <div className="flex items-center gap-4 mb-4">
+                {/* Foto com borda gradiente Instagram */}
+                <div className="relative flex-shrink-0">
+                  <div className="w-[80px] h-[80px] rounded-full p-[3px] bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600">
+                    <div className="w-full h-full rounded-full overflow-hidden bg-black p-[2px]">
+                      {candidato.foto_url ? (
+                        <img
+                          src={candidato.foto_url}
+                          alt={getNomeCompleto()}
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
+                          <span className="text-2xl font-bold text-white">
+                            {getInicialNome()}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
 
-                <div className="flex-1">
-                  {/* Mostra apenas PRIMEIRO NOME - contato oculto */}
-                  <h2 className="text-xl font-bold text-white">
-                    {getPrimeiroNome()}
-                  </h2>
-                  <div className="flex flex-wrap items-center gap-2 mt-1 text-slate-400 text-sm">
-                    {(candidato.cidade || candidato.estado) && (
-                      <span className="flex items-center">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        {candidato.cidade}{candidato.cidade && candidato.estado && ', '}{candidato.estado}
-                      </span>
-                    )}
-                    {candidato.data_nascimento && (
-                      <>
-                        <span>•</span>
-                        <span>{calcularIdade(candidato.data_nascimento)} anos</span>
-                      </>
-                    )}
-                    {candidato.perfil_disc && (
-                      <>
-                        <span>•</span>
-                        <span className={`px-2 py-0.5 rounded-full text-xs text-white ${getCorPerfil(candidato.perfil_disc)}`}>
-                          {getNomePerfil(candidato.perfil_disc)}
-                        </span>
-                      </>
-                    )}
+                {/* Estatísticas */}
+                <div className="flex flex-1 justify-around text-center">
+                  <div>
+                    <p className="text-lg font-bold">{candidato.total_visualizacoes || 0}</p>
+                    <p className="text-[10px] text-gray-400">visualizações</p>
                   </div>
-                  <p className="text-slate-300 mt-2 line-clamp-2">
+                  <div>
+                    <p className="text-lg font-bold">{candidato.total_propostas_recebidas || 0}</p>
+                    <p className="text-[10px] text-gray-400">propostas</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold">{candidato.total_candidaturas || 0}</p>
+                    <p className="text-[10px] text-gray-400">candidaturas</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Nome e Bio */}
+              <div className="mb-3">
+                <h1 className="text-base font-semibold">
+                  {getPrimeiroNome()}
+                  {candidato.headline && (
+                    <span className="font-normal text-gray-300"> - {candidato.headline}</span>
+                  )}
+                </h1>
+
+                {candidato.objetivo_profissional && (
+                  <p className="text-gray-300 text-sm mt-1 line-clamp-2">
                     {candidato.objetivo_profissional}
                   </p>
-                </div>
+                )}
 
-                {/* Ações */}
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onToggleFavorito(candidato.id)}
-                    className={`${isFavorito ? 'text-red-500' : 'text-slate-400'}`}
-                  >
-                    <Heart className={`w-5 h-5 ${isFavorito ? 'fill-current' : ''}`} />
-                  </Button>
-                  <Button
-                    onClick={handleAgendarEntrevista}
-                    className="bg-gradient-to-r from-[#E31E24] to-[#1E3A8A] hover:from-[#E31E24]/90 hover:to-[#1E3A8A]/90"
-                  >
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Agendar Entrevista
-                  </Button>
+                {candidato.anos_experiencia && (
+                  <p className="text-gray-400 text-xs mt-1">
+                    + de {candidato.anos_experiencia} anos de experiência
+                  </p>
+                )}
+
+                {(candidato.cidade || candidato.estado) && (
+                  <p className="text-white text-xs mt-1 flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {[candidato.cidade, candidato.estado].filter(Boolean).join(' - ')}
+                  </p>
+                )}
+              </div>
+
+              {/* Perfil DISC */}
+              {candidato.perfil_disc && (
+                <div className="flex gap-2 mb-3 flex-wrap">
+                  {getPerfisDisc().map((perfil) => {
+                    const cores = coresDISC[perfil] || { bg: 'bg-gray-500', text: 'text-white' };
+                    const nome = nomesDISC[perfil] || perfil;
+                    return (
+                      <Badge
+                        key={perfil}
+                        className={`${cores.bg} ${cores.text} px-2 py-0.5 text-xs font-medium`}
+                      >
+                        {nome}
+                      </Badge>
+                    );
+                  })}
                 </div>
+              )}
+
+              {/* Botões de Ação */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 bg-white text-black hover:bg-gray-100 border-0 h-8 text-xs"
+                  onClick={() => setTabAtiva('video')}
+                >
+                  <Eye className="w-4 h-4 mr-1" />
+                  Ver mais
+                </Button>
+
+                <Button
+                  className="flex-[2] bg-gradient-to-r from-[#E31E24] to-[#C91920] hover:from-[#C91920] hover:to-[#A91519] h-8 text-xs font-semibold"
+                  onClick={handleAgendarEntrevista}
+                >
+                  <Calendar className="w-3 h-3 mr-1" />
+                  Agendar Entrevista
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="bg-white text-black hover:bg-gray-100 border-0 h-8 px-2"
+                  onClick={toggleSalvar}
+                  disabled={salvando}
+                >
+                  {salvando ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : isFavorito ? (
+                    <BookmarkCheck className="w-4 h-4 fill-black" />
+                  ) : (
+                    <Bookmark className="w-4 h-4" />
+                  )}
+                </Button>
               </div>
             </div>
-
-            {/* Tabs */}
-            <Tabs value={tabAtiva} onValueChange={setTabAtiva} className="flex-1">
-              <TabsList className="w-full bg-slate-700/50 rounded-none border-b border-slate-700">
-                <TabsTrigger value="perfil" className="flex-1 data-[state=active]:bg-slate-600">
-                  Perfil
-                </TabsTrigger>
-                <TabsTrigger value="experiencia" className="flex-1 data-[state=active]:bg-slate-600">
-                  Experiência
-                </TabsTrigger>
-                <TabsTrigger value="video" className="flex-1 data-[state=active]:bg-slate-600">
-                  Vídeo
-                </TabsTrigger>
-              </TabsList>
-
-              <div className="p-6 overflow-y-auto max-h-[50vh]">
-                {/* Tab Perfil */}
-                <TabsContent value="perfil" className="mt-0 space-y-6">
-                  {/* Grid de informações */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {candidato.pretensao_salarial && (
-                      <Card className="bg-slate-700/50 border-slate-600">
-                        <CardContent className="p-4">
-                          <DollarSign className="w-5 h-5 text-green-400 mb-2" />
-                          <p className="text-xs text-slate-400">Pretensão</p>
-                          <p className="text-white font-medium">
-                            {getFaixaSalarialLabel(candidato.pretensao_salarial)}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {candidato.disponibilidade_inicio && (
-                      <Card className="bg-slate-700/50 border-slate-600">
-                        <CardContent className="p-4">
-                          <Clock className="w-5 h-5 text-blue-400 mb-2" />
-                          <p className="text-xs text-slate-400">Disponibilidade</p>
-                          <p className="text-white font-medium">
-                            {getDisponibilidadeLabel(candidato.disponibilidade_inicio)}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {candidato.regime_preferido && (
-                      <Card className="bg-slate-700/50 border-slate-600">
-                        <CardContent className="p-4">
-                          <Building2 className="w-5 h-5 text-purple-400 mb-2" />
-                          <p className="text-xs text-slate-400">Regime</p>
-                          <p className="text-white font-medium capitalize">
-                            {candidato.regime_preferido}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {candidato.escolaridade && (
-                      <Card className="bg-slate-700/50 border-slate-600">
-                        <CardContent className="p-4">
-                          <GraduationCap className="w-5 h-5 text-yellow-400 mb-2" />
-                          <p className="text-xs text-slate-400">Escolaridade</p>
-                          <p className="text-white font-medium text-sm">
-                            {candidato.escolaridade}
-                          </p>
-                          {candidato.curso && (
-                            <p className="text-xs text-slate-400 mt-1">
-                              {candidato.curso}
-                            </p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {candidato.disponibilidade_horario && (
-                      <Card className="bg-slate-700/50 border-slate-600">
-                        <CardContent className="p-4">
-                          <Calendar className="w-5 h-5 text-orange-400 mb-2" />
-                          <p className="text-xs text-slate-400">Horários</p>
-                          <p className="text-white font-medium text-sm">
-                            {candidato.disponibilidade_horario}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {candidato.estado_civil && (
-                      <Card className="bg-slate-700/50 border-slate-600">
-                        <CardContent className="p-4">
-                          <Users className="w-5 h-5 text-pink-400 mb-2" />
-                          <p className="text-xs text-slate-400">Estado Civil</p>
-                          <p className="text-white font-medium">
-                            {candidato.estado_civil}
-                            {candidato.tem_filhos && ` • ${candidato.quantidade_filhos} filho(s)`}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-
-                  {/* Badges */}
-                  <div className="flex flex-wrap gap-2">
-                    {candidato.possui_cnh && (
-                      <Badge className="bg-blue-500/20 text-blue-400">
-                        <Car className="w-3 h-3 mr-1" />
-                        CNH
-                      </Badge>
-                    )}
-                    {candidato.possui_veiculo && (
-                      <Badge className="bg-green-500/20 text-green-400">
-                        <Car className="w-3 h-3 mr-1" />
-                        Veículo Próprio
-                      </Badge>
-                    )}
-                    {candidato.aceita_viajar && (
-                      <Badge className="bg-purple-500/20 text-purple-400">
-                        <Plane className="w-3 h-3 mr-1" />
-                        Aceita Viajar
-                      </Badge>
-                    )}
-                    {candidato.aceita_mudanca && (
-                      <Badge className="bg-orange-500/20 text-orange-400">
-                        <Home className="w-3 h-3 mr-1" />
-                        Aceita Mudança
-                      </Badge>
-                    )}
-                    {/* Instagram removido - informação de contato oculta */}
-                  </div>
-
-                  {/* Áreas de interesse */}
-                  {candidato.areas_interesse && candidato.areas_interesse.length > 0 && (
-                    <div>
-                      <h4 className="text-white font-medium mb-2 flex items-center">
-                        <Target className="w-4 h-4 mr-2 text-slate-400" />
-                        Áreas de Interesse
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {candidato.areas_interesse.map((area, i) => (
-                          <Badge key={i} variant="outline" className="border-slate-600 text-slate-300">
-                            {area}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Valores */}
-                  {candidato.valores_empresa && candidato.valores_empresa.length > 0 && (
-                    <div>
-                      <h4 className="text-white font-medium mb-2 flex items-center">
-                        <Star className="w-4 h-4 mr-2 text-slate-400" />
-                        Valores que Busca
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {candidato.valores_empresa.map((valor, i) => (
-                          <Badge key={i} variant="outline" className="border-slate-600 text-slate-300">
-                            {valor}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </TabsContent>
-
-                {/* Tab Experiência */}
-                <TabsContent value="experiencia" className="mt-0 space-y-6">
-                  {/* Última experiência */}
-                  {(candidato.ultimo_cargo || candidato.ultima_empresa) && (
-                    <div>
-                      <h4 className="text-white font-medium mb-3 flex items-center">
-                        <Briefcase className="w-4 h-4 mr-2 text-slate-400" />
-                        Última Experiência
-                      </h4>
-                      <Card className="bg-slate-700/50 border-slate-600">
-                        <CardContent className="p-4">
-                          {candidato.ultimo_cargo && (
-                            <p className="text-white font-medium">{candidato.ultimo_cargo}</p>
-                          )}
-                          {candidato.ultima_empresa && (
-                            <p className="text-slate-400 text-sm">{candidato.ultima_empresa}</p>
-                          )}
-                          {candidato.tempo_ultima_empresa && (
-                            <p className="text-slate-500 text-sm mt-1">
-                              Período: {candidato.tempo_ultima_empresa}
-                            </p>
-                          )}
-                          {candidato.motivo_saida && (
-                            <p className="text-slate-400 text-sm mt-2">
-                              <span className="text-slate-500">Motivo da saída:</span> {candidato.motivo_saida}
-                            </p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </div>
-                  )}
-
-                  {/* Áreas de experiência */}
-                  {candidato.areas_experiencia && candidato.areas_experiencia.length > 0 && (
-                    <div>
-                      <h4 className="text-white font-medium mb-3">Áreas de Experiência</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {candidato.areas_experiencia.map((area, i) => (
-                          <Badge key={i} className="bg-[#E31E24]/20 text-[#E31E24]">
-                            {area}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Anos de experiência */}
-                  {candidato.anos_experiencia && (
-                    <div>
-                      <h4 className="text-white font-medium mb-2">Tempo Total de Experiência</h4>
-                      <p className="text-slate-300">
-                        {candidato.anos_experiencia === 'primeiro_emprego'
-                          ? 'Primeiro emprego'
-                          : candidato.anos_experiencia === 'menos_1'
-                          ? 'Menos de 1 ano'
-                          : candidato.anos_experiencia === '1_2'
-                          ? '1 a 2 anos'
-                          : candidato.anos_experiencia === '3_5'
-                          ? '3 a 5 anos'
-                          : candidato.anos_experiencia === '5_10'
-                          ? '5 a 10 anos'
-                          : 'Mais de 10 anos'}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Certificações */}
-                  {candidato.certificacoes && (
-                    <div>
-                      <h4 className="text-white font-medium mb-2">Certificações</h4>
-                      <p className="text-slate-300">{candidato.certificacoes}</p>
-                    </div>
-                  )}
-                </TabsContent>
-
-                {/* Tab Vídeo */}
-                <TabsContent value="video" className="mt-0">
-                  {candidato.video_url ? (
-                    <div className="space-y-4">
-                      <div className="aspect-video rounded-lg overflow-hidden bg-slate-900">
-                        <video
-                          src={candidato.video_url}
-                          controls
-                          className="w-full h-full object-contain"
-                          poster={candidato.foto_url || undefined}
-                        />
-                      </div>
-                      <p className="text-slate-400 text-sm text-center">
-                        Vídeo de apresentação do profissional
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <Play className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                      <p className="text-slate-400">
-                        Este profissional não enviou um vídeo de apresentação
-                      </p>
-                    </div>
-                  )}
-                </TabsContent>
-              </div>
-            </Tabs>
-      </DialogContent>
-    </Dialog>
-
-    {/* Modal de Confirmacao de Entrevista */}
-    <AlertDialog open={showConfirmacaoEntrevista} onOpenChange={setShowConfirmacaoEntrevista}>
-      <AlertDialogContent className="bg-gray-900 border-gray-700 max-w-md mx-4">
-        <AlertDialogHeader className="text-center">
-          {/* Icone com gradiente */}
-          <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-[#E31E24]/20 to-[#1E3A8A]/20 rounded-full flex items-center justify-center">
-            <Users className="h-8 w-8 text-white" />
           </div>
 
-          <AlertDialogTitle className="text-xl text-white text-center">
-            Parece que voce encontrou um otimo profissional, {empresa?.socio_nome?.split(' ')[0] || 'Parceiro'}!
-          </AlertDialogTitle>
+          {/* ========== TABS DE CONTEÚDO ========== */}
+          <Tabs value={tabAtiva} onValueChange={setTabAtiva} className="flex-1 bg-slate-900">
+            <TabsList className="w-full bg-slate-800 rounded-none border-b border-slate-700 h-10">
+              <TabsTrigger value="perfil" className="flex-1 data-[state=active]:bg-slate-700 text-xs">
+                Perfil
+              </TabsTrigger>
+              <TabsTrigger value="experiencia" className="flex-1 data-[state=active]:bg-slate-700 text-xs">
+                Experiência
+              </TabsTrigger>
+              <TabsTrigger value="video" className="flex-1 data-[state=active]:bg-slate-700 text-xs">
+                Vídeo
+              </TabsTrigger>
+            </TabsList>
 
-          <AlertDialogDescription asChild>
-            <div className="text-center space-y-4 pt-4">
-              {/* Card do candidato */}
-              <div className="bg-gray-800/50 rounded-lg p-3 flex items-center gap-3">
-                {candidato.foto_url ? (
-                  <img
-                    src={candidato.foto_url}
-                    alt={getNomeCompleto()}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
-                    <span className="text-lg font-bold text-gray-400">
-                      {getInicialNome()}
-                    </span>
+            <div className="p-4 overflow-y-auto max-h-[35vh]">
+              {/* Tab Perfil */}
+              <TabsContent value="perfil" className="mt-0 space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {candidato.pretensao_salarial && (
+                    <Card className="bg-slate-800/50 border-slate-700">
+                      <CardContent className="p-3">
+                        <DollarSign className="w-4 h-4 text-green-400 mb-1" />
+                        <p className="text-[10px] text-slate-400">Pretensão</p>
+                        <p className="text-white text-xs font-medium">
+                          {getFaixaSalarialLabel(candidato.pretensao_salarial)}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {candidato.disponibilidade_inicio && (
+                    <Card className="bg-slate-800/50 border-slate-700">
+                      <CardContent className="p-3">
+                        <Clock className="w-4 h-4 text-blue-400 mb-1" />
+                        <p className="text-[10px] text-slate-400">Disponibilidade</p>
+                        <p className="text-white text-xs font-medium">
+                          {getDisponibilidadeLabel(candidato.disponibilidade_inicio)}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {candidato.regime_preferido && (
+                    <Card className="bg-slate-800/50 border-slate-700">
+                      <CardContent className="p-3">
+                        <Building2 className="w-4 h-4 text-purple-400 mb-1" />
+                        <p className="text-[10px] text-slate-400">Regime</p>
+                        <p className="text-white text-xs font-medium capitalize">
+                          {candidato.regime_preferido}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {candidato.escolaridade && (
+                    <Card className="bg-slate-800/50 border-slate-700">
+                      <CardContent className="p-3">
+                        <GraduationCap className="w-4 h-4 text-amber-400 mb-1" />
+                        <p className="text-[10px] text-slate-400">Escolaridade</p>
+                        <p className="text-white text-xs font-medium capitalize">
+                          {candidato.escolaridade.replace(/_/g, ' ')}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {candidato.possui_cnh && (
+                    <Card className="bg-slate-800/50 border-slate-700">
+                      <CardContent className="p-3">
+                        <Car className="w-4 h-4 text-cyan-400 mb-1" />
+                        <p className="text-[10px] text-slate-400">CNH</p>
+                        <p className="text-white text-xs font-medium">
+                          {candidato.possui_cnh ? 'Sim' : 'Não'}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {candidato.aceita_viajar !== null && (
+                    <Card className="bg-slate-800/50 border-slate-700">
+                      <CardContent className="p-3">
+                        <Plane className="w-4 h-4 text-indigo-400 mb-1" />
+                        <p className="text-[10px] text-slate-400">Viagem</p>
+                        <p className="text-white text-xs font-medium">
+                          {candidato.aceita_viajar ? 'Aceita' : 'Não aceita'}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+
+                {/* Áreas de interesse */}
+                {candidato.areas_interesse && candidato.areas_interesse.length > 0 && (
+                  <div>
+                    <p className="text-xs text-slate-400 mb-2">Áreas de interesse</p>
+                    <div className="flex flex-wrap gap-1">
+                      {candidato.areas_interesse.map((area) => (
+                        <Badge key={area} variant="secondary" className="bg-slate-700 text-xs">
+                          {area}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 )}
-                <div className="text-left">
-                  <p className="font-medium text-white">{getPrimeiroNome()}</p>
-                  <p className="text-sm text-gray-400">{candidato.cidade}, {candidato.estado}</p>
-                </div>
-              </div>
+              </TabsContent>
 
-              {/* Card de protecao */}
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 text-left">
-                <div className="flex items-start gap-3">
-                  <Shield className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+              {/* Tab Experiência */}
+              <TabsContent value="experiencia" className="mt-0 space-y-3">
+                {candidato.ultima_empresa && (
+                  <Card className="bg-slate-800/50 border-slate-700">
+                    <CardContent className="p-3">
+                      <div className="flex items-start gap-3">
+                        <Briefcase className="w-5 h-5 text-blue-400 mt-0.5" />
+                        <div>
+                          <p className="text-white text-sm font-medium">{candidato.ultimo_cargo || 'Cargo não informado'}</p>
+                          <p className="text-slate-400 text-xs">{candidato.ultima_empresa}</p>
+                          {candidato.tempo_ultima_empresa && (
+                            <p className="text-slate-500 text-xs mt-1">{candidato.tempo_ultima_empresa}</p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {candidato.areas_experiencia && candidato.areas_experiencia.length > 0 && (
                   <div>
-                    <p className="text-white font-medium mb-1">Investimento protegido</p>
-                    <p className="text-gray-300 text-sm">
-                      Ao confirmar, voce investe <span className="text-white font-semibold">R$ 39,90</span> para
-                      agendar esta entrevista. <span className="text-green-400 font-medium">Voce so paga se o
-                      candidato aceitar!</span>
-                    </p>
+                    <p className="text-xs text-slate-400 mb-2">Áreas de experiência</p>
+                    <div className="flex flex-wrap gap-1">
+                      {candidato.areas_experiencia.map((area) => (
+                        <Badge key={area} variant="secondary" className="bg-slate-700 text-xs">
+                          {area}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </div>
+                )}
 
-              {/* Beneficios */}
-              <div className="space-y-2 text-left">
-                <div className="flex items-center gap-2 text-gray-300 text-sm">
-                  <CheckCircle2 className="h-4 w-4 text-green-400" />
-                  <span>Candidato demonstra compromisso pagando R$ 9,90</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-300 text-sm">
-                  <CheckCircle2 className="h-4 w-4 text-green-400" />
-                  <span>Evite perda de tempo com profissionais sem interesse</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-300 text-sm">
-                  <CheckCircle2 className="h-4 w-4 text-green-400" />
-                  <span>Reembolso automatico se nao houver aceite</span>
-                </div>
-              </div>
+                {candidato.curso && (
+                  <Card className="bg-slate-800/50 border-slate-700">
+                    <CardContent className="p-3">
+                      <div className="flex items-start gap-3">
+                        <GraduationCap className="w-5 h-5 text-amber-400 mt-0.5" />
+                        <div>
+                          <p className="text-white text-sm font-medium">{candidato.curso}</p>
+                          <p className="text-slate-400 text-xs">{candidato.escolaridade?.replace(/_/g, ' ')}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
 
-              {/* Texto pequeno */}
-              <p className="text-xs text-gray-500 pt-2">
-                Ao aceitar, o candidato paga R$ 9,90 demonstrando absoluto compromisso com sua empresa.
-                Assim voce evita perda de tempo com profissionais que nao tem comprometimento real.
-              </p>
+              {/* Tab Vídeo */}
+              <TabsContent value="video" className="mt-0">
+                {candidato.video_url ? (
+                  <div className="aspect-video bg-slate-800 rounded-lg overflow-hidden">
+                    <video
+                      src={candidato.video_url}
+                      controls
+                      className="w-full h-full object-contain"
+                      poster={candidato.foto_url || undefined}
+                    />
+                  </div>
+                ) : (
+                  <div className="aspect-video bg-slate-800 rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                      <Play className="w-12 h-12 text-slate-600 mx-auto mb-2" />
+                      <p className="text-slate-400 text-sm">Vídeo não disponível</p>
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
             </div>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
 
-        <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-4">
-          <AlertDialogCancel className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 hover:text-white">
-            Voltar
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={confirmarEntrevista}
-            disabled={isLoading}
-            className="bg-gradient-to-r from-[#E31E24] to-[#1E3A8A] hover:from-[#E31E24]/90 hover:to-[#1E3A8A]/90 text-white font-semibold"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Processando...
-              </>
-            ) : (
-              <>
-                <Calendar className="h-4 w-4 mr-2" />
-                Confirmar Entrevista
-              </>
-            )}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      {/* Modal de Confirmação de Entrevista */}
+      <AlertDialog open={showConfirmacaoEntrevista} onOpenChange={setShowConfirmacaoEntrevista}>
+        <AlertDialogContent className="bg-slate-800 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-[#E31E24]" />
+              Confirmar Entrevista
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-300">
+              Parece que você encontrou um ótimo profissional, {empresa?.socio_nome?.split(' ')[0] || 'Parceiro'}!
+              <br /><br />
+              Ao confirmar, você irá:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Enviar uma proposta de entrevista para <strong>{getPrimeiroNome()}</strong></li>
+                <li>Utilizar <strong>R$ 39,90</strong> dos seus créditos</li>
+                <li>Receber os dados de contato do candidato</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-slate-700 text-white border-slate-600 hover:bg-slate-600">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmarEntrevista}
+              disabled={isLoading}
+              className="bg-gradient-to-r from-[#E31E24] to-[#C91920] hover:from-[#C91920] hover:to-[#A91519]"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Confirmar (R$ 39,90)
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
