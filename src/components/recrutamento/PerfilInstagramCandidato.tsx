@@ -1,6 +1,7 @@
 // =====================================================
 // PERFIL INSTAGRAM CANDIDATO - Design estilo Instagram
 // Visualização do perfil profissional
+// Suporta modo empresa e modo candidato (com edição)
 // =====================================================
 
 import { useState, useEffect } from "react";
@@ -15,7 +16,6 @@ import {
   Play,
   Briefcase,
   GraduationCap,
-  MapPin,
   Clock,
   Car,
   Plane,
@@ -24,10 +24,17 @@ import {
   CheckCircle,
   Calendar,
   Loader2,
+  Settings,
+  Edit3,
+  Share2,
+  Camera,
+  Check,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +45,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 
 interface PerfilInstagramCandidatoProps {
@@ -46,6 +60,7 @@ interface PerfilInstagramCandidatoProps {
   empresaId?: string;
   onClose?: () => void;
   onAgendarEntrevista?: (candidatoId: string) => void;
+  onPerfilAtualizado?: () => void;
 }
 
 interface Candidato {
@@ -80,6 +95,9 @@ interface Candidato {
   areas_interesse: string[] | null;
   valores_empresa: string[] | null;
   data_nascimento: string | null;
+  status: string | null;
+  email: string | null;
+  telefone: string | null;
 }
 
 interface Destaque {
@@ -96,6 +114,7 @@ export function PerfilInstagramCandidato({
   empresaId,
   onClose,
   onAgendarEntrevista,
+  onPerfilAtualizado,
 }: PerfilInstagramCandidatoProps) {
   const { toast } = useToast();
   const [candidato, setCandidato] = useState<Candidato | null>(null);
@@ -107,11 +126,15 @@ export function PerfilInstagramCandidato({
   const [showAgendarDialog, setShowAgendarDialog] = useState(false);
   const [agendando, setAgendando] = useState(false);
 
+  // Estados para modo candidato
+  const [showEditarPerfil, setShowEditarPerfil] = useState(false);
+  const [showConfiguracoes, setShowConfiguracoes] = useState(false);
+
   useEffect(() => {
     if (candidatoId) {
       carregarPerfil();
       carregarDestaques();
-      if (modoVisualizacao === "empresa") {
+      if (modoVisualizacao === "empresa" && empresaId) {
         registrarVisualizacao();
         verificarSalvo();
       }
@@ -212,44 +235,53 @@ export function PerfilInstagramCandidato({
     }
   };
 
+  const compartilharPerfil = async () => {
+    const url = `${window.location.origin}/c/${candidatoId.substring(0, 8)}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Currículo - ${candidato?.nome_completo}`,
+          text: "Confira meu currículo profissional",
+          url,
+        });
+      } catch (e) {
+        navigator.clipboard.writeText(url);
+        toast({ title: "Link copiado!" });
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      toast({ title: "Link copiado!" });
+    }
+  };
+
   // Cores do DISC - TEXTO COLORIDO SEM FUNDO
   const getCorDISC = (perfil: string) => {
     const letra = perfil.charAt(0).toUpperCase();
     const cores: Record<string, string> = {
-      "D": "text-red-500",
-      "I": "text-yellow-400",
-      "S": "text-green-500",
-      "C": "text-blue-500",
+      D: "text-red-500",
+      I: "text-yellow-400",
+      S: "text-green-500",
+      C: "text-blue-500",
     };
     return cores[letra] || "text-gray-400";
   };
 
   const getNomeDISC = (letra: string) => {
     const nomes: Record<string, string> = {
-      "D": "Dominante",
-      "I": "Influente",
-      "S": "Estável",
-      "C": "Conforme",
+      D: "Dominante",
+      I: "Influente",
+      S: "Estável",
+      C: "Conforme",
     };
     return nomes[letra.toUpperCase()] || letra;
   };
 
   const extrairPerfisDISC = (perfilDisc: string | null) => {
     if (!perfilDisc) return [];
-    return perfilDisc.split("").filter(l => ["D", "I", "S", "C"].includes(l.toUpperCase())).slice(0, 2);
-  };
-
-  const getFaixaSalarialLabel = (faixa: string | null) => {
-    if (!faixa) return null;
-    const faixas: Record<string, string> = {
-      'ate_1500': 'Até R$ 1.500',
-      '1500_2500': 'R$ 1.500 - R$ 2.500',
-      '2500_4000': 'R$ 2.500 - R$ 4.000',
-      '4000_6000': 'R$ 4.000 - R$ 6.000',
-      '6000_10000': 'R$ 6.000 - R$ 10.000',
-      'acima_10000': 'Acima de R$ 10.000',
-    };
-    return faixas[faixa] || faixa;
+    return perfilDisc
+      .split("")
+      .filter((l) => ["D", "I", "S", "C"].includes(l.toUpperCase()))
+      .slice(0, 2);
   };
 
   if (loading) {
@@ -288,11 +320,10 @@ export function PerfilInstagramCandidato({
 
       {/* Conteúdo Principal */}
       <div className="px-6 pb-8">
-
         {/* Foto + Estatísticas - Layout horizontal */}
         <div className="flex items-start gap-6 mb-6">
           {/* Foto com borda gradiente estilo Instagram */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 relative">
             <div className="w-24 h-24 rounded-full p-[3px] bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600">
               <div className="w-full h-full rounded-full bg-black p-[2px]">
                 <img
@@ -300,11 +331,20 @@ export function PerfilInstagramCandidato({
                   alt={candidato.nome_completo}
                   className="w-full h-full rounded-full object-cover"
                   onError={(e) => {
-                    e.currentTarget.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(candidato.nome_completo) + "&background=374151&color=fff";
+                    e.currentTarget.src =
+                      "https://ui-avatars.com/api/?name=" +
+                      encodeURIComponent(candidato.nome_completo) +
+                      "&background=374151&color=fff";
                   }}
                 />
               </div>
             </div>
+            {/* Botão de câmera para candidato */}
+            {modoVisualizacao === "candidato" && (
+              <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center border-2 border-black">
+                <Camera className="w-4 h-4 text-white" />
+              </button>
+            )}
           </div>
 
           {/* Estatísticas ao lado da foto */}
@@ -351,7 +391,9 @@ export function PerfilInstagramCandidato({
           {/* Localização - NEGRITO */}
           {(candidato.cidade || candidato.estado) && (
             <p className="text-white font-semibold text-sm mt-1">
-              {candidato.cidade}{candidato.cidade && candidato.estado && " - "}{candidato.estado}
+              {candidato.cidade}
+              {candidato.cidade && candidato.estado && " - "}
+              {candidato.estado}
             </p>
           )}
         </div>
@@ -360,20 +402,16 @@ export function PerfilInstagramCandidato({
         {perfisDISC.length > 0 && (
           <div className="flex gap-4 mb-6">
             {perfisDISC.map((letra, index) => (
-              <span
-                key={index}
-                className={`text-lg font-semibold ${getCorDISC(letra)}`}
-              >
+              <span key={index} className={`text-lg font-semibold ${getCorDISC(letra)}`}>
                 {getNomeDISC(letra)}
               </span>
             ))}
           </div>
         )}
 
-        {/* Botões de Ação - Fundo branco, ícone/texto preto */}
+        {/* Botões de Ação - MODO EMPRESA */}
         {modoVisualizacao === "empresa" && (
           <div className="flex gap-3 mb-8">
-            {/* Botão Olho - Ver Currículo */}
             <Button
               variant="outline"
               className="flex-1 h-12 bg-white hover:bg-gray-100 text-black border-0 rounded-lg"
@@ -381,8 +419,6 @@ export function PerfilInstagramCandidato({
             >
               <Eye className="w-6 h-6 text-black" />
             </Button>
-
-            {/* Botão Agendar Entrevista */}
             <Button
               variant="outline"
               className="flex-[2] h-12 bg-white hover:bg-gray-100 text-black border-0 rounded-lg font-medium"
@@ -390,8 +426,6 @@ export function PerfilInstagramCandidato({
             >
               Agendar Entrevista
             </Button>
-
-            {/* Botão Salvar/Favoritar */}
             <Button
               variant="outline"
               className="h-12 w-12 bg-white hover:bg-gray-100 text-black border-0 rounded-lg p-0"
@@ -405,6 +439,39 @@ export function PerfilInstagramCandidato({
               ) : (
                 <Bookmark className="w-6 h-6 text-black" />
               )}
+            </Button>
+          </div>
+        )}
+
+        {/* Botões de Ação - MODO CANDIDATO */}
+        {modoVisualizacao === "candidato" && (
+          <div className="flex gap-3 mb-8">
+            {/* Botão Editar Perfil */}
+            <Button
+              variant="outline"
+              className="flex-1 h-12 bg-white hover:bg-gray-100 text-black border-0 rounded-lg font-medium"
+              onClick={() => setShowEditarPerfil(true)}
+            >
+              <Edit3 className="w-5 h-5 mr-2" />
+              Editar Perfil
+            </Button>
+
+            {/* Botão Compartilhar */}
+            <Button
+              variant="outline"
+              className="h-12 w-12 bg-white hover:bg-gray-100 text-black border-0 rounded-lg p-0"
+              onClick={compartilharPerfil}
+            >
+              <Share2 className="w-5 h-5" />
+            </Button>
+
+            {/* Botão Configurações */}
+            <Button
+              variant="outline"
+              className="h-12 w-12 bg-transparent border border-gray-600 text-white hover:bg-gray-800 rounded-lg p-0"
+              onClick={() => setShowConfiguracoes(true)}
+            >
+              <Settings className="w-5 h-5" />
             </Button>
           </div>
         )}
@@ -426,7 +493,9 @@ export function PerfilInstagramCandidato({
             <DestaqueCirculo
               key={destaque.id}
               destaque={destaque}
-              onClick={() => {/* TODO: Abrir visualizador */}}
+              onClick={() => {
+                /* TODO: Abrir visualizador */
+              }}
             />
           ))}
 
@@ -443,9 +512,30 @@ export function PerfilInstagramCandidato({
 
       {/* Modal Currículo Completo */}
       {showCurriculo && (
-        <ModalCurriculoCompleto
+        <ModalCurriculoCompleto candidato={candidato} onClose={() => setShowCurriculo(false)} />
+      )}
+
+      {/* Modal Editar Perfil - MODO CANDIDATO */}
+      {showEditarPerfil && (
+        <ModalEditarPerfil
           candidato={candidato}
-          onClose={() => setShowCurriculo(false)}
+          onClose={() => setShowEditarPerfil(false)}
+          onSalvo={() => {
+            carregarPerfil();
+            onPerfilAtualizado?.();
+          }}
+        />
+      )}
+
+      {/* Modal Configurações - MODO CANDIDATO */}
+      {showConfiguracoes && (
+        <ModalConfiguracoesCandidato
+          candidato={candidato}
+          onClose={() => setShowConfiguracoes(false)}
+          onSalvo={() => {
+            carregarPerfil();
+            onPerfilAtualizado?.();
+          }}
         />
       )}
 
@@ -460,8 +550,8 @@ export function PerfilInstagramCandidato({
             <AlertDialogDescription className="text-slate-400">
               Deseja enviar uma solicitação de entrevista para{" "}
               <span className="text-white font-medium">{candidato.nome_completo}</span>?
-              <br />
-              O candidato receberá uma notificação e poderá confirmar ou sugerir outro horário.
+              <br />O candidato receberá uma notificação e poderá confirmar ou sugerir outro
+              horário.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -489,13 +579,284 @@ export function PerfilInstagramCandidato({
   );
 }
 
+// =====================================================
+// MODAL EDITAR PERFIL
+// =====================================================
+function ModalEditarPerfil({
+  candidato,
+  onClose,
+  onSalvo,
+}: {
+  candidato: Candidato;
+  onClose: () => void;
+  onSalvo: () => void;
+}) {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    nome_completo: candidato.nome_completo || "",
+    headline: candidato.headline || "",
+    bio: candidato.bio || "",
+    cidade: candidato.cidade || "",
+    estado: candidato.estado || "",
+    objetivo_profissional: candidato.objetivo_profissional || "",
+  });
+
+  const handleSalvar = async () => {
+    setLoading(true);
+
+    const { error } = await supabase
+      .from("candidatos_recrutamento")
+      .update({
+        nome_completo: form.nome_completo,
+        headline: form.headline,
+        bio: form.bio,
+        cidade: form.cidade,
+        estado: form.estado,
+        objetivo_profissional: form.objetivo_profissional,
+      })
+      .eq("id", candidato.id);
+
+    if (error) {
+      toast({ title: "Erro ao salvar perfil", variant: "destructive" });
+    } else {
+      toast({ title: "Perfil atualizado!" });
+      onSalvo();
+      onClose();
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={() => onClose()}>
+      <DialogContent className="bg-gray-900 border-gray-700 max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-white">Editar Perfil</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          {/* Foto */}
+          <div className="flex justify-center mb-4">
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full bg-gray-700 overflow-hidden">
+                {candidato.foto_url ? (
+                  <img
+                    src={candidato.foto_url}
+                    className="w-full h-full object-cover"
+                    alt="Perfil"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-3xl text-gray-400">
+                    {candidato.nome_completo?.[0] || "?"}
+                  </div>
+                )}
+              </div>
+              <button className="absolute bottom-0 right-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                <Camera className="w-4 h-4 text-white" />
+              </button>
+            </div>
+          </div>
+
+          {/* Nome */}
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Nome Completo</label>
+            <Input
+              value={form.nome_completo}
+              onChange={(e) => setForm({ ...form, nome_completo: e.target.value })}
+              className="bg-gray-800 border-gray-700 text-white"
+            />
+          </div>
+
+          {/* Headline */}
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Título Profissional</label>
+            <Input
+              value={form.headline}
+              onChange={(e) => setForm({ ...form, headline: e.target.value })}
+              placeholder="Ex: Social Media, Vendedor, Designer..."
+              className="bg-gray-800 border-gray-700 text-white"
+            />
+          </div>
+
+          {/* Bio */}
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Bio</label>
+            <Textarea
+              value={form.bio}
+              onChange={(e) => setForm({ ...form, bio: e.target.value })}
+              placeholder="Conte um pouco sobre você..."
+              className="bg-gray-800 border-gray-700 text-white resize-none"
+              rows={3}
+            />
+          </div>
+
+          {/* Objetivo */}
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Objetivo Profissional</label>
+            <Textarea
+              value={form.objetivo_profissional}
+              onChange={(e) => setForm({ ...form, objetivo_profissional: e.target.value })}
+              placeholder="O que você busca..."
+              className="bg-gray-800 border-gray-700 text-white resize-none"
+              rows={2}
+            />
+          </div>
+
+          {/* Cidade e Estado */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Cidade</label>
+              <Input
+                value={form.cidade}
+                onChange={(e) => setForm({ ...form, cidade: e.target.value })}
+                className="bg-gray-800 border-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Estado</label>
+              <Input
+                value={form.estado}
+                onChange={(e) => setForm({ ...form, estado: e.target.value.toUpperCase() })}
+                className="bg-gray-800 border-gray-700 text-white"
+                maxLength={2}
+              />
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} className="border-gray-600 text-white">
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSalvar}
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// =====================================================
+// MODAL CONFIGURAÇÕES
+// =====================================================
+function ModalConfiguracoesCandidato({
+  candidato,
+  onClose,
+  onSalvo,
+}: {
+  candidato: Candidato;
+  onClose: () => void;
+  onSalvo: () => void;
+}) {
+  const { toast } = useToast();
+  const [status, setStatus] = useState(candidato.status || "disponivel");
+  const [loading, setLoading] = useState(false);
+
+  const STATUS_OPTIONS = [
+    {
+      value: "disponivel",
+      label: "Disponível para o mercado",
+      desc: "Empresas podem ver seu perfil e enviar propostas",
+      cor: "text-green-500",
+    },
+    {
+      value: "pausado",
+      label: "Pausado",
+      desc: "Você não aparece para empresas",
+      cor: "text-gray-400",
+    },
+    {
+      value: "contratado",
+      label: "Fui recrutado",
+      desc: "Marque se você foi contratado",
+      cor: "text-blue-500",
+    },
+  ];
+
+  const handleSalvar = async () => {
+    setLoading(true);
+
+    const { error } = await supabase
+      .from("candidatos_recrutamento")
+      .update({
+        status,
+        visivel_empresas: status === "disponivel",
+      })
+      .eq("id", candidato.id);
+
+    if (error) {
+      toast({ title: "Erro ao salvar", variant: "destructive" });
+    } else {
+      toast({ title: "Configurações atualizadas!" });
+      onSalvo();
+      onClose();
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={() => onClose()}>
+      <DialogContent className="bg-gray-900 border-gray-700 max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-white">Configurações</DialogTitle>
+        </DialogHeader>
+
+        <div className="py-4">
+          <h3 className="text-sm font-medium text-gray-400 mb-3">Status do Perfil</h3>
+
+          <div className="space-y-2">
+            {STATUS_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => setStatus(option.value)}
+                className={`w-full p-4 rounded-xl text-left transition-colors ${
+                  status === option.value
+                    ? "bg-gray-800 border border-gray-600"
+                    : "bg-gray-800/50 border border-transparent hover:bg-gray-800"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`font-medium ${option.cor}`}>● {option.label}</p>
+                    <p className="text-sm text-gray-500">{option.desc}</p>
+                  </div>
+                  {status === option.value && <Check className="w-5 h-5 text-green-500" />}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} className="border-gray-600 text-white">
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSalvar}
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // Componente do círculo de destaque
 function DestaqueCirculo({ destaque, onClick }: { destaque: Destaque; onClick: () => void }) {
   const thumbnail = destaque.midias?.[0]?.url;
 
   return (
     <button onClick={onClick} className="flex flex-col items-center gap-2 min-w-[70px]">
-      {/* Círculo com fundo azul escuro */}
       <div className="w-16 h-16 rounded-full bg-blue-900 flex items-center justify-center overflow-hidden">
         {thumbnail ? (
           <img src={thumbnail} alt="" className="w-full h-full object-cover" />
@@ -521,27 +882,33 @@ function DestaqueCirculoPadrao({ icone, titulo }: { icone: string; titulo: strin
 }
 
 // Modal do Currículo Completo
-function ModalCurriculoCompleto({ candidato, onClose }: { candidato: Candidato; onClose: () => void }) {
+function ModalCurriculoCompleto({
+  candidato,
+  onClose,
+}: {
+  candidato: Candidato;
+  onClose: () => void;
+}) {
   const getFaixaSalarialLabel = (faixa: string | null) => {
-    if (!faixa) return 'Não informado';
+    if (!faixa) return "Não informado";
     const faixas: Record<string, string> = {
-      'ate_1500': 'Até R$ 1.500',
-      '1500_2500': 'R$ 1.500 - R$ 2.500',
-      '2500_4000': 'R$ 2.500 - R$ 4.000',
-      '4000_6000': 'R$ 4.000 - R$ 6.000',
-      '6000_10000': 'R$ 6.000 - R$ 10.000',
-      'acima_10000': 'Acima de R$ 10.000',
+      ate_1500: "Até R$ 1.500",
+      "1500_2500": "R$ 1.500 - R$ 2.500",
+      "2500_4000": "R$ 2.500 - R$ 4.000",
+      "4000_6000": "R$ 4.000 - R$ 6.000",
+      "6000_10000": "R$ 6.000 - R$ 10.000",
+      acima_10000: "Acima de R$ 10.000",
     };
     return faixas[faixa] || faixa;
   };
 
   const getDisponibilidadeLabel = (disp: string | null) => {
-    if (!disp) return 'Não informado';
+    if (!disp) return "Não informado";
     const disps: Record<string, string> = {
-      'imediata': 'Imediata',
-      '15_dias': 'Em 15 dias',
-      '30_dias': 'Em 30 dias',
-      'a_combinar': 'A combinar',
+      imediata: "Imediata",
+      "15_dias": "Em 15 dias",
+      "30_dias": "Em 30 dias",
+      a_combinar: "A combinar",
     };
     return disps[disp] || disp;
   };
@@ -584,8 +951,12 @@ function ModalCurriculoCompleto({ candidato, onClose }: { candidato: Candidato; 
               Experiência Profissional
             </h3>
             <div className="bg-slate-700/50 rounded-lg p-3">
-              <p className="text-white font-medium">{candidato.ultimo_cargo || 'Não informado'}</p>
-              <p className="text-gray-400 text-sm">{candidato.ultima_empresa || 'Não informado'}</p>
+              <p className="text-white font-medium">
+                {candidato.ultimo_cargo || "Não informado"}
+              </p>
+              <p className="text-gray-400 text-sm">
+                {candidato.ultima_empresa || "Não informado"}
+              </p>
               {candidato.tempo_ultima_empresa && (
                 <p className="text-gray-500 text-xs mt-1">
                   Período: {candidato.tempo_ultima_empresa}
@@ -609,10 +980,8 @@ function ModalCurriculoCompleto({ candidato, onClose }: { candidato: Candidato; 
               <GraduationCap className="w-4 h-4 mr-2" />
               Formação
             </h3>
-            <p className="text-white">{candidato.escolaridade || 'Não informado'}</p>
-            {candidato.curso && (
-              <p className="text-gray-400 text-sm">{candidato.curso}</p>
-            )}
+            <p className="text-white">{candidato.escolaridade || "Não informado"}</p>
+            {candidato.curso && <p className="text-gray-400 text-sm">{candidato.curso}</p>}
           </div>
 
           {/* Disponibilidade */}
@@ -630,11 +999,15 @@ function ModalCurriculoCompleto({ candidato, onClose }: { candidato: Candidato; 
               </div>
               <div className="bg-slate-700/50 rounded-lg p-3">
                 <p className="text-xs text-gray-500">Horário</p>
-                <p className="text-white text-sm">{candidato.disponibilidade_horario || 'Não informado'}</p>
+                <p className="text-white text-sm">
+                  {candidato.disponibilidade_horario || "Não informado"}
+                </p>
               </div>
               <div className="bg-slate-700/50 rounded-lg p-3">
                 <p className="text-xs text-gray-500">Regime</p>
-                <p className="text-white text-sm capitalize">{candidato.regime_preferido || 'Não informado'}</p>
+                <p className="text-white text-sm capitalize">
+                  {candidato.regime_preferido || "Não informado"}
+                </p>
               </div>
               <div className="bg-slate-700/50 rounded-lg p-3">
                 <p className="text-xs text-gray-500">Pretensão</p>
@@ -696,8 +1069,7 @@ function ModalCurriculoCompleto({ candidato, onClose }: { candidato: Candidato; 
           {candidato.valores_empresa && candidato.valores_empresa.length > 0 && (
             <div className="bg-slate-800/60 rounded-xl p-4">
               <h3 className="text-sm font-medium text-gray-400 mb-2 flex items-center">
-                <CheckCircle className="w-4 h-4 mr-2" />
-                O que busca em uma empresa
+                <CheckCircle className="w-4 h-4 mr-2" />O que busca em uma empresa
               </h3>
               <div className="flex flex-wrap gap-2">
                 {candidato.valores_empresa.map((valor, i) => (
