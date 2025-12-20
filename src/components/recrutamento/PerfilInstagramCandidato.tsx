@@ -2,9 +2,10 @@
 // PERFIL INSTAGRAM CANDIDATO - Design estilo Instagram
 // Visualização do perfil profissional
 // Suporta modo empresa e modo candidato (com edição)
+// Integração com Cloudflare R2 para uploads
 // =====================================================
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Bell,
   MoreVertical,
@@ -29,6 +30,7 @@ import {
   Share2,
   Camera,
   Check,
+  Video,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -53,6 +55,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useUploadMidia } from "@/hooks/useUploadMidia";
+import { ModalAdicionarDestaque } from "./ModalAdicionarDestaque";
 
 interface PerfilInstagramCandidatoProps {
   candidatoId: string;
@@ -129,6 +133,8 @@ export function PerfilInstagramCandidato({
   // Estados para modo candidato
   const [showEditarPerfil, setShowEditarPerfil] = useState(false);
   const [showConfiguracoes, setShowConfiguracoes] = useState(false);
+  const [showAdicionarDestaque, setShowAdicionarDestaque] = useState(false);
+  const [showVisualizarDestaque, setShowVisualizarDestaque] = useState<Destaque | null>(null);
 
   useEffect(() => {
     if (candidatoId) {
@@ -341,7 +347,10 @@ export function PerfilInstagramCandidato({
             </div>
             {/* Botão de câmera para candidato */}
             {modoVisualizacao === "candidato" && (
-              <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center border-2 border-black">
+              <button
+                onClick={() => setShowEditarPerfil(true)}
+                className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center border-2 border-black"
+              >
                 <Camera className="w-4 h-4 text-white" />
               </button>
             )}
@@ -481,7 +490,10 @@ export function PerfilInstagramCandidato({
           {/* Botão Adicionar - só para candidato */}
           {modoVisualizacao === "candidato" && (
             <div className="flex flex-col items-center gap-2 min-w-[70px]">
-              <button className="w-16 h-16 rounded-full border-2 border-dashed border-gray-500 flex items-center justify-center hover:border-gray-400 transition-colors">
+              <button
+                onClick={() => setShowAdicionarDestaque(true)}
+                className="w-16 h-16 rounded-full border-2 border-dashed border-gray-500 flex items-center justify-center hover:border-gray-400 transition-colors"
+              >
                 <Plus className="w-6 h-6 text-gray-500" />
               </button>
               <span className="text-xs text-gray-400">Adicionar</span>
@@ -493,14 +505,12 @@ export function PerfilInstagramCandidato({
             <DestaqueCirculo
               key={destaque.id}
               destaque={destaque}
-              onClick={() => {
-                /* TODO: Abrir visualizador */
-              }}
+              onClick={() => setShowVisualizarDestaque(destaque)}
             />
           ))}
 
           {/* Destaques padrão se não houver */}
-          {destaques.length === 0 && (
+          {destaques.length === 0 && modoVisualizacao === "empresa" && (
             <>
               <DestaqueCirculoPadrao icone="📋" titulo="Projetos" />
               <DestaqueCirculoPadrao icone="🎬" titulo="Trabalhos" />
@@ -536,6 +546,25 @@ export function PerfilInstagramCandidato({
             carregarPerfil();
             onPerfilAtualizado?.();
           }}
+        />
+      )}
+
+      {/* Modal Adicionar Destaque */}
+      <ModalAdicionarDestaque
+        candidatoId={candidatoId}
+        isOpen={showAdicionarDestaque}
+        onClose={() => setShowAdicionarDestaque(false)}
+        onDestaqueAdicionado={() => {
+          carregarDestaques();
+          onPerfilAtualizado?.();
+        }}
+      />
+
+      {/* Modal Visualizar Destaque */}
+      {showVisualizarDestaque && (
+        <ModalVisualizarDestaque
+          destaque={showVisualizarDestaque}
+          onClose={() => setShowVisualizarDestaque(null)}
         />
       )}
 
@@ -580,7 +609,7 @@ export function PerfilInstagramCandidato({
 }
 
 // =====================================================
-// MODAL EDITAR PERFIL
+// MODAL EDITAR PERFIL - COM UPLOAD DE FOTO E VÍDEO
 // =====================================================
 function ModalEditarPerfil({
   candidato,
@@ -592,7 +621,13 @@ function ModalEditarPerfil({
   onSalvo: () => void;
 }) {
   const { toast } = useToast();
+  const { uploadMidia, uploading, progress } = useUploadMidia();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+
   const [loading, setLoading] = useState(false);
+  const [fotoUrl, setFotoUrl] = useState(candidato.foto_url);
+  const [videoUrl, setVideoUrl] = useState(candidato.video_url);
   const [form, setForm] = useState({
     nome_completo: candidato.nome_completo || "",
     headline: candidato.headline || "",
@@ -601,6 +636,64 @@ function ModalEditarPerfil({
     estado: candidato.estado || "",
     objetivo_profissional: candidato.objetivo_profissional || "",
   });
+
+  const handleFotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Formato inválido",
+        description: "Selecione uma imagem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "A imagem deve ter no máximo 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const result = await uploadMidia(file, candidato.id, "fotos-perfil");
+    if (result) {
+      setFotoUrl(result.url);
+      toast({ title: "Foto enviada!" });
+    }
+  };
+
+  const handleVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("video/")) {
+      toast({
+        title: "Formato inválido",
+        description: "Selecione um vídeo.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 100 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O vídeo deve ter no máximo 100MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const result = await uploadMidia(file, candidato.id, "videos");
+    if (result) {
+      setVideoUrl(result.url);
+      toast({ title: "Vídeo enviado!" });
+    }
+  };
 
   const handleSalvar = async () => {
     setLoading(true);
@@ -614,6 +707,8 @@ function ModalEditarPerfil({
         cidade: form.cidade,
         estado: form.estado,
         objetivo_profissional: form.objetivo_profissional,
+        foto_url: fotoUrl,
+        video_url: videoUrl,
       })
       .eq("id", candidato.id);
 
@@ -636,27 +731,87 @@ function ModalEditarPerfil({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* Foto */}
-          <div className="flex justify-center mb-4">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-gray-700 overflow-hidden">
-                {candidato.foto_url ? (
-                  <img
-                    src={candidato.foto_url}
-                    className="w-full h-full object-cover"
-                    alt="Perfil"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-3xl text-gray-400">
-                    {candidato.nome_completo?.[0] || "?"}
-                  </div>
-                )}
+          {/* Foto e Vídeo */}
+          <div className="flex gap-4 justify-center mb-4">
+            {/* Foto */}
+            <div className="text-center">
+              <div className="relative inline-block">
+                <div className="w-20 h-20 rounded-full bg-gray-700 overflow-hidden">
+                  {fotoUrl ? (
+                    <img src={fotoUrl} className="w-full h-full object-cover" alt="Perfil" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-2xl text-gray-400">
+                      {candidato.nome_completo?.[0] || "?"}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="absolute bottom-0 right-0 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center"
+                >
+                  {uploading ? (
+                    <Loader2 className="w-3 h-3 text-white animate-spin" />
+                  ) : (
+                    <Camera className="w-3 h-3 text-white" />
+                  )}
+                </button>
               </div>
-              <button className="absolute bottom-0 right-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <Camera className="w-4 h-4 text-white" />
-              </button>
+              <p className="text-xs text-gray-500 mt-1">Foto</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFotoSelect}
+                className="hidden"
+              />
+            </div>
+
+            {/* Vídeo */}
+            <div className="text-center">
+              <div className="relative inline-block">
+                <div className="w-20 h-20 rounded-lg bg-gray-700 overflow-hidden flex items-center justify-center">
+                  {videoUrl ? (
+                    <video src={videoUrl} className="w-full h-full object-cover" />
+                  ) : (
+                    <Video className="w-8 h-8 text-gray-500" />
+                  )}
+                </div>
+                <button
+                  onClick={() => videoInputRef.current?.click()}
+                  disabled={uploading}
+                  className="absolute bottom-0 right-0 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center"
+                >
+                  {uploading ? (
+                    <Loader2 className="w-3 h-3 text-white animate-spin" />
+                  ) : (
+                    <Video className="w-3 h-3 text-white" />
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Vídeo</p>
+              <input
+                ref={videoInputRef}
+                type="file"
+                accept="video/*"
+                onChange={handleVideoSelect}
+                className="hidden"
+              />
             </div>
           </div>
+
+          {/* Progress bar */}
+          {uploading && (
+            <div className="mb-4">
+              <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-500 transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="text-center text-xs text-gray-400 mt-1">Enviando... {progress}%</p>
+            </div>
+          )}
 
           {/* Nome */}
           <div>
@@ -731,7 +886,7 @@ function ModalEditarPerfil({
           </Button>
           <Button
             onClick={handleSalvar}
-            disabled={loading}
+            disabled={loading || uploading}
             className="bg-blue-600 hover:bg-blue-700"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
@@ -848,6 +1003,109 @@ function ModalConfiguracoesCandidato({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// =====================================================
+// MODAL VISUALIZAR DESTAQUE
+// =====================================================
+function ModalVisualizarDestaque({
+  destaque,
+  onClose,
+}: {
+  destaque: Destaque;
+  onClose: () => void;
+}) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const midias = destaque.midias || [];
+
+  const proximo = () => {
+    if (currentIndex < midias.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      onClose();
+    }
+  };
+
+  const anterior = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  if (midias.length === 0) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <button onClick={onClose} className="absolute top-4 right-4 text-white">
+          <X className="w-8 h-8" />
+        </button>
+        <p className="text-white">Nenhuma mídia neste destaque</p>
+      </div>
+    );
+  }
+
+  const midiaAtual = midias[currentIndex];
+
+  return (
+    <div className="fixed inset-0 bg-black z-50 flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-xl">
+            {destaque.icone}
+          </div>
+          <span className="text-white font-medium">{destaque.titulo}</span>
+        </div>
+        <button onClick={onClose} className="text-white">
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Progress bar */}
+      <div className="flex gap-1 px-4">
+        {midias.map((_, index) => (
+          <div
+            key={index}
+            className={`h-1 flex-1 rounded-full ${
+              index <= currentIndex ? "bg-white" : "bg-gray-600"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Conteúdo */}
+      <div className="flex-1 flex items-center justify-center relative">
+        {/* Área de clique esquerda */}
+        <button
+          onClick={anterior}
+          className="absolute left-0 top-0 bottom-0 w-1/3 z-10"
+        />
+
+        {/* Mídia */}
+        <div className="w-full h-full flex items-center justify-center p-4">
+          {midiaAtual.tipo === "foto" || midiaAtual.tipo === "imagem" ? (
+            <img
+              src={midiaAtual.url}
+              alt=""
+              className="max-w-full max-h-full object-contain"
+            />
+          ) : (
+            <video
+              src={midiaAtual.url}
+              controls
+              autoPlay
+              className="max-w-full max-h-full"
+            />
+          )}
+        </div>
+
+        {/* Área de clique direita */}
+        <button
+          onClick={proximo}
+          className="absolute right-0 top-0 bottom-0 w-1/3 z-10"
+        />
+      </div>
+    </div>
   );
 }
 
