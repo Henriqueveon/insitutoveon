@@ -57,7 +57,7 @@ import {
   Sparkles,
   TrendingUp,
 } from 'lucide-react';
-import CandidatoPerfilModal from '../components/CandidatoPerfilModal';
+import { PerfilInstagramCandidato } from '@/components/recrutamento/PerfilInstagramCandidato';
 // CurriculoCompletoModal removido - agora usa página dedicada
 import ProfissionalCard, { calcularMatchSimples } from '../components/ProfissionalCard';
 import CadastroIncompletoModal from '../components/CadastroIncompletoModal';
@@ -1159,15 +1159,21 @@ export default function BuscarCandidatos() {
         </SheetContent>
       </Sheet>
 
-      {/* Modal de Perfil (para enviar proposta) */}
-      <CandidatoPerfilModal
-        candidato={candidatoSelecionado as any}
-        isOpen={modalAberto}
-        onClose={fecharModal}
-        empresa={empresa}
-        isFavorito={candidatoSelecionado ? favoritos.includes(candidatoSelecionado.id) : false}
-        onToggleFavorito={toggleFavorito}
-      />
+      {/* Modal de Perfil Instagram */}
+      {modalAberto && candidatoSelecionado && (
+        <div className="fixed inset-0 z-50 bg-black">
+          <PerfilInstagramCandidato
+            candidatoId={candidatoSelecionado.id}
+            modoVisualizacao="empresa"
+            empresaId={empresa?.id}
+            onClose={fecharModal}
+            onAgendarEntrevista={(id) => {
+              // TODO: Implementar agendamento
+              console.log('Agendar entrevista para:', id);
+            }}
+          />
+        </div>
+      )}
 
       {/* Modal Cadastro Incompleto */}
       <CadastroIncompletoModal
