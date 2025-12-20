@@ -50,6 +50,12 @@ export function RequireEmailVerificado({
     tipo,
   });
 
+  // Sem ID de usuário - mostrar loading ou retornar children
+  if (!candidatoId && !empresaId) {
+    // Retorna children se não há ID (deixa o componente pai lidar)
+    return <>{children}</>;
+  }
+
   // Loading
   if (isLoading) {
     return (

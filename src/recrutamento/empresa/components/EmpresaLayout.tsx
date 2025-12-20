@@ -40,6 +40,7 @@ import {
   Info,
 } from 'lucide-react';
 import NotificationBell from '@/components/recrutamento/NotificationBell';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 interface Empresa {
   id: string;
@@ -355,7 +356,9 @@ export default function EmpresaLayout() {
 
         {/* ==================== PAGE CONTENT ==================== */}
         <main className="flex-1 px-4 py-4 pb-24 lg:pb-6 lg:px-6">
-          <Outlet context={{ empresa, recarregarEmpresa: carregarEmpresa }} />
+          <ErrorBoundary>
+            <Outlet context={{ empresa, recarregarEmpresa: carregarEmpresa }} />
+          </ErrorBoundary>
         </main>
 
         {/* ==================== BOTTOM NAV MOBILE ==================== */}

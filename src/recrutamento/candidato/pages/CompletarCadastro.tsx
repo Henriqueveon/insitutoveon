@@ -877,6 +877,15 @@ export default function CompletarCadastro() {
 
   const progresso = calcularProgresso();
 
+  // Aguardar contexto do candidato
+  if (!candidatoContext) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-[#E31E24]" />
+      </div>
+    );
+  }
+
   return (
     <RequireEmailVerificado
       candidatoId={candidatoContext?.id}

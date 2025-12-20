@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import NotificationBell from '@/components/recrutamento/NotificationBell';
 import { StatusBadge } from './StatusIndicador';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 interface Candidato {
   id: string;
@@ -216,7 +217,9 @@ export default function CandidatoLayout() {
 
       {/* Page Content - Mais padding */}
       <main className="flex-1 px-4 py-5 pb-24">
-        <Outlet context={{ candidato, recarregarCandidato: carregarCandidato, propostasNovas }} />
+        <ErrorBoundary>
+          <Outlet context={{ candidato, recarregarCandidato: carregarCandidato, propostasNovas }} />
+        </ErrorBoundary>
       </main>
 
       {/* Bottom Navigation - Instagram Style */}
