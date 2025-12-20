@@ -127,7 +127,11 @@ export default function CompletarCadastro() {
         esta_trabalhando: candidatoContext.esta_trabalhando,
         salario_atual: candidatoContext.salario_atual || '',
         regime_atual: candidatoContext.regime_atual || '',
-        motivos_busca: candidatoContext.motivo_busca_oportunidade?.split(', ') || [],
+        motivos_busca: Array.isArray(candidatoContext.motivo_busca_oportunidade)
+          ? candidatoContext.motivo_busca_oportunidade
+          : (typeof candidatoContext.motivo_busca_oportunidade === 'string'
+              ? candidatoContext.motivo_busca_oportunidade.split(', ')
+              : []),
         disponibilidade_inicio: candidatoContext.disponibilidade_inicio || '',
         regime_preferido: candidatoContext.regime_preferido || '',
 
@@ -148,7 +152,11 @@ export default function CompletarCadastro() {
         veiculo: candidatoContext.possui_veiculo || '',
         cnh: candidatoContext.possui_cnh || [],
         cnh_em_processo: false,
-        disponibilidade_horario: candidatoContext.disponibilidade_horario?.split(', ') || [],
+        disponibilidade_horario: Array.isArray(candidatoContext.disponibilidade_horario)
+          ? candidatoContext.disponibilidade_horario
+          : (typeof candidatoContext.disponibilidade_horario === 'string'
+              ? candidatoContext.disponibilidade_horario.split(', ')
+              : []),
         aceita_viajar: candidatoContext.aceita_viajar || '',
         aceita_mudanca: candidatoContext.aceita_mudanca || '',
 
