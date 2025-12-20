@@ -135,16 +135,14 @@ export function gerarCaminhoArquivo(
  * Validar arquivo antes do upload
  * @param file - Arquivo a ser validado
  * @param tipo - Tipo de upload
+ * NOTA: Sem limite de tamanho - Cloudflare R2 aceita arquivos grandes
  */
 export function validarArquivo(
   file: File,
   tipo: "imagem" | "video"
 ): { valido: boolean; erro?: string } {
-  const maxSizeImagem = 10 * 1024 * 1024; // 10MB
-  const maxSizeVideo = 100 * 1024 * 1024; // 100MB
-
   const tiposImagemPermitidos = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-  const tiposVideoPermitidos = ["video/mp4", "video/webm", "video/quicktime"];
+  const tiposVideoPermitidos = ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo", "video/avi"];
 
   if (tipo === "imagem") {
     if (!tiposImagemPermitidos.includes(file.type)) {
@@ -153,25 +151,13 @@ export function validarArquivo(
         erro: "Formato de imagem não suportado. Use JPG, PNG, WebP ou GIF.",
       };
     }
-    if (file.size > maxSizeImagem) {
-      return {
-        valido: false,
-        erro: "Imagem muito grande. O tamanho máximo é 10MB.",
-      };
-    }
   }
 
   if (tipo === "video") {
     if (!tiposVideoPermitidos.includes(file.type)) {
       return {
         valido: false,
-        erro: "Formato de vídeo não suportado. Use MP4, WebM ou MOV.",
-      };
-    }
-    if (file.size > maxSizeVideo) {
-      return {
-        valido: false,
-        erro: "Vídeo muito grande. O tamanho máximo é 100MB.",
+        erro: "Formato de vídeo não suportado. Use MP4, WebM, MOV ou AVI.",
       };
     }
   }

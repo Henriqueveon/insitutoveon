@@ -82,17 +82,6 @@ export function ModalAdicionarDestaque({
         return;
       }
 
-      // Validar tamanho
-      const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
-      if (file.size > maxSize) {
-        toast({
-          title: "Arquivo muito grande",
-          description: `${isVideo ? "Vídeos" : "Imagens"} devem ter no máximo ${isVideo ? "100MB" : "10MB"}.`,
-          variant: "destructive",
-        });
-        return;
-      }
-
       novasMidias.push({
         file,
         preview: URL.createObjectURL(file),
@@ -295,7 +284,7 @@ export function ModalAdicionarDestaque({
             </div>
             <p className="text-gray-400">Adicionar fotos ou vídeos</p>
             <p className="text-xs text-gray-500 mt-1">
-              Fotos até 10MB, vídeos até 100MB
+              JPG, PNG, WebP, GIF, MP4, WebM, MOV
             </p>
           </button>
 

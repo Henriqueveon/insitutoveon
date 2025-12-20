@@ -65,16 +65,6 @@ export function UploadFotoPerfil({
       return;
     }
 
-    // Validar tamanho (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "Arquivo muito grande",
-        description: "A imagem deve ter no máximo 10MB",
-        variant: "destructive",
-      });
-      return;
-    }
-
     // Criar preview
     const reader = new FileReader();
     reader.onloadend = () => {

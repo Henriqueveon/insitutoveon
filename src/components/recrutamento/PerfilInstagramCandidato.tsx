@@ -644,16 +644,7 @@ function ModalEditarPerfil({
     if (!file.type.startsWith("image/")) {
       toast({
         title: "Formato inválido",
-        description: "Selecione uma imagem.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "Arquivo muito grande",
-        description: "A imagem deve ter no máximo 10MB.",
+        description: "Selecione uma imagem (JPG, PNG, WebP ou GIF).",
         variant: "destructive",
       });
       return;
@@ -673,16 +664,7 @@ function ModalEditarPerfil({
     if (!file.type.startsWith("video/")) {
       toast({
         title: "Formato inválido",
-        description: "Selecione um vídeo.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (file.size > 100 * 1024 * 1024) {
-      toast({
-        title: "Arquivo muito grande",
-        description: "O vídeo deve ter no máximo 100MB.",
+        description: "Selecione um vídeo (MP4, WebM, MOV ou AVI).",
         variant: "destructive",
       });
       return;
