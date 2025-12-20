@@ -52,7 +52,7 @@ export function ModalAdicionarDestaque({
   onClose,
   onDestaqueAdicionado,
 }: ModalAdicionarDestaqueProps) {
-  const { uploadMidia, uploading, progress } = useUploadMidia();
+  const { uploadMidia, uploading, progress, isConfigured } = useUploadMidia();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -270,6 +270,16 @@ export function ModalAdicionarDestaque({
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Aviso se R2 não está configurado */}
+          {!isConfigured && (
+            <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-lg p-3 text-sm">
+              <p className="text-yellow-400 font-medium">Cloudflare R2 não configurado</p>
+              <p className="text-yellow-500/80 text-xs mt-1">
+                Configure as variáveis VITE_R2_* no .env e reinicie o servidor.
+              </p>
             </div>
           )}
 
