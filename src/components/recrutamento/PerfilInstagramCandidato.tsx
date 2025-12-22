@@ -999,11 +999,70 @@ function ModalVisualizarDestaque({
   onClose: () => void;
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   const midias = destaque.midias || [];
+  const FOTO_DURACAO = 5000; // 5 segundos para fotos
+
+  // Limpar interval ao desmontar
+  useEffect(() => {
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Gerenciar progresso para fotos
+  useEffect(() => {
+    if (midias.length === 0) return;
+
+    const midiaAtual = midias[currentIndex];
+    const isFoto = midiaAtual?.tipo === "foto" || midiaAtual?.tipo === "imagem";
+
+    // Resetar progresso ao mudar de mídia
+    setProgress(0);
+
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
+
+    if (isFoto && !isPaused) {
+      const startTime = Date.now();
+      progressIntervalRef.current = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const newProgress = (elapsed / FOTO_DURACAO) * 100;
+
+        if (newProgress >= 100) {
+          clearInterval(progressIntervalRef.current!);
+          proximo();
+        } else {
+          setProgress(newProgress);
+        }
+      }, 50);
+    }
+
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, [currentIndex, isPaused]);
+
+  // Pausar/continuar foto quando isPaused muda
+  useEffect(() => {
+    if (isPaused && progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
+  }, [isPaused]);
 
   const proximo = () => {
     if (currentIndex < midias.length - 1) {
       setCurrentIndex(currentIndex + 1);
+      setProgress(0);
     } else {
       onClose();
     }
@@ -1012,80 +1071,159 @@ function ModalVisualizarDestaque({
   const anterior = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
+      setProgress(0);
     }
+  };
+
+  const togglePause = () => {
+    setIsPaused(!isPaused);
+    if (videoRef.current) {
+      if (isPaused) {
+        videoRef.current.play();
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  };
+
+  const handleVideoTimeUpdate = () => {
+    if (videoRef.current) {
+      const video = videoRef.current;
+      const newProgress = (video.currentTime / video.duration) * 100;
+      setProgress(newProgress);
+    }
+  };
+
+  const handleVideoEnded = () => {
+    proximo();
   };
 
   if (midias.length === 0) {
     return (
-      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-        <button onClick={onClose} className="absolute top-4 right-4 text-white">
+      <div className="fixed inset-0 bg-black z-[9999] flex items-center justify-center">
+        <button onClick={onClose} className="absolute top-4 right-4 text-white z-50">
           <X className="w-8 h-8" />
         </button>
-        <p className="text-white">Nenhuma mídia neste destaque</p>
+        <p className="text-white text-lg">Nenhuma mídia neste destaque</p>
       </div>
     );
   }
 
   const midiaAtual = midias[currentIndex];
+  const isFoto = midiaAtual?.tipo === "foto" || midiaAtual?.tipo === "imagem";
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-xl">
-            {destaque.icone}
+    <div className="fixed inset-0 bg-black z-[9999] flex items-center justify-center">
+      {/* Container 9:16 centralizado */}
+      <div className="relative w-full h-full max-w-[500px] mx-auto flex flex-col">
+
+        {/* Progress bars no TOPO */}
+        <div className="absolute top-0 left-0 right-0 z-50 p-3 pt-4">
+          <div className="flex gap-1">
+            {midias.map((_, index) => (
+              <div key={index} className="flex-1 h-[3px] bg-white/30 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-white rounded-full transition-all duration-100"
+                  style={{
+                    width: index < currentIndex
+                      ? "100%"
+                      : index === currentIndex
+                        ? `${progress}%`
+                        : "0%"
+                  }}
+                />
+              </div>
+            ))}
           </div>
-          <span className="text-white font-medium">{destaque.titulo}</span>
-        </div>
-        <button onClick={onClose} className="text-white">
-          <X className="w-6 h-6" />
-        </button>
-      </div>
 
-      {/* Progress bar */}
-      <div className="flex gap-1 px-4">
-        {midias.map((_, index) => (
-          <div
-            key={index}
-            className={`h-1 flex-1 rounded-full ${
-              index <= currentIndex ? "bg-white" : "bg-gray-600"
-            }`}
+          {/* Header com info do destaque */}
+          <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 p-[2px]">
+                <div className="w-full h-full rounded-full bg-black flex items-center justify-center text-lg">
+                  {destaque.icone}
+                </div>
+              </div>
+              <span className="text-white font-medium text-sm">{destaque.titulo}</span>
+              <span className="text-gray-400 text-xs">
+                {currentIndex + 1}/{midias.length}
+              </span>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-white p-2 hover:bg-white/10 rounded-full transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+
+        {/* Conteúdo principal - Mídia */}
+        <div className="flex-1 flex items-center justify-center relative">
+
+          {/* Área de clique ESQUERDA (anterior) */}
+          <button
+            onClick={anterior}
+            className="absolute left-0 top-0 bottom-0 w-1/4 z-40"
+            aria-label="Anterior"
           />
-        ))}
-      </div>
 
-      {/* Conteúdo */}
-      <div className="flex-1 flex items-center justify-center relative">
-        {/* Área de clique esquerda */}
-        <button
-          onClick={anterior}
-          className="absolute left-0 top-0 bottom-0 w-1/3 z-10"
-        />
+          {/* Área de clique CENTRO (pausar/continuar) */}
+          <button
+            onClick={togglePause}
+            className="absolute left-1/4 right-1/4 top-0 bottom-0 z-40"
+            aria-label={isPaused ? "Continuar" : "Pausar"}
+          />
 
-        {/* Mídia */}
-        <div className="w-full h-full flex items-center justify-center p-4">
-          {midiaAtual.tipo === "foto" || midiaAtual.tipo === "imagem" ? (
-            <img
-              src={midiaAtual.url}
-              alt=""
-              className="max-w-full max-h-full object-contain"
-            />
-          ) : (
-            <video
-              src={midiaAtual.url}
-              controls
-              autoPlay
-              className="max-w-full max-h-full"
-            />
+          {/* Área de clique DIREITA (próximo) */}
+          <button
+            onClick={proximo}
+            className="absolute right-0 top-0 bottom-0 w-1/4 z-40"
+            aria-label="Próximo"
+          />
+
+          {/* Indicador de pausa */}
+          {isPaused && (
+            <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+              <div className="w-20 h-20 rounded-full bg-black/50 flex items-center justify-center">
+                <Play className="w-10 h-10 text-white ml-1" />
+              </div>
+            </div>
           )}
+
+          {/* Mídia atual */}
+          <div className="w-full h-full flex items-center justify-center">
+            {isFoto ? (
+              <img
+                src={midiaAtual.url}
+                alt=""
+                className="w-full h-full object-contain"
+                draggable={false}
+              />
+            ) : (
+              <video
+                ref={videoRef}
+                src={midiaAtual.url}
+                className="w-full h-full object-contain"
+                autoPlay
+                playsInline
+                muted={false}
+                onTimeUpdate={handleVideoTimeUpdate}
+                onEnded={handleVideoEnded}
+                onPlay={() => setIsPaused(false)}
+                onPause={() => setIsPaused(true)}
+              />
+            )}
+          </div>
         </div>
 
-        {/* Área de clique direita */}
-        <button
-          onClick={proximo}
-          className="absolute right-0 top-0 bottom-0 w-1/3 z-10"
-        />
+        {/* Indicadores de navegação nas bordas */}
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none">
+          {currentIndex > 0 && <span className="text-2xl">‹</span>}
+        </div>
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none">
+          {currentIndex < midias.length - 1 && <span className="text-2xl">›</span>}
+        </div>
       </div>
     </div>
   );
