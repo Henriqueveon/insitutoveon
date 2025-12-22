@@ -1,5 +1,5 @@
 // =====================================================
-// PERFIL INSTAGRAM CANDIDATO - Design estilo Instagram
+// PERFIL CANDIDATO - Design Moderno com Carrosséis
 // Visualização do perfil profissional
 // Suporta modo empresa e modo candidato (com edição)
 // Integração com Cloudflare R2 para uploads
@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Bell,
-  MoreVertical,
+  Menu,
   Eye,
   Bookmark,
   BookmarkCheck,
@@ -33,6 +33,11 @@ import {
   Video,
   Pencil,
   Trash2,
+  User,
+  Target,
+  Shield,
+  HelpCircle,
+  LogOut,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -138,6 +143,14 @@ export function PerfilInstagramCandidato({
   const [showConfiguracoes, setShowConfiguracoes] = useState(false);
   const [showAdicionarDestaque, setShowAdicionarDestaque] = useState(false);
   const [showVisualizarDestaque, setShowVisualizarDestaque] = useState<Destaque | null>(null);
+
+  // Novos estados para o redesign
+  const [showMenu, setShowMenu] = useState(false);
+  const [abaAberta, setAbaAberta] = useState<string | null>(null);
+
+  // Ref para input de foto
+  const fotoInputRef = useRef<HTMLInputElement>(null);
+  const { uploadMidia, uploading: uploadingFoto } = useUploadMidia();
 
   useEffect(() => {
     if (candidatoId) {
@@ -263,6 +276,55 @@ export function PerfilInstagramCandidato({
     }
   };
 
+  // Handler para trocar foto de perfil
+  const handleFotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Formato inválido",
+        description: "Selecione uma imagem (JPG, PNG, WebP ou GIF).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const result = await uploadMidia(file, candidatoId, "fotos-perfil");
+    if (result) {
+      await supabase
+        .from("candidatos_recrutamento")
+        .update({ foto_url: result.url })
+        .eq("id", candidatoId);
+
+      carregarPerfil();
+      toast({ title: "Foto atualizada!" });
+    }
+  };
+
+  // Formatar data
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "-";
+    try {
+      return new Date(dateStr).toLocaleDateString("pt-BR");
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Descrição do DISC
+  const getDescricaoDISC = (perfil: string | null) => {
+    if (!perfil) return "Realize o teste DISC para descobrir seu perfil comportamental.";
+    const letra = perfil.charAt(0).toUpperCase();
+    const descricoes: Record<string, string> = {
+      D: "Pessoas com perfil Dominante são diretas, decididas e focadas em resultados. Gostam de desafios e de assumir o controle.",
+      I: "Pessoas com perfil Influente são comunicativas, entusiastas e otimistas. Gostam de interagir e motivar os outros.",
+      S: "Pessoas com perfil Estável são pacientes, leais e boas ouvintes. Valorizam harmonia e trabalho em equipe.",
+      C: "Pessoas com perfil Conforme são analíticas, precisas e focadas em qualidade. Valorizam dados e procedimentos.",
+    };
+    return descricoes[letra] || "Perfil comportamental identificado.";
+  };
+
   // Cores do DISC - TEXTO COLORIDO SEM FUNDO
   const getCorDISC = (perfil: string) => {
     const letra = perfil.charAt(0).toUpperCase();
@@ -311,96 +373,97 @@ export function PerfilInstagramCandidato({
 
   const perfisDISC = extrairPerfisDISC(candidato.perfil_disc);
 
+  // Abas do carrossel de informações
+  const ABAS_INFO = [
+    { id: "disc", label: "DISC", icon: Target },
+    { id: "experiencias", label: "EXPERIÊNCIAS", icon: Briefcase },
+    { id: "formacoes", label: "FORMAÇÕES", icon: GraduationCap },
+    { id: "info_pessoais", label: "INFO PESSOAIS", icon: User },
+    { id: "disponibilidade", label: "DISPONIBILIDADE", icon: Clock },
+    { id: "extracurriculares", label: "EXTRAS", icon: Star },
+  ];
+
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <div className="flex justify-between items-center p-4">
-        {onClose && (
+      {/* ============================================= */}
+      {/* HEADER */}
+      {/* ============================================= */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+        {onClose ? (
           <button onClick={onClose} className="text-white">
             <X className="w-6 h-6" />
           </button>
+        ) : (
+          <span className="text-gray-500 text-xs">Na plataforma</span>
         )}
-        <div className="flex-1" />
-        <div className="flex gap-4">
-          <Bell className="w-6 h-6 text-white" />
-          <MoreVertical className="w-6 h-6 text-white" />
+        <div className="flex items-center gap-3">
+          <button className="relative">
+            <Bell className="w-6 h-6 text-white" />
+          </button>
+          {modoVisualizacao === "candidato" && (
+            <button onClick={() => setShowMenu(true)}>
+              <Menu className="w-6 h-6 text-white" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Conteúdo Principal */}
-      <div className="px-6 pb-8">
-        {/* Foto + Estatísticas - Layout horizontal */}
-        <div className="flex items-start gap-6 mb-6">
-          {/* Foto com borda gradiente estilo Instagram */}
-          <div className="flex-shrink-0 relative">
-            <div className="w-24 h-24 rounded-full p-[3px] bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600">
-              <div className="w-full h-full rounded-full bg-black p-[2px]">
-                <img
-                  src={candidato.foto_url || "/placeholder-avatar.png"}
-                  alt={candidato.nome_completo}
-                  className="w-full h-full rounded-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src =
-                      "https://ui-avatars.com/api/?name=" +
-                      encodeURIComponent(candidato.nome_completo) +
-                      "&background=374151&color=fff";
-                  }}
-                />
+      {/* Nome do usuário */}
+      <h1 className="text-2xl font-bold text-white px-4 mb-4">{candidato.nome_completo}</h1>
+
+      {/* ============================================= */}
+      {/* FOTO + BIO + ESTATÍSTICAS */}
+      {/* ============================================= */}
+      <div className="flex gap-4 px-4 mb-6">
+        {/* Foto de perfil - Quadrada com cantos arredondados */}
+        <div className="relative flex-shrink-0">
+          <div className="w-28 h-28 rounded-2xl overflow-hidden bg-zinc-800 border-2 border-zinc-700">
+            {candidato.foto_url ? (
+              <img
+                src={candidato.foto_url}
+                alt={candidato.nome_completo}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://ui-avatars.com/api/?name=" +
+                    encodeURIComponent(candidato.nome_completo) +
+                    "&background=374151&color=fff&size=200";
+                }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <User className="w-12 h-12 text-zinc-600" />
               </div>
-            </div>
-            {/* Botão de câmera para candidato */}
-            {modoVisualizacao === "candidato" && (
-              <button
-                onClick={() => setShowEditarPerfil(true)}
-                className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center border-2 border-black"
-              >
-                <Camera className="w-4 h-4 text-white" />
-              </button>
             )}
           </div>
-
-          {/* Estatísticas ao lado da foto */}
-          <div className="flex flex-1 justify-around pt-2">
-            <div className="text-center">
-              <p className="text-2xl font-bold">{candidato.total_visualizacoes}</p>
-              <p className="text-xs text-gray-400">visualizações</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold">{candidato.total_propostas_recebidas}</p>
-              <p className="text-xs text-gray-400">propostas</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold">{candidato.total_candidaturas}</p>
-              <p className="text-xs text-gray-400">se candidatou</p>
-            </div>
-          </div>
+          {/* Botão de câmera para trocar foto */}
+          {modoVisualizacao === "candidato" && (
+            <label className="absolute -bottom-2 -right-2 p-2 bg-blue-900 rounded-full cursor-pointer hover:bg-blue-800 transition border-2 border-black">
+              {uploadingFoto ? (
+                <Loader2 className="w-4 h-4 text-white animate-spin" />
+              ) : (
+                <Camera className="w-4 h-4 text-white" />
+              )}
+              <input
+                ref={fotoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFotoChange}
+                disabled={uploadingFoto}
+              />
+            </label>
+          )}
         </div>
 
-        {/* Nome e Informações */}
-        <div className="mb-4">
-          {/* Nome + Headline na mesma linha */}
-          <h1 className="text-lg font-semibold text-white">
-            {candidato.nome_completo}
-            {candidato.headline && (
-              <span className="text-white font-normal"> - {candidato.headline}</span>
-            )}
-          </h1>
+        {/* Bio + Localização + DISC + Estatísticas */}
+        <div className="flex-1 flex flex-col justify-between min-w-0">
+          {/* Biografia */}
+          <p className="text-gray-300 text-sm leading-relaxed line-clamp-2">
+            {candidato.bio || candidato.objetivo_profissional || "Adicione uma bio..."}
+          </p>
 
-          {/* Bio */}
-          {(candidato.bio || candidato.objetivo_profissional) && (
-            <p className="text-gray-300 text-sm mt-1">
-              {candidato.bio || candidato.objetivo_profissional}
-            </p>
-          )}
-
-          {/* Anos de experiência */}
-          {candidato.anos_experiencia && candidato.anos_experiencia > 0 && (
-            <p className="text-gray-400 text-sm mt-1">
-              + de {candidato.anos_experiencia} anos de experiência
-            </p>
-          )}
-
-          {/* Localização - NEGRITO */}
+          {/* Cidade/Estado */}
           {(candidato.cidade || candidato.estado) && (
             <p className="text-white font-semibold text-sm mt-1">
               {candidato.cidade}
@@ -408,120 +471,304 @@ export function PerfilInstagramCandidato({
               {candidato.estado}
             </p>
           )}
-        </div>
 
-        {/* Perfil DISC - TEXTO COLORIDO SEM FUNDO */}
-        {perfisDISC.length > 0 && (
-          <div className="flex gap-4 mb-6">
-            {perfisDISC.map((letra, index) => (
-              <span key={index} className={`text-lg font-semibold ${getCorDISC(letra)}`}>
-                {getNomeDISC(letra)}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Botões de Ação - MODO EMPRESA */}
-        {modoVisualizacao === "empresa" && (
-          <div className="flex gap-3 mb-8">
-            <Button
-              variant="outline"
-              className="flex-1 h-12 bg-white hover:bg-gray-100 text-black border-0 rounded-lg"
-              onClick={() => setShowCurriculo(true)}
-            >
-              <Eye className="w-6 h-6 text-black" />
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-[2] h-12 bg-white hover:bg-gray-100 text-black border-0 rounded-lg font-medium"
-              onClick={() => setShowAgendarDialog(true)}
-            >
-              Agendar Entrevista
-            </Button>
-            <Button
-              variant="outline"
-              className="h-12 w-12 bg-white hover:bg-gray-100 text-black border-0 rounded-lg p-0"
-              onClick={toggleSalvar}
-              disabled={salvando}
-            >
-              {salvando ? (
-                <Loader2 className="w-6 h-6 text-black animate-spin" />
-              ) : salvo ? (
-                <BookmarkCheck className="w-6 h-6 text-black fill-black" />
-              ) : (
-                <Bookmark className="w-6 h-6 text-black" />
-              )}
-            </Button>
-          </div>
-        )}
-
-        {/* Botões de Ação - MODO CANDIDATO */}
-        {modoVisualizacao === "candidato" && (
-          <div className="flex gap-3 mb-8">
-            {/* Botão Editar Perfil */}
-            <Button
-              variant="outline"
-              className="flex-1 h-12 bg-white hover:bg-gray-100 text-black border-0 rounded-lg font-medium"
-              onClick={() => setShowEditarPerfil(true)}
-            >
-              <Edit3 className="w-5 h-5 mr-2" />
-              Editar Perfil
-            </Button>
-
-            {/* Botão Compartilhar */}
-            <Button
-              variant="outline"
-              className="h-12 w-12 bg-white hover:bg-gray-100 text-black border-0 rounded-lg p-0"
-              onClick={compartilharPerfil}
-            >
-              <Share2 className="w-5 h-5" />
-            </Button>
-
-            {/* Botão Configurações */}
-            <Button
-              variant="outline"
-              className="h-12 w-12 bg-transparent border border-gray-600 text-white hover:bg-gray-800 rounded-lg p-0"
-              onClick={() => setShowConfiguracoes(true)}
-            >
-              <Settings className="w-5 h-5" />
-            </Button>
-          </div>
-        )}
-
-        {/* Destaques (Stories) - Círculos com fundo azul escuro */}
-        <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
-          {/* Botão Adicionar - só para candidato */}
-          {modoVisualizacao === "candidato" && (
-            <div className="flex flex-col items-center gap-2 min-w-[70px]">
-              <button
-                onClick={() => setShowAdicionarDestaque(true)}
-                className="w-16 h-16 rounded-full border-2 border-dashed border-gray-500 flex items-center justify-center hover:border-gray-400 transition-colors"
-              >
-                <Plus className="w-6 h-6 text-gray-500" />
-              </button>
-              <span className="text-xs text-gray-400">Adicionar</span>
+          {/* Perfil DISC */}
+          {perfisDISC.length > 0 && (
+            <div className="flex gap-2 mt-1">
+              {perfisDISC.map((letra, index) => (
+                <span key={index} className={`text-sm font-semibold ${getCorDISC(letra)}`}>
+                  {getNomeDISC(letra)}
+                </span>
+              ))}
             </div>
+          )}
+
+          {/* Estatísticas */}
+          <div className="flex items-center gap-4 mt-2">
+            <div className="text-center">
+              <span className="text-white font-bold text-lg block">{candidato.total_visualizacoes || 0}</span>
+              <p className="text-gray-500 text-[10px]">visualizações</p>
+            </div>
+            <div className="text-center">
+              <span className="text-white font-bold text-lg block">{candidato.total_propostas_recebidas || 0}</span>
+              <p className="text-gray-500 text-[10px]">propostas</p>
+            </div>
+            <div className="text-center">
+              <span className="text-white font-bold text-lg block">{candidato.total_candidaturas || 0}</span>
+              <p className="text-gray-500 text-[10px]">candidatou</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ============================================= */}
+      {/* BOTÕES DE AÇÃO - MODO EMPRESA */}
+      {/* ============================================= */}
+      {modoVisualizacao === "empresa" && (
+        <div className="flex gap-3 px-4 mb-6">
+          <Button
+            variant="outline"
+            className="flex-1 h-11 bg-white hover:bg-gray-100 text-black border-0 rounded-xl"
+            onClick={() => setShowCurriculo(true)}
+          >
+            <Eye className="w-5 h-5 mr-2" />
+            Ver Currículo
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1 h-11 bg-red-600 hover:bg-red-700 text-white border-0 rounded-xl"
+            onClick={() => setShowAgendarDialog(true)}
+          >
+            <Calendar className="w-5 h-5 mr-2" />
+            Entrevista
+          </Button>
+          <Button
+            variant="outline"
+            className="h-11 w-11 bg-zinc-800 hover:bg-zinc-700 text-white border-0 rounded-xl p-0"
+            onClick={toggleSalvar}
+            disabled={salvando}
+          >
+            {salvando ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : salvo ? (
+              <BookmarkCheck className="w-5 h-5 text-blue-500" />
+            ) : (
+              <Bookmark className="w-5 h-5" />
+            )}
+          </Button>
+        </div>
+      )}
+
+      {/* ============================================= */}
+      {/* CARROSSEL DE ABAS - INFORMAÇÕES */}
+      {/* ============================================= */}
+      <div className="mb-6">
+        <div
+          className="flex gap-2 px-4 overflow-x-auto pb-2"
+          style={{ scrollSnapType: "x mandatory", scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {ABAS_INFO.map((aba) => (
+            <button
+              key={aba.id}
+              onClick={() => setAbaAberta(aba.id)}
+              className="flex-shrink-0 px-4 py-3 rounded-xl border-2 border-zinc-700 bg-zinc-900 hover:bg-zinc-800 hover:border-blue-900 transition flex items-center gap-2"
+              style={{ scrollSnapAlign: "start" }}
+            >
+              <aba.icon className="w-4 h-4 text-red-500" />
+              <span className="text-white text-sm font-medium whitespace-nowrap">{aba.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ============================================= */}
+      {/* CARROSSEL DE DESTAQUES (QUADRADOS) */}
+      {/* ============================================= */}
+      <div className="px-4 pb-8">
+        <h3 className="text-white font-semibold mb-3">Destaques</h3>
+
+        <div
+          className="flex gap-3 overflow-x-auto pb-4"
+          style={{ scrollSnapType: "x mandatory", scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {/* Botão Adicionar (só para o próprio candidato) */}
+          {modoVisualizacao === "candidato" && destaques.length < 7 && (
+            <button
+              onClick={() => setShowAdicionarDestaque(true)}
+              className="flex-shrink-0 w-28 h-36 rounded-xl border-2 border-dashed border-zinc-600 flex flex-col items-center justify-center gap-2 hover:border-zinc-500 transition"
+              style={{ scrollSnapAlign: "start" }}
+            >
+              <Plus className="w-8 h-8 text-zinc-500" />
+              <span className="text-zinc-500 text-xs text-center">
+                Adicionar
+                <br />
+                destaque
+              </span>
+            </button>
           )}
 
           {/* Destaques existentes */}
           {destaques.map((destaque) => (
-            <DestaqueCirculo
+            <DestaqueCard
               key={destaque.id}
               destaque={destaque}
               onClick={() => setShowVisualizarDestaque(destaque)}
             />
           ))}
 
-          {/* Destaques padrão se não houver */}
+          {/* Placeholder se não houver destaques (modo empresa) */}
           {destaques.length === 0 && modoVisualizacao === "empresa" && (
-            <>
-              <DestaqueCirculoPadrao icone="📋" titulo="Projetos" />
-              <DestaqueCirculoPadrao icone="🎬" titulo="Trabalhos" />
-              <DestaqueCirculoPadrao icone="💡" titulo="Ideias" />
-            </>
+            <p className="text-gray-500 text-sm">Nenhum destaque cadastrado</p>
           )}
         </div>
       </div>
+
+      {/* ============================================= */}
+      {/* MENU HAMBÚRGUER (CONFIGURAÇÕES) */}
+      {/* ============================================= */}
+      {showMenu && (
+        <div className="fixed inset-0 bg-black/80 z-50" onClick={() => setShowMenu(false)}>
+          <div
+            className="absolute right-0 top-0 h-full w-72 bg-zinc-900 p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-white font-semibold text-lg">Configurações</h3>
+              <button onClick={() => setShowMenu(false)}>
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <MenuButton icon={User} label="Editar Perfil" onClick={() => { setShowMenu(false); setShowEditarPerfil(true); }} />
+              <MenuButton icon={Settings} label="Configurações" onClick={() => { setShowMenu(false); setShowConfiguracoes(true); }} />
+              <MenuButton icon={Share2} label="Compartilhar Perfil" onClick={() => { setShowMenu(false); compartilharPerfil(); }} />
+              <MenuButton icon={Bell} label="Notificações" onClick={() => {}} />
+              <MenuButton icon={Shield} label="Privacidade" onClick={() => {}} />
+              <MenuButton icon={HelpCircle} label="Ajuda" onClick={() => {}} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================= */}
+      {/* MODAIS DAS ABAS DE INFORMAÇÃO */}
+      {/* ============================================= */}
+
+      {/* Modal DISC */}
+      {abaAberta === "disc" && (
+        <ModalInfoCandidato titulo="Perfil DISC" onClose={() => setAbaAberta(null)}>
+          <div className="space-y-4">
+            <div className="text-center">
+              <span className={`text-4xl font-bold ${candidato.perfil_disc ? getCorDISC(candidato.perfil_disc) : "text-gray-400"}`}>
+                {candidato.perfil_disc || "?"}
+              </span>
+              <p className="text-gray-400 mt-3 text-sm">{getDescricaoDISC(candidato.perfil_disc)}</p>
+            </div>
+            {perfisDISC.length > 0 && (
+              <div className="flex justify-center gap-4 mt-4">
+                {perfisDISC.map((letra, i) => (
+                  <div key={i} className="text-center">
+                    <span className={`text-2xl font-bold ${getCorDISC(letra)}`}>{letra}</span>
+                    <p className="text-gray-500 text-xs mt-1">{getNomeDISC(letra)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </ModalInfoCandidato>
+      )}
+
+      {/* Modal Experiências */}
+      {abaAberta === "experiencias" && (
+        <ModalInfoCandidato titulo="Experiências Profissionais" onClose={() => setAbaAberta(null)}>
+          <div className="space-y-4">
+            {candidato.ultimo_cargo || candidato.ultima_empresa ? (
+              <div className="border-l-2 border-blue-900 pl-4">
+                <h4 className="text-white font-semibold">{candidato.ultimo_cargo || "Cargo não informado"}</h4>
+                <p className="text-gray-400">{candidato.ultima_empresa || "Empresa não informada"}</p>
+                {candidato.tempo_ultima_empresa && (
+                  <p className="text-gray-500 text-sm">{candidato.tempo_ultima_empresa}</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-gray-400 text-center">Nenhuma experiência cadastrada</p>
+            )}
+            {candidato.anos_experiencia && candidato.anos_experiencia > 0 && (
+              <p className="text-gray-400 text-sm text-center mt-4">
+                Total: {candidato.anos_experiencia} anos de experiência
+              </p>
+            )}
+            {candidato.areas_experiencia && candidato.areas_experiencia.length > 0 && (
+              <div className="mt-4">
+                <p className="text-gray-500 text-xs mb-2">Áreas de experiência:</p>
+                <div className="flex flex-wrap gap-2">
+                  {candidato.areas_experiencia.map((area, i) => (
+                    <span key={i} className="px-2 py-1 bg-zinc-800 rounded text-xs text-gray-300">
+                      {area}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </ModalInfoCandidato>
+      )}
+
+      {/* Modal Formações */}
+      {abaAberta === "formacoes" && (
+        <ModalInfoCandidato titulo="Formação Acadêmica" onClose={() => setAbaAberta(null)}>
+          <div className="space-y-4">
+            <div className="border-l-2 border-red-600 pl-4">
+              <h4 className="text-white font-semibold">{candidato.escolaridade || "Não informado"}</h4>
+              {candidato.curso && <p className="text-gray-400">{candidato.curso}</p>}
+            </div>
+          </div>
+        </ModalInfoCandidato>
+      )}
+
+      {/* Modal Info Pessoais */}
+      {abaAberta === "info_pessoais" && (
+        <ModalInfoCandidato titulo="Informações Pessoais" onClose={() => setAbaAberta(null)}>
+          <div className="space-y-1">
+            <InfoRow label="Email" value={candidato.email} />
+            <InfoRow label="Telefone" value={candidato.telefone} />
+            <InfoRow label="Data de Nascimento" value={formatDate(candidato.data_nascimento)} />
+            <InfoRow label="CNH" value={candidato.possui_cnh || "Não possui"} />
+            <InfoRow label="Veículo Próprio" value={candidato.possui_veiculo === "sim" ? "Sim" : "Não"} />
+          </div>
+        </ModalInfoCandidato>
+      )}
+
+      {/* Modal Disponibilidade */}
+      {abaAberta === "disponibilidade" && (
+        <ModalInfoCandidato titulo="Disponibilidade" onClose={() => setAbaAberta(null)}>
+          <div className="space-y-1">
+            <InfoRow label="Horário" value={candidato.disponibilidade_horario} />
+            <InfoRow label="Início" value={candidato.disponibilidade_inicio} />
+            <InfoRow label="Regime Preferido" value={candidato.regime_preferido} />
+            <InfoRow label="Pretensão Salarial" value={candidato.pretensao_salarial} />
+            <InfoRow label="Aceita Viajar" value={candidato.aceita_viajar === "sim" ? "Sim" : "Não"} />
+            <InfoRow label="Aceita Mudança" value={candidato.aceita_mudanca === "sim" ? "Sim" : "Não"} />
+          </div>
+        </ModalInfoCandidato>
+      )}
+
+      {/* Modal Extracurriculares */}
+      {abaAberta === "extracurriculares" && (
+        <ModalInfoCandidato titulo="Informações Extras" onClose={() => setAbaAberta(null)}>
+          <div className="space-y-4">
+            {candidato.areas_interesse && candidato.areas_interesse.length > 0 && (
+              <div>
+                <p className="text-gray-500 text-xs mb-2">Áreas de Interesse:</p>
+                <div className="flex flex-wrap gap-2">
+                  {candidato.areas_interesse.map((area, i) => (
+                    <span key={i} className="px-2 py-1 bg-blue-900/30 rounded text-xs text-blue-400">
+                      {area}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {candidato.valores_empresa && candidato.valores_empresa.length > 0 && (
+              <div>
+                <p className="text-gray-500 text-xs mb-2">O que busca em uma empresa:</p>
+                <div className="flex flex-wrap gap-2">
+                  {candidato.valores_empresa.map((valor, i) => (
+                    <span key={i} className="px-2 py-1 bg-green-900/30 rounded text-xs text-green-400">
+                      {valor}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {(!candidato.areas_interesse || candidato.areas_interesse.length === 0) &&
+              (!candidato.valores_empresa || candidato.valores_empresa.length === 0) && (
+                <p className="text-gray-400 text-center">Nenhuma informação extra cadastrada</p>
+              )}
+          </div>
+        </ModalInfoCandidato>
+      )}
 
       {/* Modal Currículo Completo */}
       {showCurriculo && (
@@ -1812,6 +2059,101 @@ function ModalCurriculoCompleto({
         </div>
       </div>
     </div>
+  );
+}
+
+// =====================================================
+// COMPONENTES AUXILIARES - NOVO LAYOUT
+// =====================================================
+
+// Modal genérico para informações do candidato
+function ModalInfoCandidato({
+  titulo,
+  onClose,
+  children,
+}: {
+  titulo: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center">
+      <div className="bg-zinc-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[80vh] overflow-hidden animate-in slide-in-from-bottom duration-300">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+          <h3 className="text-white font-semibold text-lg">{titulo}</h3>
+          <button onClick={onClose} className="p-1 hover:bg-zinc-800 rounded-full transition">
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
+        {/* Content */}
+        <div className="p-4 overflow-y-auto max-h-[60vh]">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+// Linha de informação (label + value)
+function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div className="flex justify-between items-center py-3 border-b border-zinc-800">
+      <span className="text-gray-400">{label}</span>
+      <span className="text-white">{value || "-"}</span>
+    </div>
+  );
+}
+
+// Botão do menu lateral
+function MenuButton({
+  icon: Icon,
+  label,
+  onClick,
+  className = "",
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition ${className}`}
+    >
+      <Icon className={`w-5 h-5 ${className || "text-white"}`} />
+      <span className={className || "text-white"}>{label}</span>
+    </button>
+  );
+}
+
+// Card de destaque (quadrado)
+function DestaqueCard({ destaque, onClick }: { destaque: Destaque; onClick: () => void }) {
+  const capa = destaque.capa_url;
+  const primeiraMidia = destaque.midias?.[0];
+
+  return (
+    <button
+      onClick={onClick}
+      className="flex-shrink-0 w-28 flex flex-col items-center gap-2"
+      style={{ scrollSnapAlign: "start" }}
+    >
+      {/* Capa do destaque - Quadrada */}
+      <div className="w-28 h-36 rounded-xl overflow-hidden bg-zinc-800 border-2 border-zinc-700 hover:border-blue-900 transition">
+        {capa ? (
+          <img src={capa} alt={destaque.titulo} className="w-full h-full object-cover" />
+        ) : primeiraMidia?.url && (primeiraMidia.tipo === "foto" || primeiraMidia.tipo === "imagem") ? (
+          <img src={primeiraMidia.url} alt={destaque.titulo} className="w-full h-full object-cover" />
+        ) : primeiraMidia?.url && primeiraMidia.tipo === "video" ? (
+          <video src={primeiraMidia.url} className="w-full h-full object-cover" muted />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="text-3xl">{destaque.icone || "📌"}</span>
+          </div>
+        )}
+      </div>
+      {/* Nome do destaque */}
+      <span className="text-white text-xs text-center truncate w-full">{destaque.titulo}</span>
+    </button>
   );
 }
 
