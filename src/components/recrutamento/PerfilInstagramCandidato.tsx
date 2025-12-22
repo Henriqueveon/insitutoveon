@@ -109,6 +109,7 @@ interface Candidato {
   status: string | null;
   email: string | null;
   telefone: string | null;
+  created_at: string | null;
 }
 
 interface Destaque {
@@ -384,24 +385,28 @@ export function PerfilInstagramCandidato({
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white px-4 pt-6 pb-20">
       {/* ============================================= */}
       {/* HEADER */}
       {/* ============================================= */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+      <div className="flex items-center justify-between mb-2">
         {onClose ? (
-          <button onClick={onClose} className="text-white">
+          <button onClick={onClose} className="text-white p-2 -ml-2">
             <X className="w-6 h-6" />
           </button>
         ) : (
-          <span className="text-gray-500 text-xs">Na plataforma</span>
+          <span className="text-gray-500 text-xs">
+            Na plataforma desde: {candidato.created_at
+              ? new Date(candidato.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+              : '-'}
+          </span>
         )}
-        <div className="flex items-center gap-3">
-          <button className="relative">
+        <div className="flex items-center gap-2">
+          <button className="relative p-2">
             <Bell className="w-6 h-6 text-white" />
           </button>
           {modoVisualizacao === "candidato" && (
-            <button onClick={() => setShowMenu(true)}>
+            <button onClick={() => setShowMenu(true)} className="p-2">
               <Menu className="w-6 h-6 text-white" />
             </button>
           )}
@@ -409,12 +414,12 @@ export function PerfilInstagramCandidato({
       </div>
 
       {/* Nome do usuário */}
-      <h1 className="text-2xl font-bold text-white px-4 mb-4">{candidato.nome_completo}</h1>
+      <h1 className="text-2xl font-bold text-white mb-4">{candidato.nome_completo}</h1>
 
       {/* ============================================= */}
       {/* FOTO + BIO + ESTATÍSTICAS */}
       {/* ============================================= */}
-      <div className="flex gap-4 px-4 mb-6">
+      <div className="flex gap-4 mb-6">
         {/* Foto de perfil - Quadrada com cantos arredondados */}
         <div className="relative flex-shrink-0">
           <div className="w-28 h-28 rounded-2xl overflow-hidden bg-zinc-800 border-2 border-zinc-700">
@@ -505,7 +510,7 @@ export function PerfilInstagramCandidato({
       {/* BOTÕES DE AÇÃO - MODO EMPRESA */}
       {/* ============================================= */}
       {modoVisualizacao === "empresa" && (
-        <div className="flex gap-3 px-4 mb-6">
+        <div className="flex gap-3 mb-6">
           <Button
             variant="outline"
             className="flex-1 h-11 bg-white hover:bg-gray-100 text-black border-0 rounded-xl"
@@ -542,7 +547,7 @@ export function PerfilInstagramCandidato({
       {/* ============================================= */}
       {/* CARROSSEL DE ABAS - INFORMAÇÕES */}
       {/* ============================================= */}
-      <div className="mb-6">
+      <div className="mb-6 -mx-4">
         <div
           className="flex gap-2 px-4 overflow-x-auto pb-2"
           style={{ scrollSnapType: "x mandatory", scrollbarWidth: "none", msOverflowStyle: "none" }}
@@ -564,13 +569,14 @@ export function PerfilInstagramCandidato({
       {/* ============================================= */}
       {/* CARROSSEL DE DESTAQUES (QUADRADOS) */}
       {/* ============================================= */}
-      <div className="px-4 pb-8">
+      <div className="pb-8">
         <h3 className="text-white font-semibold mb-3">Destaques</h3>
 
-        <div
-          className="flex gap-3 overflow-x-auto pb-4"
-          style={{ scrollSnapType: "x mandatory", scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
+        <div className="-mx-4">
+          <div
+            className="flex gap-3 px-4 overflow-x-auto pb-4"
+            style={{ scrollSnapType: "x mandatory", scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
           {/* Botão Adicionar (só para o próprio candidato) */}
           {modoVisualizacao === "candidato" && destaques.length < 7 && (
             <button
@@ -600,6 +606,7 @@ export function PerfilInstagramCandidato({
           {destaques.length === 0 && modoVisualizacao === "empresa" && (
             <p className="text-gray-500 text-sm">Nenhum destaque cadastrado</p>
           )}
+          </div>
         </div>
       </div>
 
