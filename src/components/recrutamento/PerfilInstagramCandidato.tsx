@@ -1143,7 +1143,7 @@ function ModalEditarPerfil({
             value={interessesAtuacao}
             onChange={setInteressesAtuacao}
             maxTags={3}
-            maxCharsPerTag={25}
+            maxCharsPerTag={19}
             minCharsToAdd={5}
           />
 

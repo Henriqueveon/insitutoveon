@@ -20,7 +20,7 @@ export function InteresseAtuacaoTags({
   value = [],
   onChange,
   maxTags = 3,
-  maxCharsPerTag = 25,
+  maxCharsPerTag = 19,
   minCharsToAdd = 5
 }: InteresseAtuacaoTagsProps) {
   const [inputValue, setInputValue] = useState('');
