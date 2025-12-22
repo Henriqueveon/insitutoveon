@@ -441,30 +441,12 @@ export function PerfilInstagramCandidato({
               </div>
             )}
           </div>
-          {/* Botão de câmera para trocar foto */}
-          {modoVisualizacao === "candidato" && (
-            <label className="absolute -bottom-2 -right-2 p-2 bg-blue-900 rounded-full cursor-pointer hover:bg-blue-800 transition border-2 border-black">
-              {uploadingFoto ? (
-                <Loader2 className="w-4 h-4 text-white animate-spin" />
-              ) : (
-                <Camera className="w-4 h-4 text-white" />
-              )}
-              <input
-                ref={fotoInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFotoChange}
-                disabled={uploadingFoto}
-              />
-            </label>
-          )}
         </div>
 
         {/* Bio + Localização + DISC + Estatísticas */}
         <div className="flex-1 flex flex-col justify-between min-w-0">
           {/* Biografia */}
-          <p className="text-gray-300 text-sm leading-relaxed line-clamp-2">
+          <p className="text-gray-300 text-sm leading-relaxed">
             {candidato.bio || candidato.objetivo_profissional || "Adicione uma bio..."}
           </p>
 
