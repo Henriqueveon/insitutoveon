@@ -141,82 +141,87 @@ export default function CandidatoLayout() {
     );
   }
 
+  // Verifica se está na página de perfil/configurações (que tem seu próprio header)
+  const isPerfilPage = location.pathname.includes('/configuracoes');
+
   return (
     <div className="min-h-screen bg-black flex flex-col">
-      {/* Header - Instagram Style */}
-      <header className="sticky top-0 z-40 bg-black/95 backdrop-blur-xl border-b border-white/10">
-        <div className="flex items-center justify-between h-14 px-4">
-          {/* Logo e Saudação */}
-          <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9 ring-2 ring-[#E31E24] ring-offset-2 ring-offset-black">
-              <AvatarImage src={candidato?.foto_url || undefined} />
-              <AvatarFallback className="bg-gradient-to-br from-[#E31E24] to-[#003DA5] text-white font-bold text-sm">
-                {candidato?.nome_completo?.charAt(0) || 'V'}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-white font-semibold text-base leading-tight">
-                {candidato?.nome_completo?.split(' ')[0]}
-              </p>
-              {candidato && <StatusBadge candidato={candidato} />}
+      {/* Header - Instagram Style (esconde na página de perfil) */}
+      {!isPerfilPage && (
+        <header className="sticky top-0 z-40 bg-black/95 backdrop-blur-xl border-b border-white/10">
+          <div className="flex items-center justify-between h-14 px-4">
+            {/* Logo e Saudação */}
+            <div className="flex items-center gap-3">
+              <Avatar className="h-9 w-9 ring-2 ring-[#E31E24] ring-offset-2 ring-offset-black">
+                <AvatarImage src={candidato?.foto_url || undefined} />
+                <AvatarFallback className="bg-gradient-to-br from-[#E31E24] to-[#003DA5] text-white font-bold text-sm">
+                  {candidato?.nome_completo?.charAt(0) || 'V'}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-white font-semibold text-base leading-tight">
+                  {candidato?.nome_completo?.split(' ')[0]}
+                </p>
+                {candidato && <StatusBadge candidato={candidato} />}
+              </div>
+            </div>
+
+            {/* Ações - Maiores para touch */}
+            <div className="flex items-center gap-1">
+              {/* Botão de Indicação */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 relative"
+                onClick={() => navigate('/recrutamento/candidato/inicio#indicacao')}
+              >
+                <Gift className="w-5 h-5" />
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse" />
+              </Button>
+
+              {candidato && (
+                <NotificationBell
+                  usuarioId={candidato.id}
+                  tipoUsuario="candidato"
+                  baseUrl="/recrutamento/candidato"
+                />
+              )}
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 text-white/70 hover:text-white hover:bg-white/10">
+                    <User className="w-5 h-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-60 bg-zinc-900 border-zinc-800 shadow-2xl">
+                  <div className="px-3 py-2.5 border-b border-zinc-800">
+                    <p className="font-semibold text-white text-sm">{candidato?.nome_completo}</p>
+                    <p className="text-zinc-400 text-xs mt-0.5">{candidato?.email}</p>
+                  </div>
+                  <DropdownMenuItem
+                    className="text-white hover:bg-white/10 cursor-pointer py-3 px-3"
+                    onClick={() => navigate('/recrutamento/candidato/configuracoes')}
+                  >
+                    <Settings className="w-4 h-4 mr-3 text-zinc-400" />
+                    Configurações
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-zinc-800" />
+                  <DropdownMenuItem
+                    className="text-red-400 hover:bg-red-500/10 cursor-pointer py-3 px-3"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="w-4 h-4 mr-3" />
+                    Sair da conta
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
+        </header>
+      )}
 
-          {/* Ações - Maiores para touch */}
-          <div className="flex items-center gap-1">
-            {/* Botão de Indicação */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 relative"
-              onClick={() => navigate('/recrutamento/candidato/inicio#indicacao')}
-            >
-              <Gift className="w-5 h-5" />
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse" />
-            </Button>
-
-            {candidato && (
-              <NotificationBell
-                usuarioId={candidato.id}
-                tipoUsuario="candidato"
-                baseUrl="/recrutamento/candidato"
-              />
-            )}
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10 text-white/70 hover:text-white hover:bg-white/10">
-                  <User className="w-5 h-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-60 bg-zinc-900 border-zinc-800 shadow-2xl">
-                <div className="px-3 py-2.5 border-b border-zinc-800">
-                  <p className="font-semibold text-white text-sm">{candidato?.nome_completo}</p>
-                  <p className="text-zinc-400 text-xs mt-0.5">{candidato?.email}</p>
-                </div>
-                <DropdownMenuItem
-                  className="text-white hover:bg-white/10 cursor-pointer py-3 px-3"
-                  onClick={() => navigate('/recrutamento/candidato/configuracoes')}
-                >
-                  <Settings className="w-4 h-4 mr-3 text-zinc-400" />
-                  Configurações
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-zinc-800" />
-                <DropdownMenuItem
-                  className="text-red-400 hover:bg-red-500/10 cursor-pointer py-3 px-3"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="w-4 h-4 mr-3" />
-                  Sair da conta
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </header>
-
-      {/* Page Content - Mais padding */}
-      <main className="flex-1 px-4 py-5 pb-24">
+      {/* Page Content - Sem padding na página de perfil */}
+      <main className={`flex-1 pb-24 ${isPerfilPage ? '' : 'px-4 py-5'}`}>
         <ErrorBoundary>
           <Outlet context={{ candidato, recarregarCandidato: carregarCandidato, propostasNovas }} />
         </ErrorBoundary>
