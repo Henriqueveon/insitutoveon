@@ -328,6 +328,20 @@ export function PerfilInstagramCandidato({
     return [];
   };
 
+  // Calcular idade a partir da data de nascimento
+  const calcularIdade = (dataNascimento: string | null): number | null => {
+    if (!dataNascimento) return null;
+    const hoje = new Date();
+    const nascimento = new Date(dataNascimento);
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+    const mesAtual = hoje.getMonth();
+    const mesNascimento = nascimento.getMonth();
+    if (mesAtual < mesNascimento || (mesAtual === mesNascimento && hoje.getDate() < nascimento.getDate())) {
+      idade--;
+    }
+    return idade;
+  };
+
   // Formatar disponibilidade para exibição
   const formatarDisponibilidade = (tipo: string | null, data?: string | null) => {
     if (!tipo) return "Imediato";
@@ -451,6 +465,13 @@ export function PerfilInstagramCandidato({
 
       {/* Nome do usuário */}
       <h1 className="text-2xl font-bold text-white">{candidato.nome_completo}</h1>
+
+      {/* Idade */}
+      {candidato.data_nascimento && calcularIdade(candidato.data_nascimento) && (
+        <p className="text-sm text-gray-500">
+          {calcularIdade(candidato.data_nascimento)} anos
+        </p>
+      )}
 
       {/* Título Profissional + Disponibilidade */}
       <div className="flex justify-between items-center w-full mt-1 mb-4">
