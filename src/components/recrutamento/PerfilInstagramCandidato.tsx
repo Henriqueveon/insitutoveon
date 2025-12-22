@@ -68,6 +68,7 @@ import { useUploadMidia } from "@/hooks/useUploadMidia";
 import { ModalAdicionarDestaque } from "./ModalAdicionarDestaque";
 import { InteresseAtuacaoTags } from "@/recrutamento/components/InteresseAtuacaoTags";
 import { MicroIconeDisc } from "@/recrutamento/components/MicroIconeDisc";
+import { UsernameInput } from "@/recrutamento/components/UsernameInput";
 
 interface PerfilInstagramCandidatoProps {
   candidatoId: string;
@@ -117,6 +118,7 @@ interface Candidato {
   email: string | null;
   telefone: string | null;
   created_at: string | null;
+  username: string | null;
 }
 
 interface Destaque {
@@ -462,6 +464,11 @@ export function PerfilInstagramCandidato({
           )}
         </div>
       </div>
+
+      {/* Username */}
+      {candidato.username && (
+        <p className="text-xs text-gray-500">@{candidato.username}</p>
+      )}
 
       {/* Nome do usuário */}
       <h1 className="text-2xl font-bold text-white">{candidato.nome_completo}</h1>
@@ -1029,6 +1036,8 @@ function ModalEditarPerfil({
     candidato.disponibilidade_data || ""
   );
 
+  const [username, setUsername] = useState(candidato.username || "");
+
   const handleFotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1075,6 +1084,7 @@ function ModalEditarPerfil({
         foto_url: fotoUrl,
         disponibilidade_tipo: disponibilidadeTipo,
         disponibilidade_data: disponibilidadeTipo === "a_partir_de" ? disponibilidadeData : null,
+        username: username || null,
       })
       .eq("id", candidato.id);
 
@@ -1155,6 +1165,14 @@ function ModalEditarPerfil({
               className="bg-gray-800 border-gray-700 text-white"
             />
           </div>
+
+          {/* Username */}
+          <UsernameInput
+            value={username}
+            onChange={setUsername}
+            tipo="candidato"
+            idAtual={candidato.id}
+          />
 
           {/* Headline */}
           <div>
