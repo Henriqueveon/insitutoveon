@@ -498,7 +498,7 @@ export function PerfilInstagramCandidato({
               {parseInteresses(candidato.objetivo_profissional).slice(0, 3).map((interesse, index) => (
                 <span
                   key={index}
-                  className="inline-block px-3 py-1 bg-gray-700/50 border border-gray-600 rounded-full text-xs text-gray-300 truncate max-w-[180px]"
+                  className="inline-block px-2.5 py-0.5 bg-gray-700/50 border border-gray-600 rounded-full text-[11px] text-gray-300 truncate max-w-[112px]"
                 >
                   {interesse}
                 </span>
