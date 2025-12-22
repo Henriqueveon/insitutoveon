@@ -55,7 +55,7 @@ export function InteresseAtuacaoTags({
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value.slice(0, maxCharsPerTag);
+    const newValue = e.target.value.toLowerCase().slice(0, maxCharsPerTag);
     setInputValue(newValue);
   };
 
