@@ -512,18 +512,18 @@ export function PerfilInstagramCandidato({
           )}
 
           {/* Estatísticas */}
-          <div className="flex items-center gap-4 mt-2">
-            <div className="text-center">
-              <span className="text-white font-bold text-lg block">{candidato.total_visualizacoes || 0}</span>
-              <p className="text-gray-500 text-[10px]">visualizações</p>
+          <div className="flex justify-center items-center gap-8 mt-3 w-full">
+            <div className="flex flex-col items-center">
+              <span className="text-xl font-bold text-white">{candidato.total_visualizacoes || 0}</span>
+              <span className="text-xs text-gray-500">visualizações</span>
             </div>
-            <div className="text-center">
-              <span className="text-white font-bold text-lg block">{candidato.total_propostas_recebidas || 0}</span>
-              <p className="text-gray-500 text-[10px]">propostas</p>
+            <div className="flex flex-col items-center">
+              <span className="text-xl font-bold text-white">{candidato.total_propostas_recebidas || 0}</span>
+              <span className="text-xs text-gray-500">propostas</span>
             </div>
-            <div className="text-center">
-              <span className="text-white font-bold text-lg block">{candidato.total_candidaturas || 0}</span>
-              <p className="text-gray-500 text-[10px]">candidatou</p>
+            <div className="flex flex-col items-center">
+              <span className="text-xl font-bold text-white">{candidato.total_candidaturas || 0}</span>
+              <span className="text-xs text-gray-500">candidatou</span>
             </div>
           </div>
         </div>
