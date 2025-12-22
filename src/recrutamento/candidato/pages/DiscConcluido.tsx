@@ -121,7 +121,7 @@ export default function DiscConcluido() {
 
   const handleVerCurriculo = () => {
     resetAssessment();
-    navigate('/recrutamento/candidato/meu-curriculo');
+    navigate('/recrutamento/candidato/configuracoes');
   };
 
   // Cor do perfil DISC

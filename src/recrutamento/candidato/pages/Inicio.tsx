@@ -269,7 +269,7 @@ export default function InicioCandidato() {
       label: 'Currículo',
       descricao: 'Ver ou editar',
       ativo: true,
-      action: () => navigate('/recrutamento/candidato/meu-curriculo'),
+      action: () => navigate('/recrutamento/candidato/configuracoes'),
       cor: 'from-emerald-500 to-teal-500',
     },
   ];
@@ -392,7 +392,7 @@ export default function InicioCandidato() {
       {/* Perfil DISC - Card moderno */}
       {candidato?.perfil_disc && (
         <button
-          onClick={() => navigate('/recrutamento/candidato/meu-curriculo')}
+          onClick={() => navigate('/recrutamento/candidato/configuracoes')}
           className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-5 text-left hover:bg-zinc-800 transition-all"
         >
           <div className="flex items-center justify-between">

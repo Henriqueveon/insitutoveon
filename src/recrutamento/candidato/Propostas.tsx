@@ -32,7 +32,7 @@ export default function Propostas() {
           Complete seu perfil para receber propostas de empresas interessadas
         </p>
         <button
-          onClick={() => navigate('/recrutamento/candidato/meu-curriculo')}
+          onClick={() => navigate('/recrutamento/candidato/configuracoes')}
           className="inline-flex items-center gap-2 bg-white text-black font-semibold px-6 py-3 rounded-xl hover:bg-white/90 transition-all active:scale-95"
         >
           Completar perfil

@@ -313,7 +313,7 @@ export default function FeedVagas() {
               Novas vagas são publicadas todos os dias. Complete seu perfil para receber notificações.
             </p>
             <Button
-              onClick={() => navigate('/recrutamento/candidato/meu-curriculo')}
+              onClick={() => navigate('/recrutamento/candidato/configuracoes')}
               className="bg-white text-black font-semibold rounded-xl hover:bg-white/90"
             >
               Completar perfil
