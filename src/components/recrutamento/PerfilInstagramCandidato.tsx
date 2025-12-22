@@ -1046,11 +1046,23 @@ function ModalEditarPerfil({
             <label className="block text-sm text-gray-400 mb-1">Bio</label>
             <Textarea
               value={form.bio}
-              onChange={(e) => setForm({ ...form, bio: e.target.value })}
+              onChange={(e) => {
+                if (e.target.value.length <= 180) {
+                  setForm({ ...form, bio: e.target.value });
+                }
+              }}
+              maxLength={180}
               placeholder="Conte um pouco sobre você..."
               className="bg-gray-800 border-gray-700 text-white resize-none"
               rows={3}
             />
+            <p className={`text-xs mt-1 text-right ${
+              form.bio.length >= 180 ? 'text-red-500' :
+              form.bio.length >= 160 ? 'text-yellow-500' :
+              'text-gray-500'
+            }`}>
+              {form.bio.length}/180
+            </p>
           </div>
 
           {/* Objetivo */}
