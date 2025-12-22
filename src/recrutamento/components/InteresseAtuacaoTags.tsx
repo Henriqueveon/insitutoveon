@@ -1,6 +1,6 @@
 // =====================================================
 // COMPONENTE: Tags de Interesse de Atuação Profissional
-// Permite adicionar de 1 a 5 áreas de interesse
+// Permite adicionar de 1 a 3 áreas de interesse
 // =====================================================
 
 import React, { useState } from 'react';
@@ -19,7 +19,7 @@ interface InteresseAtuacaoTagsProps {
 export function InteresseAtuacaoTags({
   value = [],
   onChange,
-  maxTags = 5,
+  maxTags = 3,
   maxCharsPerTag = 25,
   minCharsToAdd = 5
 }: InteresseAtuacaoTagsProps) {
@@ -121,7 +121,7 @@ export function InteresseAtuacaoTags({
         <span>
           {isMaxTagsReached
             ? "Máximo de áreas atingido"
-            : "Adicione até 5 áreas de atuação"
+            : "Adicione até 3 áreas de atuação"
           }
         </span>
         <div className="flex gap-3">
