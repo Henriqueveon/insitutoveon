@@ -37,7 +37,7 @@ export default function ConfiguracoesCandidato() {
   }
 
   return (
-    <div className="min-h-screen bg-black -m-4 sm:-m-6">
+    <div className="min-h-screen bg-black">
       <PerfilInstagramCandidato
         candidatoId={candidato.id}
         modoVisualizacao="candidato"
