@@ -420,27 +420,58 @@ export function PerfilInstagramCandidato({
       {/* FOTO + BIO + ESTATÍSTICAS */}
       {/* ============================================= */}
       <div className="flex gap-4 mb-6">
-        {/* Foto de perfil - Quadrada com cantos arredondados */}
+        {/* Foto de perfil - Clicável para trocar (apenas para o próprio candidato) */}
         <div className="relative flex-shrink-0">
-          <div className="w-28 h-28 rounded-2xl overflow-hidden bg-zinc-800 border-2 border-zinc-700">
-            {candidato.foto_url ? (
-              <img
-                src={candidato.foto_url}
-                alt={candidato.nome_completo}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.src =
-                    "https://ui-avatars.com/api/?name=" +
-                    encodeURIComponent(candidato.nome_completo) +
-                    "&background=374151&color=fff&size=200";
-                }}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <User className="w-12 h-12 text-zinc-600" />
+          {modoVisualizacao === "candidato" ? (
+            <label className="cursor-pointer block">
+              <div className="w-28 h-28 rounded-2xl overflow-hidden bg-zinc-800 border-2 border-zinc-700 hover:border-blue-500 hover:opacity-90 transition-all">
+                {candidato.foto_url ? (
+                  <img
+                    src={candidato.foto_url}
+                    alt={candidato.nome_completo}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src =
+                        "https://ui-avatars.com/api/?name=" +
+                        encodeURIComponent(candidato.nome_completo) +
+                        "&background=374151&color=fff&size=200";
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <User className="w-12 h-12 text-zinc-600" />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+              <input
+                ref={fotoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFotoChange}
+              />
+            </label>
+          ) : (
+            <div className="w-28 h-28 rounded-2xl overflow-hidden bg-zinc-800 border-2 border-zinc-700">
+              {candidato.foto_url ? (
+                <img
+                  src={candidato.foto_url}
+                  alt={candidato.nome_completo}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src =
+                      "https://ui-avatars.com/api/?name=" +
+                      encodeURIComponent(candidato.nome_completo) +
+                      "&background=374151&color=fff&size=200";
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <User className="w-12 h-12 text-zinc-600" />
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Bio + Localização + DISC + Estatísticas */}
