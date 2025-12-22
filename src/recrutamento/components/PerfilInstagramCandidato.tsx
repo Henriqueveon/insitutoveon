@@ -19,6 +19,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -86,6 +88,8 @@ export function PerfilInstagramCandidato({
   const [salvando, setSalvando] = useState(false);
   const [destaqueAtivo, setDestaqueAtivo] = useState<Destaque | null>(null);
   const [midiaAtiva, setMidiaAtiva] = useState(0);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
 
   useEffect(() => {
     carregarDestaques();
@@ -137,6 +141,44 @@ export function PerfilInstagramCandidato({
       });
     } catch (error) {
       console.error('Erro ao registrar visualização:', error);
+    }
+  };
+
+  const excluirDestaque = async (destaqueId: string) => {
+    setExcluindo(true);
+    try {
+      // Excluir mídias do banco primeiro (cascade não funciona com RLS)
+      await supabase
+        .from('midias_destaque')
+        .delete()
+        .eq('destaque_id', destaqueId);
+
+      // Excluir destaque
+      const { error } = await supabase
+        .from('destaques_candidato')
+        .delete()
+        .eq('id', destaqueId);
+
+      if (error) throw error;
+
+      // Atualizar lista local
+      setDestaques((prev) => prev.filter((d) => d.id !== destaqueId));
+      setDestaqueAtivo(null);
+      setShowDeleteConfirm(false);
+
+      toast({
+        title: 'Destaque excluído',
+        description: 'O destaque foi removido com sucesso.',
+      });
+    } catch (error) {
+      console.error('Erro ao excluir destaque:', error);
+      toast({
+        title: 'Erro ao excluir',
+        description: 'Não foi possível excluir o destaque.',
+        variant: 'destructive',
+      });
+    } finally {
+      setExcluindo(false);
     }
   };
 
@@ -413,11 +455,88 @@ export function PerfilInstagramCandidato({
             <div className="flex items-center gap-2">
               <span className="text-2xl">{destaqueAtivo.icone}</span>
               <span className="text-white font-semibold">{destaqueAtivo.titulo}</span>
+              <span className="text-white/60 text-sm">
+                {midiaAtiva + 1}/{destaqueAtivo.midias.length}
+              </span>
             </div>
-            <button onClick={() => setDestaqueAtivo(null)}>
-              <X className="w-6 h-6 text-white" />
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Botões só aparecem se for o dono (candidato) */}
+              {modoVisualizacao === 'candidato' && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toast({
+                        title: 'Em breve!',
+                        description: 'Funcionalidade de edição chegando em breve.',
+                      });
+                    }}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
+                    title="Editar destaque"
+                  >
+                    <Pencil className="w-5 h-5 text-white" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDeleteConfirm(true);
+                    }}
+                    className="p-2 rounded-full bg-white/10 hover:bg-red-500/50 transition"
+                    title="Excluir destaque"
+                  >
+                    <Trash2 className="w-5 h-5 text-white" />
+                  </button>
+                </>
+              )}
+              <button
+                onClick={() => {
+                  setDestaqueAtivo(null);
+                  setShowDeleteConfirm(false);
+                }}
+                className="p-2"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+            </div>
           </div>
+
+          {/* Modal de confirmação de exclusão */}
+          {showDeleteConfirm && (
+            <div
+              className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-zinc-900 rounded-xl p-6 max-w-sm w-full">
+                <h3 className="text-white text-lg font-semibold mb-2">Excluir destaque?</h3>
+                <p className="text-gray-400 mb-6">
+                  Tem certeza que deseja excluir "{destaqueAtivo.titulo}"? Esta ação não pode ser desfeita.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={excluindo}
+                    className="flex-1 py-2 px-4 rounded-lg bg-zinc-700 text-white hover:bg-zinc-600 transition disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => excluirDestaque(destaqueAtivo.id)}
+                    disabled={excluindo}
+                    className="flex-1 py-2 px-4 rounded-lg bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {excluindo ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Excluindo...
+                      </>
+                    ) : (
+                      'Excluir'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Conteúdo */}
           <div
