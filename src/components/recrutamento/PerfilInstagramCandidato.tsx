@@ -44,6 +44,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -100,6 +102,8 @@ interface Candidato {
   curso: string | null;
   disponibilidade_inicio: string | null;
   disponibilidade_horario: string | null;
+  disponibilidade_tipo: string | null;
+  disponibilidade_data: string | null;
   regime_preferido: string | null;
   pretensao_salarial: string | null;
   possui_cnh: string | null;
@@ -968,6 +972,13 @@ function ModalEditarPerfil({
     parseInteresses(candidato.objetivo_profissional)
   );
 
+  const [disponibilidadeTipo, setDisponibilidadeTipo] = useState(
+    candidato.disponibilidade_tipo || "imediata"
+  );
+  const [disponibilidadeData, setDisponibilidadeData] = useState(
+    candidato.disponibilidade_data || ""
+  );
+
   const handleFotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1012,6 +1023,8 @@ function ModalEditarPerfil({
         estado: form.estado,
         objetivo_profissional: interessesAtuacao,
         foto_url: fotoUrl,
+        disponibilidade_tipo: disponibilidadeTipo,
+        disponibilidade_data: disponibilidadeTipo === "a_partir_de" ? disponibilidadeData : null,
       })
       .eq("id", candidato.id);
 
@@ -1148,6 +1161,77 @@ function ModalEditarPerfil({
             maxCharsPerTag={19}
             minCharsToAdd={5}
           />
+
+          {/* Disponibilidade de Início */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-gray-300">
+              Disponibilidade de Início
+            </Label>
+
+            <RadioGroup
+              value={disponibilidadeTipo}
+              onValueChange={(value) => {
+                setDisponibilidadeTipo(value);
+                if (value !== "a_partir_de") {
+                  setDisponibilidadeData("");
+                }
+              }}
+              className="space-y-2"
+            >
+              <div className="flex items-center space-x-3">
+                <RadioGroupItem
+                  value="imediata"
+                  id="disp_imediata"
+                  className="border-gray-600 text-blue-500"
+                />
+                <Label htmlFor="disp_imediata" className="text-sm text-gray-300 cursor-pointer">
+                  Imediata
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <RadioGroupItem
+                  value="em_30_dias"
+                  id="disp_30_dias"
+                  className="border-gray-600 text-blue-500"
+                />
+                <Label htmlFor="disp_30_dias" className="text-sm text-gray-300 cursor-pointer">
+                  Em 30 dias
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <RadioGroupItem
+                  value="a_combinar"
+                  id="disp_combinar"
+                  className="border-gray-600 text-blue-500"
+                />
+                <Label htmlFor="disp_combinar" className="text-sm text-gray-300 cursor-pointer">
+                  A combinar
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <RadioGroupItem
+                  value="a_partir_de"
+                  id="disp_a_partir"
+                  className="border-gray-600 text-blue-500"
+                />
+                <Label htmlFor="disp_a_partir" className="text-sm text-gray-300 cursor-pointer">
+                  A partir de:
+                </Label>
+                {disponibilidadeTipo === "a_partir_de" && (
+                  <Input
+                    type="date"
+                    value={disponibilidadeData}
+                    onChange={(e) => setDisponibilidadeData(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                    className="w-40 bg-gray-700 border-gray-600 text-white text-sm"
+                  />
+                )}
+              </div>
+            </RadioGroup>
+          </div>
 
           {/* Bairro */}
           <div>
