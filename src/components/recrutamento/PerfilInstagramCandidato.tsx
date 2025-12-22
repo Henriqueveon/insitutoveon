@@ -31,6 +31,8 @@ import {
   Camera,
   Check,
   Video,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -565,6 +567,11 @@ export function PerfilInstagramCandidato({
         <ModalVisualizarDestaque
           destaque={showVisualizarDestaque}
           onClose={() => setShowVisualizarDestaque(null)}
+          modoVisualizacao={modoVisualizacao}
+          onExcluir={() => {
+            carregarDestaques();
+            onPerfilAtualizado?.();
+          }}
         />
       )}
 
@@ -994,13 +1001,20 @@ function ModalConfiguracoesCandidato({
 function ModalVisualizarDestaque({
   destaque,
   onClose,
+  modoVisualizacao = "empresa",
+  onExcluir,
 }: {
   destaque: Destaque;
   onClose: () => void;
+  modoVisualizacao?: "candidato" | "empresa";
+  onExcluir?: () => void;
 }) {
+  const { toast } = useToast();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [showConfirmarExclusao, setShowConfirmarExclusao] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -1098,6 +1112,41 @@ function ModalVisualizarDestaque({
     proximo();
   };
 
+  const handleExcluir = async () => {
+    setExcluindo(true);
+    try {
+      // Excluir mídias primeiro
+      await supabase
+        .from("midias_destaque")
+        .delete()
+        .eq("destaque_id", destaque.id);
+
+      // Excluir destaque
+      await supabase
+        .from("destaques_candidato")
+        .delete()
+        .eq("id", destaque.id);
+
+      toast({
+        title: "Destaque excluído!",
+        description: `"${destaque.titulo}" foi removido.`,
+      });
+
+      setShowConfirmarExclusao(false);
+      onClose();
+      onExcluir?.();
+    } catch (error) {
+      console.error("Erro ao excluir destaque:", error);
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir o destaque.",
+        variant: "destructive",
+      });
+    } finally {
+      setExcluindo(false);
+    }
+  };
+
   if (midias.length === 0) {
     return (
       <div className="fixed inset-0 bg-black z-[9999] flex items-center justify-center">
@@ -1149,12 +1198,42 @@ function ModalVisualizarDestaque({
                 {currentIndex + 1}/{midias.length}
               </span>
             </div>
-            <button
-              onClick={onClose}
-              className="text-white p-2 hover:bg-white/10 rounded-full transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <div className="flex items-center gap-1">
+              {/* Botões só aparecem se for o próprio candidato */}
+              {modoVisualizacao === "candidato" && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toast({
+                        title: "Em desenvolvimento",
+                        description: "A edição de destaques estará disponível em breve.",
+                      });
+                    }}
+                    className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                    title="Editar destaque"
+                  >
+                    <Pencil className="w-5 h-5 text-white" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowConfirmarExclusao(true);
+                    }}
+                    className="p-2 rounded-full bg-white/20 hover:bg-red-500/50 transition-colors"
+                    title="Excluir destaque"
+                  >
+                    <Trash2 className="w-5 h-5 text-white" />
+                  </button>
+                </>
+              )}
+              <button
+                onClick={onClose}
+                className="text-white p-2 hover:bg-white/10 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1224,6 +1303,41 @@ function ModalVisualizarDestaque({
         <div className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none">
           {currentIndex < midias.length - 1 && <span className="text-2xl">›</span>}
         </div>
+
+        {/* Modal de confirmação de exclusão */}
+        {showConfirmarExclusao && (
+          <div className="absolute inset-0 bg-black/80 z-[60] flex items-center justify-center p-4">
+            <div className="bg-zinc-900 rounded-xl p-6 max-w-sm w-full">
+              <h3 className="text-white text-lg font-semibold mb-2">Excluir destaque?</h3>
+              <p className="text-gray-400 mb-6">
+                Tem certeza que deseja excluir "{destaque.titulo}"? Esta ação não pode ser desfeita.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowConfirmarExclusao(false)}
+                  disabled={excluindo}
+                  className="flex-1 py-2 px-4 rounded-lg bg-zinc-700 text-white hover:bg-zinc-600 transition disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleExcluir}
+                  disabled={excluindo}
+                  className="flex-1 py-2 px-4 rounded-lg bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {excluindo ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Excluindo...
+                    </>
+                  ) : (
+                    "Excluir"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
