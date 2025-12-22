@@ -890,7 +890,7 @@ export function PerfilInstagramCandidato({
 }
 
 // =====================================================
-// MODAL EDITAR PERFIL - COM UPLOAD DE FOTO E VÍDEO
+// MODAL EDITAR PERFIL - COM UPLOAD DE FOTO
 // =====================================================
 function ModalEditarPerfil({
   candidato,
@@ -904,11 +904,9 @@ function ModalEditarPerfil({
   const { toast } = useToast();
   const { uploadMidia, uploading, progress } = useUploadMidia();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
   const [fotoUrl, setFotoUrl] = useState(candidato.foto_url);
-  const [videoUrl, setVideoUrl] = useState(candidato.video_url);
   const [form, setForm] = useState({
     nome_completo: candidato.nome_completo || "",
     headline: candidato.headline || "",
@@ -938,26 +936,6 @@ function ModalEditarPerfil({
     }
   };
 
-  const handleVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("video/")) {
-      toast({
-        title: "Formato inválido",
-        description: "Selecione um vídeo (MP4, WebM, MOV ou AVI).",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const result = await uploadMidia(file, candidato.id, "videos");
-    if (result) {
-      setVideoUrl(result.url);
-      toast({ title: "Vídeo enviado!" });
-    }
-  };
-
   const handleSalvar = async () => {
     setLoading(true);
 
@@ -971,7 +949,6 @@ function ModalEditarPerfil({
         estado: form.estado,
         objetivo_profissional: form.objetivo_profissional,
         foto_url: fotoUrl,
-        video_url: videoUrl,
       })
       .eq("id", candidato.id);
 
@@ -994,9 +971,8 @@ function ModalEditarPerfil({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* Foto e Vídeo */}
-          <div className="flex gap-4 justify-center mb-4">
-            {/* Foto */}
+          {/* Foto */}
+          <div className="flex justify-center mb-4">
             <div className="text-center">
               <div className="relative inline-block">
                 <div className="w-20 h-20 rounded-full bg-gray-700 overflow-hidden">
@@ -1026,38 +1002,6 @@ function ModalEditarPerfil({
                 type="file"
                 accept="image/*"
                 onChange={handleFotoSelect}
-                className="hidden"
-              />
-            </div>
-
-            {/* Vídeo */}
-            <div className="text-center">
-              <div className="relative inline-block">
-                <div className="w-20 h-20 rounded-lg bg-gray-700 overflow-hidden flex items-center justify-center">
-                  {videoUrl ? (
-                    <video src={videoUrl} className="w-full h-full object-cover" />
-                  ) : (
-                    <Video className="w-8 h-8 text-gray-500" />
-                  )}
-                </div>
-                <button
-                  onClick={() => videoInputRef.current?.click()}
-                  disabled={uploading}
-                  className="absolute bottom-0 right-0 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center"
-                >
-                  {uploading ? (
-                    <Loader2 className="w-3 h-3 text-white animate-spin" />
-                  ) : (
-                    <Video className="w-3 h-3 text-white" />
-                  )}
-                </button>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Vídeo</p>
-              <input
-                ref={videoInputRef}
-                type="file"
-                accept="video/*"
-                onChange={handleVideoSelect}
                 className="hidden"
               />
             </div>
@@ -1144,7 +1088,7 @@ function ModalEditarPerfil({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} className="border-gray-600 text-white">
+          <Button variant="outline" onClick={onClose} className="bg-zinc-700 border-zinc-600 text-white hover:bg-zinc-600">
             Cancelar
           </Button>
           <Button
