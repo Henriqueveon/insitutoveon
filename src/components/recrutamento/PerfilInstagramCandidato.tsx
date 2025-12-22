@@ -315,6 +315,14 @@ export function PerfilInstagramCandidato({
     }
   };
 
+  // Parse interesses de atuação (JSONB pode vir como string ou array)
+  const parseInteresses = (value: any): string[] => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string" && value.trim()) return [value];
+    return [];
+  };
+
   // Descrição do DISC
   const getDescricaoDISC = (perfil: string | null) => {
     if (!perfil) return "Realize o teste DISC para descobrir seu perfil comportamental.";
@@ -481,6 +489,20 @@ export function PerfilInstagramCandidato({
                   <User className="w-12 h-12 text-zinc-600" />
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Tags de Interesse de Atuação Profissional */}
+          {parseInteresses(candidato.objetivo_profissional).length > 0 && (
+            <div className="flex flex-col gap-1.5 mt-3">
+              {parseInteresses(candidato.objetivo_profissional).slice(0, 3).map((interesse, index) => (
+                <span
+                  key={index}
+                  className="inline-block px-3 py-1 bg-gray-700/50 border border-gray-600 rounded-full text-xs text-gray-300 truncate max-w-[180px]"
+                >
+                  {interesse}
+                </span>
+              ))}
             </div>
           )}
         </div>
