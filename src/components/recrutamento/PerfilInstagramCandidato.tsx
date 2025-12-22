@@ -390,17 +390,18 @@ export function PerfilInstagramCandidato({
       {/* HEADER */}
       {/* ============================================= */}
       <div className="flex items-center justify-between mb-2">
-        {onClose ? (
-          <button onClick={onClose} className="text-white p-2 -ml-2">
-            <X className="w-6 h-6" />
-          </button>
-        ) : (
+        <div className="flex items-center gap-2">
+          {onClose && (
+            <button onClick={onClose} className="text-white p-2 -ml-2">
+              <X className="w-6 h-6" />
+            </button>
+          )}
           <span className="text-gray-500 text-xs">
             Na plataforma desde: {candidato.created_at
               ? new Date(candidato.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })
               : '-'}
           </span>
-        )}
+        </div>
         <div className="flex items-center gap-2">
           <button className="relative p-2">
             <Bell className="w-6 h-6 text-white" />
