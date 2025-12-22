@@ -62,7 +62,7 @@ interface Candidato {
   bairro: string | null;
   perfil_disc: string | null;
   perfil_natural: Record<string, number> | null;
-  objetivo_profissional: string | null;
+  objetivo_profissional: string | string[] | null;
   confiabilidade: number | null;
   headline: string | null;
   bio: string | null;
@@ -246,6 +246,21 @@ export default function MeuCurriculoCandidato() {
     return disps[disp] || disp;
   };
 
+  // Parse interesses de atuação (JSONB pode vir como string ou array)
+  const parseInteresses = (obj: string | string[] | null): string[] => {
+    if (!obj) return [];
+    if (Array.isArray(obj)) return obj;
+    if (typeof obj === 'string') {
+      try {
+        const parsed = JSON.parse(obj);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return obj.trim() ? [obj] : [];
+      }
+    }
+    return [];
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -304,8 +319,22 @@ export default function MeuCurriculoCandidato() {
               </div>
             </div>
 
+            {/* Tags de Interesse de Atuação - Abaixo da foto */}
+            {parseInteresses(candidato.objetivo_profissional).length > 0 && (
+              <div className="flex flex-col gap-1.5 mt-2 max-w-[160px]">
+                {parseInteresses(candidato.objetivo_profissional).slice(0, 3).map((interesse, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-green-500/20 border border-green-500/40 rounded-full text-xs text-green-400 truncate text-center"
+                  >
+                    {interesse}
+                  </span>
+                ))}
+              </div>
+            )}
+
             {/* Nome e Bio */}
-            <h2 className="text-xl font-bold text-white text-center">
+            <h2 className="text-xl font-bold text-white text-center mt-4">
               {candidato.nome_completo}
             </h2>
 
@@ -318,12 +347,6 @@ export default function MeuCurriculoCandidato() {
             {candidato.headline && (
               <p className="text-white text-sm text-center mt-2 italic">
                 "{candidato.headline}"
-              </p>
-            )}
-
-            {candidato.objetivo_profissional && !candidato.headline && (
-              <p className="text-slate-300 text-sm text-center mt-2 max-w-xs">
-                {candidato.objetivo_profissional}
               </p>
             )}
           </div>
