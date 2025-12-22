@@ -49,7 +49,6 @@ interface Candidato {
 const menuItems = [
   { path: '/recrutamento/candidato/inicio', label: 'Início', icon: Home },
   { path: '/recrutamento/candidato/vagas', label: 'Vagas', icon: Briefcase },
-  { path: '/recrutamento/candidato/meu-curriculo', label: 'Currículo', icon: FileText },
   { path: '/recrutamento/candidato/configuracoes', label: 'Perfil', icon: Settings },
 ];
 
