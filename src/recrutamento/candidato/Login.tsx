@@ -58,7 +58,7 @@ export default function CandidatoLogin() {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           // Já está logado, redirecionar
-          navigate('/recrutamento/candidato/inicio');
+          navigate('/recrutamento/candidato/vagas');
           return;
         }
 
@@ -185,7 +185,7 @@ export default function CandidatoLogin() {
         description: `Olá, ${candidato.nome_completo?.split(' ')[0]}!`,
       });
 
-      navigate('/recrutamento/candidato/inicio');
+      navigate('/recrutamento/candidato/vagas');
     } catch (error) {
       console.error('Erro no login:', error);
       toast({
@@ -253,7 +253,7 @@ export default function CandidatoLogin() {
         description: `Email verificado e login realizado com sucesso!`,
       });
 
-      navigate('/recrutamento/candidato/inicio');
+      navigate('/recrutamento/candidato/vagas');
     } catch (error) {
       console.error('Erro após verificação:', error);
       toast({

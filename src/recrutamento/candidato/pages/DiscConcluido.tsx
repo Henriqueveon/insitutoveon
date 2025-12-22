@@ -116,7 +116,7 @@ export default function DiscConcluido() {
 
   const handleVoltar = () => {
     resetAssessment();
-    navigate('/recrutamento/candidato/inicio');
+    navigate('/recrutamento/candidato/vagas');
   };
 
   const handleVerCurriculo = () => {

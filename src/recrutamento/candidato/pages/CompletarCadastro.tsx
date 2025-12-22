@@ -403,7 +403,7 @@ export default function CompletarCadastro() {
               },
             });
           } else {
-            navigate('/recrutamento/candidato/inicio');
+            navigate('/recrutamento/candidato/vagas');
           }
         }
       } else {
@@ -898,7 +898,7 @@ export default function CompletarCadastro() {
     <RequireEmailVerificado
       candidatoId={candidatoContext?.id}
       tipo="candidato"
-      rotaRetorno="/recrutamento/candidato/inicio"
+      rotaRetorno="/recrutamento/candidato/vagas"
       titulo="Confirme seu Email"
       descricao="Para completar seu cadastro, primeiro precisamos verificar seu email"
       onVerificado={recarregarCandidato}
@@ -968,7 +968,7 @@ export default function CompletarCadastro() {
             if (secaoAtual > 0) {
               setSecaoAtual(secaoAtual - 1);
             } else {
-              navigate('/recrutamento/candidato/inicio');
+              navigate('/recrutamento/candidato/vagas');
             }
           }}
           className="border-slate-600 text-slate-300 hover:bg-slate-700"

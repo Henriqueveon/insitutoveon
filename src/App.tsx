@@ -236,7 +236,7 @@ const App = () => (
 
                 {/* Área de Recrutamento - Candidato (Painel) */}
                 <Route path="/recrutamento/candidato" element={<CandidatoLayout />}>
-                  <Route index element={<Navigate to="/recrutamento/candidato/inicio" replace />} />
+                  <Route index element={<Navigate to="/recrutamento/candidato/vagas" replace />} />
                   <Route path="inicio" element={<CandidatoInicio />} />
                   <Route path="vagas" element={<FeedVagas />} />
                   <Route path="propostas" element={<PropostasCandidato />} />

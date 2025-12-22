@@ -47,7 +47,6 @@ interface Candidato {
 }
 
 const menuItems = [
-  { path: '/recrutamento/candidato/inicio', label: 'Início', icon: Home },
   { path: '/recrutamento/candidato/vagas', label: 'Vagas', icon: Briefcase },
   { path: '/recrutamento/candidato/configuracoes', label: 'Perfil', icon: Settings },
 ];
@@ -172,7 +171,7 @@ export default function CandidatoLayout() {
                 variant="ghost"
                 size="icon"
                 className="h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 relative"
-                onClick={() => navigate('/recrutamento/candidato/inicio#indicacao')}
+                onClick={() => navigate('/recrutamento/candidato/vagas#indicacao')}
               >
                 <Gift className="w-5 h-5" />
                 <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse" />

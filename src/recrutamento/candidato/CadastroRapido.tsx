@@ -218,7 +218,7 @@ export default function CadastroRapido() {
 
       // Ir para o painel
       setTimeout(() => {
-        navigate('/recrutamento/candidato/inicio');
+        navigate('/recrutamento/candidato/vagas');
       }, 1000);
 
     } catch (error: any) {
@@ -430,7 +430,7 @@ export default function CadastroRapido() {
       description: 'Você pode verificar seu email a qualquer momento nas configurações.',
       variant: 'default',
     });
-    navigate('/recrutamento/candidato/inicio');
+    navigate('/recrutamento/candidato/vagas');
   };
 
   const beneficiosRapidos = [
