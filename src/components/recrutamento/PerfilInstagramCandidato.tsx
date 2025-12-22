@@ -111,6 +111,7 @@ interface Destaque {
   titulo: string;
   icone: string;
   ordem: number;
+  capa_url?: string | null;
   midias: { id: string; url: string; tipo: string }[];
 }
 
@@ -568,7 +569,12 @@ export function PerfilInstagramCandidato({
           destaque={showVisualizarDestaque}
           onClose={() => setShowVisualizarDestaque(null)}
           modoVisualizacao={modoVisualizacao}
+          candidatoId={candidatoId}
           onExcluir={() => {
+            carregarDestaques();
+            onPerfilAtualizado?.();
+          }}
+          onAtualizar={() => {
             carregarDestaques();
             onPerfilAtualizado?.();
           }}
@@ -1003,18 +1009,33 @@ function ModalVisualizarDestaque({
   onClose,
   modoVisualizacao = "empresa",
   onExcluir,
+  onAtualizar,
+  candidatoId,
 }: {
   destaque: Destaque;
   onClose: () => void;
   modoVisualizacao?: "candidato" | "empresa";
   onExcluir?: () => void;
+  onAtualizar?: () => void;
+  candidatoId?: string;
 }) {
   const { toast } = useToast();
+  const { uploadMidia, uploading } = useUploadMidia();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
   const [showConfirmarExclusao, setShowConfirmarExclusao] = useState(false);
   const [excluindo, setExcluindo] = useState(false);
+
+  // Estados para edição
+  const [showEditarDestaque, setShowEditarDestaque] = useState(false);
+  const [novoTitulo, setNovoTitulo] = useState(destaque.titulo);
+  const [novoIcone, setNovoIcone] = useState(destaque.icone);
+  const [novaCapa, setNovaCapa] = useState<File | null>(null);
+  const [previewCapa, setPreviewCapa] = useState<string | null>(destaque.capa_url || null);
+  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
+  const capaInputRef = useRef<HTMLInputElement>(null);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -1147,6 +1168,82 @@ function ModalVisualizarDestaque({
     }
   };
 
+  const handleSalvarEdicao = async () => {
+    if (!novoTitulo.trim()) {
+      toast({
+        title: "Título obrigatório",
+        description: "Digite um título para o destaque.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSalvandoEdicao(true);
+    try {
+      let capaUrl = destaque.capa_url;
+
+      // Se tem nova capa, fazer upload
+      if (novaCapa && candidatoId) {
+        const result = await uploadMidia(novaCapa, candidatoId, "capas-destaques");
+        if (result) {
+          capaUrl = result.url;
+        }
+      }
+
+      // Atualizar destaque no banco
+      const { error } = await supabase
+        .from("destaques_candidato")
+        .update({
+          titulo: novoTitulo.trim(),
+          icone: novoIcone,
+          capa_url: capaUrl,
+        })
+        .eq("id", destaque.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Destaque atualizado!",
+        description: `"${novoTitulo}" foi salvo com sucesso.`,
+      });
+
+      setShowEditarDestaque(false);
+      setNovaCapa(null);
+      onClose();
+      onAtualizar?.();
+    } catch (error) {
+      console.error("Erro ao salvar destaque:", error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar as alterações.",
+        variant: "destructive",
+      });
+    } finally {
+      setSalvandoEdicao(false);
+    }
+  };
+
+  const handleCapaSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast({
+          title: "Formato inválido",
+          description: "Selecione uma imagem (JPG, PNG, WebP ou GIF).",
+          variant: "destructive",
+        });
+        return;
+      }
+      setNovaCapa(file);
+      setPreviewCapa(URL.createObjectURL(file));
+    }
+  };
+
+  const ICONES_EDICAO = [
+    "📋", "💼", "💡", "🎬", "📸", "🎯",
+    "🔧", "📷", "⏰", "⭐", "🎨", "🚀",
+  ];
+
   if (midias.length === 0) {
     return (
       <div className="fixed inset-0 bg-black z-[9999] flex items-center justify-center">
@@ -1205,10 +1302,7 @@ function ModalVisualizarDestaque({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      toast({
-                        title: "Em desenvolvimento",
-                        description: "A edição de destaques estará disponível em breve.",
-                      });
+                      setShowEditarDestaque(true);
                     }}
                     className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
                     title="Editar destaque"
@@ -1338,6 +1432,143 @@ function ModalVisualizarDestaque({
             </div>
           </div>
         )}
+
+        {/* Modal de Edição do Destaque */}
+        {showEditarDestaque && (
+          <div className="absolute inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
+            <div className="bg-zinc-900 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-white text-xl font-semibold">Editar Destaque</h3>
+                <button
+                  onClick={() => {
+                    setShowEditarDestaque(false);
+                    setNovaCapa(null);
+                    setPreviewCapa(destaque.capa_url || null);
+                    setNovoTitulo(destaque.titulo);
+                    setNovoIcone(destaque.icone);
+                  }}
+                  className="p-2 rounded-full hover:bg-zinc-800"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+
+              {/* Preview da Capa */}
+              <div className="flex flex-col items-center mb-6">
+                <p className="text-gray-400 text-sm mb-3">Capa do Destaque</p>
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-dashed border-gray-600 flex items-center justify-center bg-zinc-800">
+                    {previewCapa ? (
+                      <img
+                        src={previewCapa}
+                        alt="Capa"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : destaque.midias?.[0]?.url ? (
+                      <img
+                        src={destaque.midias[0].url}
+                        alt="Primeira mídia"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-3xl">{novoIcone}</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => capaInputRef.current?.click()}
+                    className="absolute -bottom-1 -right-1 p-2 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700 transition"
+                  >
+                    <Camera className="w-4 h-4 text-white" />
+                  </button>
+                  <input
+                    ref={capaInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleCapaSelect}
+                  />
+                </div>
+                <p className="text-gray-500 text-xs mt-2">Toque para alterar a capa</p>
+              </div>
+
+              {/* Nome do Destaque */}
+              <div className="mb-6">
+                <label className="block text-gray-400 text-sm mb-2">Nome do Destaque</label>
+                <input
+                  type="text"
+                  value={novoTitulo}
+                  onChange={(e) => setNovoTitulo(e.target.value)}
+                  maxLength={20}
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                  placeholder="Ex: Projetos, Trabalhos..."
+                />
+                <p className="text-gray-500 text-xs mt-1 text-right">{novoTitulo.length}/20</p>
+              </div>
+
+              {/* Ícone do Destaque */}
+              <div className="mb-6">
+                <label className="block text-gray-400 text-sm mb-2">Ícone</label>
+                <div className="grid grid-cols-6 gap-2">
+                  {ICONES_EDICAO.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => setNovoIcone(emoji)}
+                      className={`p-3 rounded-xl text-2xl transition ${
+                        novoIcone === emoji
+                          ? "bg-blue-600"
+                          : "bg-zinc-800 hover:bg-zinc-700"
+                      }`}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Progress de upload */}
+              {uploading && (
+                <div className="mb-4">
+                  <div className="h-2 bg-zinc-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 animate-pulse w-full" />
+                  </div>
+                  <p className="text-center text-xs text-gray-400 mt-1">Enviando capa...</p>
+                </div>
+              )}
+
+              {/* Botões de Ação */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowEditarDestaque(false);
+                    setNovaCapa(null);
+                    setPreviewCapa(destaque.capa_url || null);
+                    setNovoTitulo(destaque.titulo);
+                    setNovoIcone(destaque.icone);
+                  }}
+                  disabled={salvandoEdicao}
+                  className="flex-1 py-3 px-4 rounded-xl bg-zinc-700 text-white hover:bg-zinc-600 transition disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSalvarEdicao}
+                  disabled={salvandoEdicao || uploading || !novoTitulo.trim()}
+                  className="flex-1 py-3 px-4 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {salvandoEdicao ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    "Salvar"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1345,13 +1576,19 @@ function ModalVisualizarDestaque({
 
 // Componente do círculo de destaque
 function DestaqueCirculo({ destaque, onClick }: { destaque: Destaque; onClick: () => void }) {
-  const thumbnail = destaque.midias?.[0]?.url;
+  // Prioridade: capa_url > primeira mídia (foto) > primeira mídia (video) > ícone
+  const capa = destaque.capa_url;
+  const primeiraMidia = destaque.midias?.[0];
 
   return (
     <button onClick={onClick} className="flex flex-col items-center gap-2 min-w-[70px]">
       <div className="w-16 h-16 rounded-full bg-blue-900 flex items-center justify-center overflow-hidden">
-        {thumbnail ? (
-          <img src={thumbnail} alt="" className="w-full h-full object-cover" />
+        {capa ? (
+          <img src={capa} alt={destaque.titulo} className="w-full h-full object-cover" />
+        ) : primeiraMidia?.url && (primeiraMidia.tipo === "foto" || primeiraMidia.tipo === "imagem") ? (
+          <img src={primeiraMidia.url} alt={destaque.titulo} className="w-full h-full object-cover" />
+        ) : primeiraMidia?.url && primeiraMidia.tipo === "video" ? (
+          <video src={primeiraMidia.url} className="w-full h-full object-cover" muted />
         ) : (
           <span className="text-2xl">{destaque.icone || "📌"}</span>
         )}
