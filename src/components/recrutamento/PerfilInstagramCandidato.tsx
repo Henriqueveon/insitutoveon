@@ -328,6 +328,26 @@ export function PerfilInstagramCandidato({
     return [];
   };
 
+  // Formatar disponibilidade para exibição
+  const formatarDisponibilidade = (tipo: string | null, data?: string | null) => {
+    if (!tipo) return "Imediato";
+    switch (tipo) {
+      case "imediata":
+        return "Imediato";
+      case "em_30_dias":
+        return "Em 30 dias";
+      case "a_combinar":
+        return "A combinar";
+      case "a_partir_de":
+        if (data) {
+          return new Date(data).toLocaleDateString("pt-BR");
+        }
+        return "A definir";
+      default:
+        return "Imediato";
+    }
+  };
+
   // Descrição do DISC
   const getDescricaoDISC = (perfil: string | null) => {
     if (!perfil) return "Realize o teste DISC para descobrir seu perfil comportamental.";
@@ -432,13 +452,22 @@ export function PerfilInstagramCandidato({
       {/* Nome do usuário */}
       <h1 className="text-2xl font-bold text-white">{candidato.nome_completo}</h1>
 
-      {/* Título Profissional */}
-      {candidato.headline && (
-        <p className="text-sm font-semibold text-gray-400 mt-1 mb-4">
-          {candidato.headline}
-        </p>
-      )}
-      {!candidato.headline && <div className="mb-4" />}
+      {/* Título Profissional + Disponibilidade */}
+      <div className="flex justify-between items-center w-full mt-1 mb-4">
+        {/* Título - Esquerda */}
+        {candidato.headline ? (
+          <p className="text-sm font-semibold text-gray-400">
+            {candidato.headline}
+          </p>
+        ) : (
+          <div />
+        )}
+
+        {/* Disponibilidade - Direita */}
+        <span className="text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded">
+          Disponível: {formatarDisponibilidade(candidato.disponibilidade_tipo, candidato.disponibilidade_data)}
+        </span>
+      </div>
 
       {/* ============================================= */}
       {/* FOTO + BIO + ESTATÍSTICAS */}
