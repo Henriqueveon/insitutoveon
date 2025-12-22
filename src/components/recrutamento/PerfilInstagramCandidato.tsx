@@ -416,7 +416,15 @@ export function PerfilInstagramCandidato({
       </div>
 
       {/* Nome do usuário */}
-      <h1 className="text-2xl font-bold text-white mb-4">{candidato.nome_completo}</h1>
+      <h1 className="text-2xl font-bold text-white">{candidato.nome_completo}</h1>
+
+      {/* Título Profissional */}
+      {candidato.headline && (
+        <p className="text-sm font-semibold text-gray-400 mt-1 mb-4">
+          {candidato.headline}
+        </p>
+      )}
+      {!candidato.headline && <div className="mb-4" />}
 
       {/* ============================================= */}
       {/* FOTO + BIO + ESTATÍSTICAS */}
