@@ -82,6 +82,7 @@ interface Candidato {
   video_url: string | null;
   cidade: string | null;
   estado: string | null;
+  bairro: string | null;
   perfil_disc: string | null;
   headline: string | null;
   bio: string | null;
@@ -491,14 +492,19 @@ export function PerfilInstagramCandidato({
             {candidato.bio || candidato.objetivo_profissional || "Adicione uma bio..."}
           </p>
 
-          {/* Cidade/Estado */}
-          {(candidato.cidade || candidato.estado) && (
-            <p className="text-white font-semibold text-sm mt-1">
-              {candidato.cidade}
-              {candidato.cidade && candidato.estado && " - "}
-              {candidato.estado}
-            </p>
-          )}
+          {/* Localização */}
+          <div className="mt-1">
+            {candidato.bairro && (
+              <p className="text-sm text-gray-400">{candidato.bairro}</p>
+            )}
+            {(candidato.cidade || candidato.estado) && (
+              <p className="text-white font-semibold text-sm">
+                {candidato.cidade}
+                {candidato.cidade && candidato.estado && " - "}
+                {candidato.estado}
+              </p>
+            )}
+          </div>
 
           {/* Perfil DISC */}
           {perfisDISC.length > 0 && (
@@ -929,6 +935,7 @@ function ModalEditarPerfil({
     nome_completo: candidato.nome_completo || "",
     headline: candidato.headline || "",
     bio: candidato.bio || "",
+    bairro: candidato.bairro || "",
     cidade: candidato.cidade || "",
     estado: candidato.estado || "",
   });
@@ -976,6 +983,7 @@ function ModalEditarPerfil({
         nome_completo: form.nome_completo,
         headline: form.headline,
         bio: form.bio,
+        bairro: form.bairro,
         cidade: form.cidade,
         estado: form.estado,
         objetivo_profissional: interessesAtuacao,
@@ -1116,6 +1124,18 @@ function ModalEditarPerfil({
             maxCharsPerTag={25}
             minCharsToAdd={5}
           />
+
+          {/* Bairro */}
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Bairro</label>
+            <Input
+              value={form.bairro}
+              onChange={(e) => setForm({ ...form, bairro: e.target.value })}
+              placeholder="Ex: Jardim Santa Fé"
+              maxLength={100}
+              className="bg-gray-800 border-gray-700 text-white"
+            />
+          </div>
 
           {/* Cidade e Estado */}
           <div className="grid grid-cols-2 gap-3">
