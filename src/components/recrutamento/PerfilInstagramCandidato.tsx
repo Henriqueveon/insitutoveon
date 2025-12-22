@@ -1035,10 +1035,22 @@ function ModalEditarPerfil({
             <label className="block text-sm text-gray-400 mb-1">Título Profissional</label>
             <Input
               value={form.headline}
-              onChange={(e) => setForm({ ...form, headline: e.target.value })}
-              placeholder="Ex: Social Media, Vendedor, Designer..."
+              onChange={(e) => {
+                if (e.target.value.length <= 24) {
+                  setForm({ ...form, headline: e.target.value });
+                }
+              }}
+              maxLength={24}
+              placeholder="Ex: Vendedor, Pizzaiolo, Pintor"
               className="bg-gray-800 border-gray-700 text-white"
             />
+            <p className={`text-xs mt-1 text-right ${
+              form.headline.length >= 24 ? 'text-red-500' :
+              form.headline.length >= 20 ? 'text-yellow-500' :
+              'text-gray-500'
+            }`}>
+              {form.headline.length}/24
+            </p>
           </div>
 
           {/* Bio */}
