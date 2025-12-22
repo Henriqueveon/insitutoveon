@@ -359,6 +359,8 @@ export function PerfilInstagramCandidato({
           return new Date(data).toLocaleDateString("pt-BR");
         }
         return "A definir";
+      case "indisponivel":
+        return "Indisponível";
       default:
         return "Imediato";
     }
@@ -492,8 +494,13 @@ export function PerfilInstagramCandidato({
         )}
 
         {/* Disponibilidade - Direita */}
-        <span className="text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded">
-          Disponível: {formatarDisponibilidade(candidato.disponibilidade_tipo, candidato.disponibilidade_data)}
+        <span className={`text-xs px-2 py-0.5 rounded ${
+          candidato.disponibilidade_tipo === "indisponivel"
+            ? "bg-red-500/20 text-red-400 border border-red-500/40"
+            : "bg-gray-800 text-gray-400"
+        }`}>
+          {candidato.disponibilidade_tipo === "indisponivel" ? "" : "Disponível: "}
+          {formatarDisponibilidade(candidato.disponibilidade_tipo, candidato.disponibilidade_data)}
         </span>
       </div>
 
@@ -1297,6 +1304,17 @@ function ModalEditarPerfil({
                     className="w-40 bg-gray-700 border-gray-600 text-white text-sm"
                   />
                 )}
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <RadioGroupItem
+                  value="indisponivel"
+                  id="disp_indisponivel"
+                  className="border-gray-600 text-red-500"
+                />
+                <Label htmlFor="disp_indisponivel" className="text-sm text-red-400 cursor-pointer">
+                  Indisponível
+                </Label>
               </div>
             </RadioGroup>
           </div>
