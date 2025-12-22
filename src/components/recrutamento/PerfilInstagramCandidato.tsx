@@ -65,6 +65,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUploadMidia } from "@/hooks/useUploadMidia";
 import { ModalAdicionarDestaque } from "./ModalAdicionarDestaque";
 import { InteresseAtuacaoTags } from "@/recrutamento/components/InteresseAtuacaoTags";
+import { MicroIconeDisc } from "@/recrutamento/components/MicroIconeDisc";
 
 interface PerfilInstagramCandidatoProps {
   candidatoId: string;
@@ -530,7 +531,8 @@ export function PerfilInstagramCandidato({
 
           {/* Perfil DISC */}
           {perfisDISC.length > 0 && (
-            <div className="flex gap-2 mt-1">
+            <div className="flex items-center gap-1.5 mt-1">
+              <MicroIconeDisc size={14} />
               {perfisDISC.map((letra, index) => (
                 <span key={index} className={`text-sm font-semibold ${getCorDISC(letra)}`}>
                   {getNomeDISC(letra)}
