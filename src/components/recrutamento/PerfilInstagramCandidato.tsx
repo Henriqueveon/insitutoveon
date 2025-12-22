@@ -64,6 +64,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useUploadMidia } from "@/hooks/useUploadMidia";
 import { ModalAdicionarDestaque } from "./ModalAdicionarDestaque";
+import { InteresseAtuacaoTags } from "@/recrutamento/components/InteresseAtuacaoTags";
 
 interface PerfilInstagramCandidatoProps {
   candidatoId: string;
@@ -907,14 +908,26 @@ function ModalEditarPerfil({
 
   const [loading, setLoading] = useState(false);
   const [fotoUrl, setFotoUrl] = useState(candidato.foto_url);
+
+  // Converter objetivo_profissional para array se for string
+  const parseInteresses = (value: any): string[] => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string' && value.trim()) return [value];
+    return [];
+  };
+
   const [form, setForm] = useState({
     nome_completo: candidato.nome_completo || "",
     headline: candidato.headline || "",
     bio: candidato.bio || "",
     cidade: candidato.cidade || "",
     estado: candidato.estado || "",
-    objetivo_profissional: candidato.objetivo_profissional || "",
   });
+
+  const [interessesAtuacao, setInteressesAtuacao] = useState<string[]>(
+    parseInteresses(candidato.objetivo_profissional)
+  );
 
   const handleFotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -937,6 +950,16 @@ function ModalEditarPerfil({
   };
 
   const handleSalvar = async () => {
+    // Validar mínimo de 1 área de interesse
+    if (interessesAtuacao.length === 0) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Adicione pelo menos 1 área de interesse de atuação.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase
@@ -947,7 +970,7 @@ function ModalEditarPerfil({
         bio: form.bio,
         cidade: form.cidade,
         estado: form.estado,
-        objetivo_profissional: form.objetivo_profissional,
+        objetivo_profissional: interessesAtuacao,
         foto_url: fotoUrl,
       })
       .eq("id", candidato.id);
@@ -1077,17 +1100,14 @@ function ModalEditarPerfil({
             </p>
           </div>
 
-          {/* Objetivo */}
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Objetivo Profissional</label>
-            <Textarea
-              value={form.objetivo_profissional}
-              onChange={(e) => setForm({ ...form, objetivo_profissional: e.target.value })}
-              placeholder="O que você busca..."
-              className="bg-gray-800 border-gray-700 text-white resize-none"
-              rows={2}
-            />
-          </div>
+          {/* Interesse de Atuação Profissional */}
+          <InteresseAtuacaoTags
+            value={interessesAtuacao}
+            onChange={setInteressesAtuacao}
+            maxTags={5}
+            maxCharsPerTag={25}
+            minCharsToAdd={5}
+          />
 
           {/* Cidade e Estado */}
           <div className="grid grid-cols-2 gap-3">
