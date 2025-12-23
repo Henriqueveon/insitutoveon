@@ -51,7 +51,20 @@ export default function DiscConcluido() {
   // Salvar perfil DISC e atualizar status para ONLINE
   useEffect(() => {
     const salvarPerfil = async () => {
-      if (!candidato?.id || !naturalProfile || perfilSalvo) return;
+      // Debug logs para identificar problemas
+      console.log('🔍 DiscConcluido - Verificando dados:', {
+        candidatoId: candidato?.id,
+        temNaturalProfile: !!naturalProfile,
+        naturalProfile: naturalProfile,
+        perfilSalvo: perfilSalvo
+      });
+
+      if (!candidato?.id || !naturalProfile || perfilSalvo) {
+        if (!candidato?.id) console.warn('⚠️ Candidato ID não encontrado');
+        if (!naturalProfile) console.warn('⚠️ naturalProfile não disponível no contexto');
+        if (perfilSalvo) console.log('✅ Perfil já foi salvo anteriormente');
+        return;
+      }
 
       try {
         const perfilTipo = getProfileType(
@@ -121,9 +134,9 @@ export default function DiscConcluido() {
     navigate('/recrutamento/candidato/vagas');
   };
 
-  const handleVerCurriculo = () => {
+  const handleVerPerfil = () => {
     resetAssessment();
-    navigate('/recrutamento/candidato/configuracoes');
+    navigate('/recrutamento/candidato/perfil');
   };
 
   // Cor do perfil DISC
@@ -241,10 +254,10 @@ export default function DiscConcluido() {
           {/* Botões */}
           <div className="space-y-3">
             <Button
-              onClick={handleVerCurriculo}
+              onClick={handleVerPerfil}
               className="w-full h-14 bg-white text-black font-bold text-base rounded-xl hover:bg-white/90"
             >
-              Ver Meu Currículo
+              Ver Meu Perfil
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button
