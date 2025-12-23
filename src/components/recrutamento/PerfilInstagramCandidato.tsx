@@ -2410,7 +2410,7 @@ function ModalCurriculoCompleto({
 // COMPONENTES AUXILIARES - NOVO LAYOUT
 // =====================================================
 
-// Modal genérico para informações do candidato - RESPONSIVO MOBILE
+// Modal genérico para informações do candidato - RESPONSIVO MOBILE (acima da navbar)
 function ModalInfoCandidato({
   titulo,
   onClose,
@@ -2421,16 +2421,16 @@ function ModalInfoCandidato({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-zinc-900 w-full mx-0 sm:mx-4 sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
+    <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4 pb-24">
+      <div className="bg-zinc-900 w-full max-w-md rounded-2xl max-h-[70vh] overflow-y-auto animate-in zoom-in-95 duration-200">
         {/* Header - Sticky no topo */}
-        <div className="sticky top-0 z-10 bg-zinc-900 flex items-center justify-between p-4 border-b border-zinc-800">
+        <div className="sticky top-0 z-10 bg-zinc-900 flex items-center justify-between p-4 border-b border-zinc-800 rounded-t-2xl">
           <h3 className="text-white font-semibold text-lg">{titulo}</h3>
           <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-full transition">
             <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
-        {/* Content - Scrollável */}
+        {/* Content - Scrollável com padding extra para botão */}
         <div className="p-4 pb-6">{children}</div>
       </div>
     </div>
