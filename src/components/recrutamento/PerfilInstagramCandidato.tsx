@@ -876,21 +876,21 @@ export function PerfilInstagramCandidato({
                 {/* Benefícios visuais */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
                     <span className="text-sm text-gray-300">
                       <strong className="text-white">Seja encontrado</strong> por empresas certas
                     </span>
                   </div>
 
                   <div className="flex items-center gap-3 bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg">
-                    <CheckCircle2 className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-blue-400 flex-shrink-0" />
                     <span className="text-sm text-gray-300">
                       <strong className="text-white">Evite frustrações</strong> em cargos incompatíveis
                     </span>
                   </div>
 
                   <div className="flex items-center gap-3 bg-purple-500/10 border border-purple-500/20 p-3 rounded-lg">
-                    <CheckCircle2 className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-purple-400 flex-shrink-0" />
                     <span className="text-sm text-gray-300">
                       <strong className="text-white">Destaque-se</strong> com perfil comportamental
                     </span>
