@@ -14,7 +14,7 @@ const DISC_COLORS = {
 };
 
 const normalizeScore = (score: number): number => {
-  return Math.round(((score + 25) / 50) * 100);
+  return Math.round(((score + 50) / 100) * 100);
 };
 
 export function LeadershipPieChart({ naturalProfile }: LeadershipPieChartProps) {

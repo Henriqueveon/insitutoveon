@@ -76,9 +76,9 @@ interface CurriculoDISCReportProps {
   onAgendarEntrevista?: () => void;
 }
 
-// Normaliza score de -25/+25 para 0-100
+// Normaliza score de -50/+50 para 0-100
 const normalizeScore = (score: number): number => {
-  return Math.round(((score + 25) / 50) * 100);
+  return Math.round(((score + 50) / 100) * 100);
 };
 
 // Gera interpretação da amplitude (adaptação)

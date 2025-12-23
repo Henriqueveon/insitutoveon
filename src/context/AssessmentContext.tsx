@@ -482,6 +482,13 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
 
   // Calculate comprehensive reliability score using control items and behavioral patterns
   const calculateReliabilityScore = (): ReliabilityResult => {
+    // Debug: Log input data for diagnosis
+    console.log('🔍 [Reliability] Calculando confiabilidade...');
+    console.log('🔍 [Reliability] controlAnswers:', controlAnswers.length, controlAnswers);
+    console.log('🔍 [Reliability] questionTimes:', questionTimes.length, questionTimes);
+    console.log('🔍 [Reliability] naturalProfile:', naturalProfile);
+    console.log('🔍 [Reliability] answers:', answers.length);
+
     const flags: ReliabilityFlags = {
       fake_responses: false,
       attention_failed: false,
@@ -566,8 +573,14 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
       profileSpread = Math.max(...values) - Math.min(...values);
     }
 
+    // Debug: Log flags before calculation
+    console.log('🔍 [Reliability] Flags detectados:', flags);
+    console.log('🔍 [Reliability] avgTimePerQuestion:', avgTimePerQuestion);
+    console.log('🔍 [Reliability] profileSpread:', profileSpread);
+
     // Use the reliability calculation function from discQuestions
     const result = calcReliability(flags, avgTimePerQuestion, profileSpread);
+    console.log('🔍 [Reliability] Resultado final:', result);
     setReliabilityResult(result);
     return result;
   };

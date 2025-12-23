@@ -80,7 +80,7 @@ PDFReport.displayName = 'PDFReport';
 
 // Helper functions
 function generateCompetencias(natural: { D: number; I: number; S: number; C: number }, adaptado: { D: number; I: number; S: number; C: number }) {
-  const normalize = (score: number) => Math.round(((score + 25) / 50) * 100);
+  const normalize = (score: number) => Math.round(((score + 50) / 100) * 100);
   
   const nD = normalize(natural.D);
   const nI = normalize(natural.I);
@@ -113,7 +113,7 @@ function generateCompetencias(natural: { D: number; I: number; S: number; C: num
 }
 
 function generateLideranca(natural: { D: number; I: number; S: number; C: number }) {
-  const normalize = (score: number) => Math.round(((score + 25) / 50) * 100);
+  const normalize = (score: number) => Math.round(((score + 50) / 100) * 100);
   const total = normalize(natural.D) + normalize(natural.I) + normalize(natural.S) + normalize(natural.C);
   
   return [
@@ -125,7 +125,7 @@ function generateLideranca(natural: { D: number; I: number; S: number; C: number
 }
 
 function generateValores(natural: { D: number; I: number; S: number; C: number }) {
-  const normalize = (score: number) => Math.round(((score + 25) / 50) * 100);
+  const normalize = (score: number) => Math.round(((score + 50) / 100) * 100);
   const nD = normalize(natural.D);
   const nI = normalize(natural.I);
   const nS = normalize(natural.S);

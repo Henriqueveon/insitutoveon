@@ -71,6 +71,7 @@ import { InteresseAtuacaoTags } from "@/recrutamento/components/InteresseAtuacao
 import { MicroIconeDisc } from "@/recrutamento/components/MicroIconeDisc";
 import { UsernameInput } from "@/recrutamento/components/UsernameInput";
 import { RelatorioDiscModal } from "@/recrutamento/candidato/components/RelatorioDiscModal";
+import { ModalInstrucoesDISC } from "@/components/test/ModalInstrucoesDISC";
 import { useNavigate } from "react-router-dom";
 
 interface PerfilInstagramCandidatoProps {
@@ -166,6 +167,7 @@ export function PerfilInstagramCandidato({
   const [showMenu, setShowMenu] = useState(false);
   const [abaAberta, setAbaAberta] = useState<string | null>(null);
   const [showRelatorioDisc, setShowRelatorioDisc] = useState(false);
+  const [showInstrucoesDISC, setShowInstrucoesDISC] = useState(false);
 
   const navigate = useNavigate();
 
@@ -832,7 +834,7 @@ export function PerfilInstagramCandidato({
                       <Button
                         onClick={() => {
                           setAbaAberta(null);
-                          navigate("/recrutamento/candidato/teste-disc");
+                          setShowInstrucoesDISC(true);
                         }}
                         variant="outline"
                         className="w-full border-blue-500/40 text-blue-400 hover:bg-blue-500/20"
@@ -854,7 +856,7 @@ export function PerfilInstagramCandidato({
                   <Button
                     onClick={() => {
                       setAbaAberta(null);
-                      navigate("/recrutamento/candidato/teste-disc");
+                      setShowInstrucoesDISC(true);
                     }}
                     className="w-full bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white"
                   >
@@ -1052,10 +1054,20 @@ export function PerfilInstagramCandidato({
           podeRefazer={podeRefazerDisc}
           onRefazerTeste={() => {
             setShowRelatorioDisc(false);
-            navigate("/recrutamento/candidato/teste-disc");
+            setShowInstrucoesDISC(true);
           }}
         />
       )}
+
+      {/* Modal Instruções DISC - Aparece antes de iniciar o teste */}
+      <ModalInstrucoesDISC
+        isOpen={showInstrucoesDISC}
+        onClose={() => setShowInstrucoesDISC(false)}
+        onStart={() => {
+          setShowInstrucoesDISC(false);
+          navigate("/teste");
+        }}
+      />
 
       {/* Dialog Agendar Entrevista */}
       <AlertDialog open={showAgendarDialog} onOpenChange={setShowAgendarDialog}>
@@ -2398,7 +2410,7 @@ function ModalCurriculoCompleto({
 // COMPONENTES AUXILIARES - NOVO LAYOUT
 // =====================================================
 
-// Modal genérico para informações do candidato
+// Modal genérico para informações do candidato - RESPONSIVO
 function ModalInfoCandidato({
   titulo,
   onClose,
@@ -2409,17 +2421,17 @@ function ModalInfoCandidato({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-zinc-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[80vh] overflow-hidden animate-in slide-in-from-bottom duration-300">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="bg-zinc-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom duration-300 flex flex-col">
+        {/* Header - Fixo */}
+        <div className="flex items-center justify-between p-4 border-b border-zinc-800 flex-shrink-0">
           <h3 className="text-white font-semibold text-lg">{titulo}</h3>
           <button onClick={onClose} className="p-1 hover:bg-zinc-800 rounded-full transition">
             <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
-        {/* Content */}
-        <div className="p-4 overflow-y-auto max-h-[60vh]">{children}</div>
+        {/* Content - Scrollable com padding para safe area mobile */}
+        <div className="p-4 pb-8 overflow-y-auto flex-1">{children}</div>
       </div>
     </div>
   );

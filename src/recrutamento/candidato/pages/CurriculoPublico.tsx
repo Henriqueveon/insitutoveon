@@ -140,9 +140,9 @@ const FLAG_DESCRIPTIONS: Record<string, string> = {
   'contradictory': 'Padrão contraditório nas escolhas',
 };
 
-// Função de normalização
+// Função de normalização - Range DISC é -50 a +50
 const normalizeScore = (score: number): number => {
-  return Math.round(((score + 25) / 50) * 100);
+  return Math.round(((score + 50) / 100) * 100);
 };
 
 // Calcular competências

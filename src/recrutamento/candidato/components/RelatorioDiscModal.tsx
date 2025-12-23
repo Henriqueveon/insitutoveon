@@ -56,9 +56,9 @@ const coresDisc = {
   C: { bg: "bg-blue-500", text: "text-blue-500", bgLight: "bg-blue-500/20", label: "Conforme" },
 } as const;
 
-// Normalizar scores para 0-100
+// Normalizar scores para 0-100 (DISC usa escala de -50 a +50)
 const normalizarScore = (score: number): number => {
-  return Math.round(((score + 25) / 50) * 100);
+  return Math.round(((score + 50) / 100) * 100);
 };
 
 // Cor do badge de confiabilidade

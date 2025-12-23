@@ -24,7 +24,8 @@ interface PDFDISCPageProps {
 }
 
 const normalizeScore = (score: number): number => {
-  return Math.round(((score + 25) / 50) * 100);
+  // Normaliza de -50/+50 para 0-100
+  return Math.round(((score + 50) / 100) * 100);
 };
 
 const COLORS = {

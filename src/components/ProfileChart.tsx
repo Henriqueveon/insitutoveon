@@ -6,8 +6,8 @@ interface ProfileChartProps {
 }
 
 function normalizeScore(score: number): number {
-  // Normalize from range -25 to +25 to 0-100
-  return Math.round(((score + 25) / 50) * 100);
+  // Normalize from range -50 to +50 to 0-100
+  return Math.round(((score + 50) / 100) * 100);
 }
 
 export function ProfileChart({ naturalProfile, adaptedProfile }: ProfileChartProps) {
