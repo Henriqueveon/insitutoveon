@@ -2410,7 +2410,7 @@ function ModalCurriculoCompleto({
 // COMPONENTES AUXILIARES - NOVO LAYOUT
 // =====================================================
 
-// Modal genérico para informações do candidato - RESPONSIVO
+// Modal genérico para informações do candidato - RESPONSIVO MOBILE
 function ModalInfoCandidato({
   titulo,
   onClose,
@@ -2421,17 +2421,17 @@ function ModalInfoCandidato({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-zinc-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom duration-300 flex flex-col">
-        {/* Header - Fixo */}
-        <div className="flex items-center justify-between p-4 border-b border-zinc-800 flex-shrink-0">
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center">
+      <div className="bg-zinc-900 w-full mx-0 sm:mx-4 sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
+        {/* Header - Sticky no topo */}
+        <div className="sticky top-0 z-10 bg-zinc-900 flex items-center justify-between p-4 border-b border-zinc-800">
           <h3 className="text-white font-semibold text-lg">{titulo}</h3>
-          <button onClick={onClose} className="p-1 hover:bg-zinc-800 rounded-full transition">
+          <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-full transition">
             <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
-        {/* Content - Scrollable com padding para safe area mobile */}
-        <div className="p-4 pb-8 overflow-y-auto flex-1">{children}</div>
+        {/* Content - Scrollável */}
+        <div className="p-4 pb-6">{children}</div>
       </div>
     </div>
   );
