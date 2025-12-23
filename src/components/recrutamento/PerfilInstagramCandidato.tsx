@@ -793,84 +793,154 @@ export function PerfilInstagramCandidato({
 
       {/* Modal DISC */}
       {abaAberta === "disc" && (
-        <ModalInfoCandidato titulo="Perfil DISC" onClose={() => setAbaAberta(null)}>
-          <div className="space-y-4">
-            <div className="text-center">
-              <span className={`text-4xl font-bold ${candidato.perfil_disc ? getCorDISC(candidato.perfil_disc) : "text-gray-400"}`}>
-                {candidato.perfil_disc || "?"}
-              </span>
-              <p className="text-gray-400 mt-3 text-sm">{getDescricaoDISC(candidato.perfil_disc)}</p>
-            </div>
-            {perfisDISC.length > 0 && (
-              <div className="flex justify-center gap-4 mt-4">
-                {perfisDISC.map((letra, i) => (
-                  <div key={i} className="text-center">
-                    <span className={`text-2xl font-bold ${getCorDISC(letra)}`}>{letra}</span>
-                    <p className="text-gray-500 text-xs mt-1">{getNomeDISC(letra)}</p>
-                  </div>
-                ))}
+        <ModalInfoCandidato
+          titulo={candidato.perfil_disc ? "Seu Perfil DISC" : "Descubra seu Perfil"}
+          onClose={() => setAbaAberta(null)}
+        >
+          {candidato.perfil_disc ? (
+            /* === TEM PERFIL - Mostrar resultado === */
+            <div className="space-y-4">
+              <div className="text-center">
+                <span className={`text-4xl font-bold ${getCorDISC(candidato.perfil_disc)}`}>
+                  {candidato.perfil_disc}
+                </span>
+                <p className="text-gray-400 mt-3 text-sm">{getDescricaoDISC(candidato.perfil_disc)}</p>
               </div>
-            )}
+              {perfisDISC.length > 0 && (
+                <div className="flex justify-center gap-4 mt-4">
+                  {perfisDISC.map((letra, i) => (
+                    <div key={i} className="text-center">
+                      <span className={`text-2xl font-bold ${getCorDISC(letra)}`}>{letra}</span>
+                      <p className="text-gray-500 text-xs mt-1">{getNomeDISC(letra)}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-            {/* Botões de ação */}
-            <div className="pt-4 border-t border-zinc-800 space-y-3">
-              {candidato.perfil_disc ? (
-                <>
-                  {/* Tem perfil - Mostrar botão para ver relatório completo */}
-                  <Button
-                    onClick={() => {
-                      setAbaAberta(null);
-                      setShowRelatorioDisc(true);
-                    }}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                  >
-                    <Target className="w-4 h-4 mr-2" />
-                    Ver Relatório Completo
-                  </Button>
+              <div className="pt-4 border-t border-zinc-800 space-y-3">
+                <Button
+                  onClick={() => {
+                    setAbaAberta(null);
+                    setShowRelatorioDisc(true);
+                  }}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3"
+                >
+                  <Target className="w-4 h-4 mr-2" />
+                  Ver Relatório Completo
+                </Button>
 
-                  {/* Botão refazer (apenas para candidato) */}
-                  {modoVisualizacao === "candidato" && (
-                    podeRefazerDisc ? (
-                      <Button
-                        onClick={() => {
-                          setAbaAberta(null);
-                          setShowInstrucoesDISC(true);
-                        }}
-                        variant="outline"
-                        className="w-full border-blue-500/40 text-blue-400 hover:bg-blue-500/20"
-                      >
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                        Refazer Teste
-                      </Button>
-                    ) : (
-                      <div className="flex items-center justify-center gap-2 text-sm text-gray-500 py-2">
-                        <Clock className="w-4 h-4" />
-                        Você poderá refazer em {diasParaRefazer} dias
-                      </div>
-                    )
-                  )}
-                </>
-              ) : (
-                /* Não tem perfil - Mostrar botão para fazer teste */
-                modoVisualizacao === "candidato" ? (
+                {modoVisualizacao === "candidato" && (
+                  podeRefazerDisc ? (
+                    <Button
+                      onClick={() => {
+                        setAbaAberta(null);
+                        setShowInstrucoesDISC(true);
+                      }}
+                      variant="outline"
+                      className="w-full border-blue-500/40 text-blue-400 hover:bg-blue-500/20"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Refazer Teste
+                    </Button>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2 text-sm text-gray-500 py-2">
+                      <Clock className="w-4 h-4" />
+                      Você poderá refazer em {diasParaRefazer} dias
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          ) : (
+            /* === NÃO TEM PERFIL - Convite persuasivo === */
+            modoVisualizacao === "candidato" ? (
+              <div className="space-y-5">
+                {/* Ícone chamativo */}
+                <div className="flex justify-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                    <Target className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+
+                {/* Headline - DOR */}
+                <div className="text-center">
+                  <h2 className="text-lg font-bold text-white mb-2">
+                    Cansado de vagas que não combinam com você?
+                  </h2>
+                  <p className="text-gray-400 text-sm">
+                    Descubra suas <span className="text-blue-400 font-semibold">vocações naturais</span> e
+                    atraia empresas que buscam exatamente o seu perfil.
+                  </p>
+                </div>
+
+                {/* Benefícios visuais */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                    <span className="text-sm text-gray-300">
+                      <strong className="text-white">Seja encontrado</strong> por empresas certas
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg">
+                    <CheckCircle2 className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                    <span className="text-sm text-gray-300">
+                      <strong className="text-white">Evite frustrações</strong> em cargos incompatíveis
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 bg-purple-500/10 border border-purple-500/20 p-3 rounded-lg">
+                    <CheckCircle2 className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                    <span className="text-sm text-gray-300">
+                      <strong className="text-white">Destaque-se</strong> com perfil comportamental
+                    </span>
+                  </div>
+                </div>
+
+                {/* Prova social */}
+                <div className="text-center py-2 bg-zinc-800/50 rounded-lg">
+                  <p className="text-xs text-gray-500">
+                    Metodologia usada por <strong className="text-gray-400">75% das Fortune 500</strong>
+                  </p>
+                </div>
+
+                {/* Tempo */}
+                <p className="text-center text-xs text-gray-500">
+                  ⏱️ Tempo estimado: <strong className="text-gray-400">10-15 minutos</strong>
+                </p>
+
+                {/* BOTÕES */}
+                <div className="space-y-2 pt-2">
                   <Button
                     onClick={() => {
                       setAbaAberta(null);
                       setShowInstrucoesDISC(true);
                     }}
-                    className="w-full bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white"
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-base font-semibold rounded-xl shadow-lg"
                   >
-                    <Target className="w-4 h-4 mr-2" />
-                    Fazer Teste DISC
+                    Descobrir Meu Perfil
                   </Button>
-                ) : (
-                  <p className="text-center text-gray-500 text-sm">
-                    Este candidato ainda não realizou o teste DISC
-                  </p>
-                )
-              )}
-            </div>
-          </div>
+
+                  <Button
+                    variant="ghost"
+                    onClick={() => setAbaAberta(null)}
+                    className="w-full text-gray-500 hover:text-gray-300 hover:bg-zinc-800/50"
+                  >
+                    Fazer depois
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Target className="w-8 h-8 text-gray-500" />
+                </div>
+                <p className="text-gray-500 text-sm">
+                  Este candidato ainda não realizou o teste DISC
+                </p>
+              </div>
+            )
+          )}
         </ModalInfoCandidato>
       )}
 

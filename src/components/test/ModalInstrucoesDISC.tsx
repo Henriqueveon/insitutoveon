@@ -1,11 +1,11 @@
 // =====================================================
 // MODAL DE INSTRUÇÕES - Exibido antes de iniciar o teste DISC
-// Avisa sobre os 21 dias e dá dicas para melhor resultado
+// Design persuasivo com aviso de 21 dias e botão "Fazer depois"
 // =====================================================
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Clock, Brain, Volume2, CheckCircle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 interface ModalInstrucoesDISCProps {
   isOpen: boolean;
@@ -16,77 +16,95 @@ interface ModalInstrucoesDISCProps {
 export function ModalInstrucoesDISC({ isOpen, onClose, onStart }: ModalInstrucoesDISCProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto p-0 bg-zinc-900 border-zinc-800">
+      <DialogContent className="max-w-md mx-4 max-h-[75vh] overflow-y-auto p-0 bg-zinc-900 border-zinc-800 pb-20">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-xl font-bold text-center text-white">
-            Teste de Perfil Comportamental DISC
+            Prepare-se para sua Análise
           </DialogTitle>
         </DialogHeader>
 
         <div className="p-6 pt-4 space-y-6">
-          {/* AVISO IMPORTANTE */}
-          <div className="bg-amber-950/50 border border-amber-500/30 rounded-xl p-4">
+          {/* AVISO DOS 21 DIAS - Destaque visual */}
+          <div className="bg-amber-500/10 border-l-4 border-amber-500 p-4 rounded-r-lg">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0" />
               <div>
-                <p className="font-semibold text-amber-400">IMPORTANTE</p>
+                <p className="font-semibold text-amber-400">Atenção</p>
                 <p className="text-amber-200/80 text-sm mt-1">
-                  Ao começar este teste, você só poderá refazê-lo após <strong className="text-amber-300">21 dias</strong>.
+                  Após iniciar, você só poderá refazer este teste em <strong className="text-amber-300">21 dias</strong>.
                 </p>
               </div>
             </div>
           </div>
 
           {/* INSTRUÇÕES */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-white flex items-center gap-2">
-              <span className="text-lg">📋</span> Instruções:
-            </h3>
+          <div>
+            <h3 className="font-semibold text-white mb-4">Para um resultado preciso:</h3>
 
             <div className="space-y-4">
-              <div className="flex items-start gap-3 bg-zinc-800/50 rounded-lg p-3">
-                <Clock className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                <p className="text-gray-300 text-sm">
-                  <strong className="text-white">Ao começar, termine.</strong> Reserve cerca de 10-15 minutos para completar o teste sem interrupções.
-                </p>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-400 font-bold text-sm">1</span>
+                </div>
+                <div>
+                  <p className="font-medium text-white">Ao começar, termine</p>
+                  <p className="text-sm text-gray-400">Reserve 10-15 minutos sem interrupções</p>
+                </div>
               </div>
 
-              <div className="flex items-start gap-3 bg-zinc-800/50 rounded-lg p-3">
-                <Brain className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
-                <p className="text-gray-300 text-sm">
-                  <strong className="text-white">Não se distraia.</strong> Mantenha o foco durante todo o teste para resultados mais precisos.
-                </p>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-400 font-bold text-sm">2</span>
+                </div>
+                <div>
+                  <p className="font-medium text-white">Ambiente tranquilo</p>
+                  <p className="text-sm text-gray-400">Evite distrações e barulhos</p>
+                </div>
               </div>
 
-              <div className="flex items-start gap-3 bg-zinc-800/50 rounded-lg p-3">
-                <Volume2 className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                <p className="text-gray-300 text-sm">
-                  <strong className="text-white">Ambiente tranquilo.</strong> Evite barulhos e interrupções.
-                </p>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-400 font-bold text-sm">3</span>
+                </div>
+                <div>
+                  <p className="font-medium text-white">Seja autêntico</p>
+                  <p className="text-sm text-gray-400">Não existe certo ou errado, responda como você é</p>
+                </div>
               </div>
 
-              <div className="flex items-start gap-3 bg-zinc-800/50 rounded-lg p-3">
-                <CheckCircle className="w-5 h-5 text-teal-400 flex-shrink-0 mt-0.5" />
-                <p className="text-gray-300 text-sm">
-                  <strong className="text-white">Sem respostas certas ou erradas.</strong> Responda com sinceridade, baseado em como você realmente age.
-                </p>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-400 font-bold text-sm">4</span>
+                </div>
+                <div>
+                  <p className="font-medium text-white">Confie no instinto</p>
+                  <p className="text-sm text-gray-400">Primeira resposta é geralmente a mais verdadeira</p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* BOTÃO COMEÇAR */}
-          <div className="pt-2">
+          {/* BOTÕES - DOIS BOTÕES */}
+          <div className="space-y-3 pt-2">
             <Button
               onClick={onStart}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-6 text-lg font-semibold rounded-xl"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-base font-semibold rounded-xl"
             >
-              Começar Teste
+              Iniciar Teste Agora
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="w-full border-zinc-700 text-gray-400 hover:text-white hover:bg-zinc-800 py-3 rounded-xl"
+            >
+              Fazer Depois
             </Button>
           </div>
 
-          {/* TEXTO LEGAL */}
+          {/* Texto de segurança */}
           <p className="text-xs text-gray-500 text-center">
-            Ao clicar em "Começar Teste", você concorda em responder todas as questões com sinceridade.
+            🔒 Suas respostas são confidenciais e protegidas
           </p>
         </div>
       </DialogContent>
