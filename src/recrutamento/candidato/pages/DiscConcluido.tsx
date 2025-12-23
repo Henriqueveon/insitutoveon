@@ -88,6 +88,8 @@ export default function DiscConcluido() {
             confiabilidade_score: reliability?.score ?? null,
             confiabilidade_nivel: reliability?.nivel ?? null,
             confiabilidade_flags: reliability?.warnings ?? [],
+            // Salvar data de realização para controle de refazer (21 dias)
+            disc_realizado_em: new Date().toISOString(),
           })
           .eq('id', candidato.id);
 

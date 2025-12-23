@@ -38,6 +38,7 @@ import {
   Shield,
   HelpCircle,
   LogOut,
+  RefreshCw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -69,6 +70,8 @@ import { ModalAdicionarDestaque } from "./ModalAdicionarDestaque";
 import { InteresseAtuacaoTags } from "@/recrutamento/components/InteresseAtuacaoTags";
 import { MicroIconeDisc } from "@/recrutamento/components/MicroIconeDisc";
 import { UsernameInput } from "@/recrutamento/components/UsernameInput";
+import { RelatorioDiscModal } from "@/recrutamento/candidato/components/RelatorioDiscModal";
+import { useNavigate } from "react-router-dom";
 
 interface PerfilInstagramCandidatoProps {
   candidatoId: string;
@@ -119,6 +122,11 @@ interface Candidato {
   telefone: string | null;
   created_at: string | null;
   username: string | null;
+  // Campos DISC
+  perfil_natural?: Record<string, number> | null;
+  confiabilidade_score?: number | null;
+  confiabilidade_nivel?: string | null;
+  disc_realizado_em?: string | null;
 }
 
 interface Destaque {
@@ -157,6 +165,9 @@ export function PerfilInstagramCandidato({
   // Novos estados para o redesign
   const [showMenu, setShowMenu] = useState(false);
   const [abaAberta, setAbaAberta] = useState<string | null>(null);
+  const [showRelatorioDisc, setShowRelatorioDisc] = useState(false);
+
+  const navigate = useNavigate();
 
   // Ref para input de foto
   const fotoInputRef = useRef<HTMLInputElement>(null);
@@ -408,6 +419,21 @@ export function PerfilInstagramCandidato({
       .filter((l) => ["D", "I", "S", "C"].includes(l.toUpperCase()))
       .slice(0, 2);
   };
+
+  // Função para calcular dias restantes para refazer o teste DISC (21 dias)
+  const calcularDiasParaRefazer = (discRealizadoEm: string | null | undefined): number => {
+    if (!discRealizadoEm) return 0;
+    const dataRealizacao = new Date(discRealizadoEm);
+    const dataLiberacao = new Date(dataRealizacao);
+    dataLiberacao.setDate(dataLiberacao.getDate() + 21);
+    const hoje = new Date();
+    const diffTime = dataLiberacao.getTime() - hoje.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  const diasParaRefazer = calcularDiasParaRefazer(candidato?.disc_realizado_em);
+  const podeRefazerDisc = diasParaRefazer === 0;
 
   if (loading) {
     return (
@@ -783,6 +809,65 @@ export function PerfilInstagramCandidato({
                 ))}
               </div>
             )}
+
+            {/* Botões de ação */}
+            <div className="pt-4 border-t border-zinc-800 space-y-3">
+              {candidato.perfil_disc ? (
+                <>
+                  {/* Tem perfil - Mostrar botão para ver relatório completo */}
+                  <Button
+                    onClick={() => {
+                      setAbaAberta(null);
+                      setShowRelatorioDisc(true);
+                    }}
+                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                  >
+                    <Target className="w-4 h-4 mr-2" />
+                    Ver Relatório Completo
+                  </Button>
+
+                  {/* Botão refazer (apenas para candidato) */}
+                  {modoVisualizacao === "candidato" && (
+                    podeRefazerDisc ? (
+                      <Button
+                        onClick={() => {
+                          setAbaAberta(null);
+                          navigate("/recrutamento/candidato/teste-disc");
+                        }}
+                        variant="outline"
+                        className="w-full border-blue-500/40 text-blue-400 hover:bg-blue-500/20"
+                      >
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Refazer Teste
+                      </Button>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2 text-sm text-gray-500 py-2">
+                        <Clock className="w-4 h-4" />
+                        Você poderá refazer em {diasParaRefazer} dias
+                      </div>
+                    )
+                  )}
+                </>
+              ) : (
+                /* Não tem perfil - Mostrar botão para fazer teste */
+                modoVisualizacao === "candidato" ? (
+                  <Button
+                    onClick={() => {
+                      setAbaAberta(null);
+                      navigate("/recrutamento/candidato/teste-disc");
+                    }}
+                    className="w-full bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white"
+                  >
+                    <Target className="w-4 h-4 mr-2" />
+                    Fazer Teste DISC
+                  </Button>
+                ) : (
+                  <p className="text-center text-gray-500 text-sm">
+                    Este candidato ainda não realizou o teste DISC
+                  </p>
+                )
+              )}
+            </div>
           </div>
         </ModalInfoCandidato>
       )}
@@ -952,6 +1037,22 @@ export function PerfilInstagramCandidato({
           onAtualizar={() => {
             carregarDestaques();
             onPerfilAtualizado?.();
+          }}
+        />
+      )}
+
+      {/* Modal Relatório DISC Completo */}
+      {showRelatorioDisc && candidato && (
+        <RelatorioDiscModal
+          isOpen={showRelatorioDisc}
+          onClose={() => setShowRelatorioDisc(false)}
+          candidato={candidato}
+          isProprioPeril={modoVisualizacao === "candidato"}
+          diasParaRefazer={diasParaRefazer}
+          podeRefazer={podeRefazerDisc}
+          onRefazerTeste={() => {
+            setShowRelatorioDisc(false);
+            navigate("/recrutamento/candidato/teste-disc");
           }}
         />
       )}
